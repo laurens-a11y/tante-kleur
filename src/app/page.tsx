@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <>
       <div className={s.announce}>
-        Introductieprijs: jouw kleurboek voor €{price.intro} in plaats van €{price.regular}.
+        Introductieprijs: jouw kleurboek voor €{price.intro}, straks €{price.regular}.
       </div>
 
       <header className={s.header}>
