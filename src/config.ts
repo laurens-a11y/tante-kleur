@@ -3,6 +3,8 @@
 export const site = {
   name: "Tante Kleur",
   price: { intro: 59, regular: 69 },
+  // Verzendkosten per boek, incl. btw, in centen (NL en BE).
+  shippingCents: 695,
   // Uploadformulier (bijv. Tally) waar de klant na betaling foto's aanlevert.
   // Krijgt ?order=<checkout session id> mee. Zet NEXT_PUBLIC_UPLOAD_URL in Vercel.
   uploadUrl: process.env.NEXT_PUBLIC_UPLOAD_URL || "",

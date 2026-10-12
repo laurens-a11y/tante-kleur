@@ -37,6 +37,10 @@ const faqs = [
   },
 ];
 
+function formatEuro(cents: number) {
+  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
+}
+
 function Check() {
   return (
     <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F73D11" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -215,7 +219,9 @@ export default function Home() {
                   <span className={`${s.display} ${s.price}`}>€{price.intro}</span>
                   <span style={{ fontSize: 15 }}>incl. btw</span>
                 </p>
-                <p style={{ margin: 0, fontSize: 15 }}>Introductieprijs, daarna €{price.regular}</p>
+                <p style={{ margin: 0, fontSize: 15 }}>
+                  Introductieprijs, daarna €{price.regular}. Verzending NL en BE: {formatEuro(site.shippingCents)}
+                </p>
               </div>
               <ul className={s.checks}>
                 {perks.map((p) => (

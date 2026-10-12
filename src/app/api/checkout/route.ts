@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { site } from "@/config";
 import { checkoutConfig, getStripe } from "@/lib/stripe";
 
 // Maakt een Stripe Checkout Session aan en stuurt de klant door naar de
@@ -30,6 +31,16 @@ export async function POST(request: Request) {
       shipping_address_collection: {
         allowed_countries: [...checkoutConfig.countries],
       },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            display_name: "Verzending",
+            fixed_amount: { amount: site.shippingCents, currency: "eur" },
+            tax_behavior: "inclusive",
+          },
+        },
+      ],
       custom_fields: [
         {
           key: "cover_titel",
