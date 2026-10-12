@@ -5,9 +5,10 @@ export const site = {
   price: { intro: 59, regular: 69 },
   // Verzendkosten per boek, incl. btw, in centen (NL en BE).
   shippingCents: 695,
-  // Uploadformulier (bijv. Tally) waar de klant na betaling foto's aanlevert.
-  // Krijgt ?order=<checkout session id> mee. Zet NEXT_PUBLIC_UPLOAD_URL in Vercel.
-  uploadUrl: process.env.NEXT_PUBLIC_UPLOAD_URL || "https://tally.so/r/vG7pM4",
+  // Tally-uploadformulier, ingebed op /upload. Krijgt ?order=<checkout session id>
+  // mee als verborgen veld "order".
+  tallyFormId: "vG7pM4",
+  uploadUrl: "/upload",
   // TODO: definitief e-mailadres invullen
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hallo@tantekleur.nl",
   // TODO: levertijd bevestigen na eerste proefdruk bij PrintAPI

@@ -32,7 +32,7 @@ Open http://localhost:3000.
 | `STRIPE_WEBHOOK_SECRET` | Vercel (sensitive) | Staat ingesteld (sandbox-endpoint) |
 | `STRIPE_PRICE_LOOKUP_KEY` | Vercel | `kleurboek_a4` |
 | `STRIPE_AUTOMATIC_TAX` | Vercel | Pas `true` na actieve btw-registratie in Stripe Tax |
-| `NEXT_PUBLIC_UPLOAD_URL` | Vercel (optioneel) | Uploadformulier, standaard Tally `vG7pM4`; krijgt `?order=<session id>` mee |
+| (geen) | `src/config.ts` | Tally-formulier `vG7pM4`, ingebed op `/upload`; krijgt `?order=<session id>` mee als verborgen veld |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Vercel | Contactadres |
 
 Lokaal: `vercel env pull .env.local`.
