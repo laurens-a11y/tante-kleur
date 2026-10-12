@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { site } from "@/config";
+import { CheckoutButton } from "./CheckoutButton";
 import s from "./page.module.css";
 
 const covers = [
@@ -45,7 +46,7 @@ function Check() {
 }
 
 export default function Home() {
-  const { price, orderUrl, email, company } = site;
+  const { price, email, company } = site;
 
   return (
     <>
@@ -65,7 +66,7 @@ export default function Home() {
             <a href="#zakelijk">Zakelijk</a>
             <a href="#vragen">Vragen</a>
           </div>
-          <a href={orderUrl} className={`${s.btn} ${s.btnSmall}`}>Maak mijn boek</a>
+          <CheckoutButton className={`${s.btn} ${s.btnSmall}`} />
         </nav>
       </header>
 
@@ -81,7 +82,7 @@ export default function Home() {
                 Tante Kleur tovert jouw foto&apos;s om tot kleurplaten, in een boek dat net zo bijzonder is als wat erin staat.
               </p>
               <div className={s.buttons}>
-                <a href={orderUrl} className={s.btn}>Maak mijn boek</a>
+                <CheckoutButton className={s.btn} />
                 <a href="#voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</a>
               </div>
               <p className={s.heroPerks}>
@@ -221,7 +222,7 @@ export default function Home() {
                   <li key={p}><Check /><span>{p}</span></li>
                 ))}
               </ul>
-              <a href={orderUrl} className={s.btn}>Maak mijn boek</a>
+              <CheckoutButton className={s.btn} />
             </div>
           </div>
         </section>
@@ -284,7 +285,7 @@ export default function Home() {
               <p className={s.display} style={{ fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 1, color: "var(--roze)" }}>
                 Kleur met Tante Kleur.
               </p>
-              <a href={orderUrl} className={s.btnPink}>Maak mijn boek</a>
+              <CheckoutButton className={s.btnPink} />
             </div>
             <Image src="/brand/logo-onblue.png" alt="Tante Kleur, gepersonaliseerde kleurboeken" width={280} height={190} />
           </div>
