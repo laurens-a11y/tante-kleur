@@ -168,8 +168,13 @@ export default function Home() {
             </div>
             <div className={s.compare}>
               <div className={s.stack} style={{ gap: 10 }}>
-                {/* TODO: originele foto bij de Berlijn-kleurplaat toevoegen */}
-                <div className={s.placeholder}>Originele foto volgt</div>
+                <Image
+                  src="/brand/foto-berlijn.jpg"
+                  alt="Selfie van twee vriendinnen op een treinperron in Berlijn"
+                  width={1000}
+                  height={1333}
+                  className={s.frame}
+                />
                 <p className={s.wide}>De foto</p>
               </div>
               <div className={s.stack} style={{ gap: 10 }}>
