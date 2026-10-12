@@ -16,7 +16,7 @@ Open http://localhost:3000.
 | Onderdeel | Keuze |
 |---|---|
 | Voorkant + API-routes | Next.js (App Router) op Vercel, functies in `fra1` |
-| Content | Sanity (alleen marketingcontent: FAQ, voorbeelden, pagina's) |
+| Content | Sanity, beheer via https://tantekleur.sanity.studio (homepagina-teksten, veelgestelde vragen, voorbeelden) |
 | Betaling | Stripe Checkout (hosted) via `/api/checkout`, webhook op `/api/stripe/webhook` |
 | Drukwerk | PrintAPI (MVP: handmatig bestellen) |
 | Later | Supabase (EU) voor orders en privé foto-opslag, jobrunner voor AI-generatie |
@@ -58,3 +58,10 @@ Klantfoto's worden direct verwijderd zodra een order naar de drukker gaat. Klant
 3. Orderverwerking gebeurt in de webhook (`checkout.session.completed` / `async_payment_succeeded`), niet op de bedankpagina.
 
 Lokaal webhooks testen: `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
+
+## Content beheren (Sanity)
+
+- Studio: https://tantekleur.sanity.studio (schema beheerd via de Sanity MCP, geen lokale Studio-code).
+- Typen: `homepagina` (kop, intro, merkverhaal), `vraag` (vraag, antwoord, volgorde), `voorbeeld` (foto, kleurplaat, toestemming, volgorde).
+- De homepage haalt content op via `src/sanity/content.ts` (`use cache`, ververst elke minuut). Zonder Sanity-content valt de site terug op de standaardteksten.
+- Alleen voorbeelden met `toestemming = true` verschijnen op de site.

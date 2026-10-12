@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { site } from "@/config";
+import { getHomeContent } from "@/sanity/content";
 import { CheckoutButton } from "./CheckoutButton";
 import s from "./page.module.css";
 
@@ -18,7 +19,7 @@ const perks = [
   "Eerst een digitale proef, pas daarna drukken",
 ];
 
-const faqs = [
+const fallbackFaqs = [
   {
     q: "Welke foto's werken het best?",
     a: "Scherpe foto's met goed licht, waarop gezichten goed te zien zijn. Selfies, portretten, huisdieren en vakantiekiekjes werken prima. Grote groepsfoto's en donkere of wazige foto's minder.",
@@ -49,8 +50,11 @@ function Check() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
   const { price, email, company } = site;
+  // Teksten, vragen en voorbeeld komen uit Sanity; zonder Sanity-content vallen we terug op de standaardteksten.
+  const { homepagina, vragen, voorbeeld } = await getHomeContent();
+  const faqs = vragen ? vragen.map((v) => ({ key: v._id, q: v.vraag, a: v.antwoord })) : fallbackFaqs.map((f) => ({ key: f.q, ...f }));
 
   return (
     <>
@@ -80,11 +84,8 @@ export default function Home() {
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ gap: 28 }}>
               <p className={s.tag}>Gepersonaliseerde kleurboeken</p>
-              <h1 className={`${s.display} ${s.h1}`}>Je mooiste momenten, om in te kleuren.</h1>
-              <p className={s.lead} style={{ maxWidth: 480 }}>
-                Jij en je lief in Spanje, je jaarlijkse vriendenweekend of het eerste jaar van je kleintje.
-                Tante Kleur tovert jouw foto&apos;s om tot kleurplaten, in een boek dat net zo bijzonder is als wat erin staat.
-              </p>
+              <h1 className={`${s.display} ${s.h1}`}>{homepagina.heroKop}</h1>
+              <p className={s.lead} style={{ maxWidth: 480 }}>{homepagina.heroIntro}</p>
               <div className={s.buttons}>
                 <CheckoutButton className={s.btn} />
                 <a href="#voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</a>
@@ -114,14 +115,10 @@ export default function Home() {
         <section className={`${s.section} ${s.story}`}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 28 }}>
             <p className={`${s.display} ${s.storyLine}`} style={{ color: "var(--roze)" }}>
-              Ze staan allemaal ergens in je camerarol. En daar blijven ze ook, toch?
+              {homepagina.verhaalVraag}
             </p>
-            <p className={`${s.display} ${s.storyLine}`}>Niet als het aan Tante Kleur ligt.</p>
-            <p className={s.lead} style={{ maxWidth: 640, lineHeight: 1.6 }}>
-              Ze houdt van mooie dingen, van mensen en van kleur. En ze vindt dat jouw foto&apos;s wel wat meer verdienen.
-              Dus maakt ze er een kleurboek van, met jouw mensen, jouw plekken en jouw verhalen. Aan jou om je
-              herinneringen een kleurtje te geven. Binnen de lijntjes of er lekker buiten. Tante vindt alles goed.
-            </p>
+            <p className={`${s.display} ${s.storyLine}`}>{homepagina.verhaalAntwoord}</p>
+            <p className={s.lead} style={{ maxWidth: 640, lineHeight: 1.6 }}>{homepagina.verhaalTekst}</p>
           </div>
         </section>
 
@@ -169,22 +166,24 @@ export default function Home() {
             <div className={s.compare}>
               <div className={s.stack} style={{ gap: 10 }}>
                 <Image
-                  src="/brand/foto-berlijn.jpg"
-                  alt="Selfie van twee vriendinnen op een treinperron in Berlijn"
-                  width={1000}
-                  height={1333}
+                  src={voorbeeld?.foto.url ?? "/brand/foto-berlijn.jpg"}
+                  alt={voorbeeld?.foto.alt ?? "Selfie van twee vriendinnen op een treinperron in Berlijn"}
+                  width={800}
+                  height={1000}
+                  sizes="(max-width: 700px) 50vw, 360px"
                   className={s.frame}
                 />
                 <p className={s.wide}>De foto</p>
               </div>
               <div className={s.stack} style={{ gap: 10 }}>
                 <Image
-                  src="/brand/kleurplaat-berlijn.jpg"
-                  alt="Kleurplaat van twee vriendinnen op een treinstation in Berlijn"
-                  width={584}
-                  height={911}
+                  src={voorbeeld?.kleurplaat.url ?? "/brand/kleurplaat-berlijn.jpg"}
+                  alt={voorbeeld?.kleurplaat.alt ?? "Kleurplaat van twee vriendinnen op een treinstation in Berlijn"}
+                  width={800}
+                  height={1000}
+                  sizes="(max-width: 700px) 50vw, 360px"
                   className={s.frame}
-                  style={{ objectPosition: "60% 30%" }}
+                  style={voorbeeld ? undefined : { objectPosition: "60% 30%" }}
                 />
                 <p className={s.wide}>De kleurplaat</p>
               </div>
@@ -279,7 +278,7 @@ export default function Home() {
             </div>
             <div className={s.faq}>
               {faqs.map((f) => (
-                <div key={f.q} className={s.faqItem}>
+                <div key={f.key} className={s.faqItem}>
                   <h3>{f.q}</h3>
                   <p className={s.body}>{f.a}</p>
                 </div>
