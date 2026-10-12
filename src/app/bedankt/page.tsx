@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { getStripe } from "@/lib/stripe";
 import { site } from "@/config";
@@ -25,6 +26,8 @@ export default function BedanktPage({ searchParams }: PageProps<"/bedankt">) {
 
 async function OrderStatus({ searchParams }: { searchParams: PageProps<"/bedankt">["searchParams"] }) {
   const { session_id } = await searchParams;
+  // De Stripe SDK gebruikt Date.now(); pas op request-tijd uitvoeren.
+  await connection();
   const sessionId = typeof session_id === "string" ? session_id : null;
 
   let name: string | null = null;

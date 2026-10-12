@@ -7,6 +7,7 @@ export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const signature = request.headers.get("stripe-signature");
   if (!secret || !signature) {
+    console.error(`Webhook afgewezen: ${!secret ? "STRIPE_WEBHOOK_SECRET ontbreekt" : "geen stripe-signature header"}`);
     return new Response("Webhook niet geconfigureerd", { status: 400 });
   }
 
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     console.error("Ongeldige webhook-handtekening:", error instanceof Error ? error.message : error);
     return new Response("Ongeldige handtekening", { status: 400 });
   }
+
+  console.info(`Webhook ontvangen: ${event.type} (${event.id})`);
 
   switch (event.type) {
     case "checkout.session.completed":
