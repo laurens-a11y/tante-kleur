@@ -1,0 +1,40 @@
+:root {
+  /* Tante Kleur merkkleuren */
+  --blauw: #002cd4;
+  --rood: #f73d11;
+  --roze: #f4b3c1;
+  --lichtblauw: #c1dce6;
+  --geel: #f3b500;
+  --wit: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--wit);
+  color: var(--blauw);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+:focus-visible {
+  outline: 3px solid var(--rood);
+  outline-offset: 3px;
+}
