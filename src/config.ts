@@ -7,7 +7,7 @@ export const site = {
   shippingCents: 695,
   // Uploadformulier (bijv. Tally) waar de klant na betaling foto's aanlevert.
   // Krijgt ?order=<checkout session id> mee. Zet NEXT_PUBLIC_UPLOAD_URL in Vercel.
-  uploadUrl: process.env.NEXT_PUBLIC_UPLOAD_URL || "",
+  uploadUrl: process.env.NEXT_PUBLIC_UPLOAD_URL || "https://tally.so/r/vG7pM4",
   // TODO: definitief e-mailadres invullen
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hallo@tantekleur.nl",
   // TODO: levertijd bevestigen na eerste proefdruk bij PrintAPI
