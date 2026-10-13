@@ -14,7 +14,9 @@ export function Icon({ name, size = 24, className, style }: { name: IconName; si
       width={size}
       height={size}
       className={className}
-      style={{ objectFit: "contain", flex: "none", ...style }}
+      // Vaste vierkante maat (de globale img-regel zet height op auto, waardoor
+      // iconen met een andere verhouding anders uitlijnden), links uitgelijnd.
+      style={{ width: size, height: size, objectFit: "contain", objectPosition: "left center", flex: "none", ...style }}
     />
   );
 }
