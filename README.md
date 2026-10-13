@@ -43,6 +43,15 @@ Teksten staan in Sanity; de standaardteksten in `src/content/paginas.ts` en `src
 
 Het schema is MCP-beheerd (geen lokale Studio in deze repo). Wijzigingen worden binnen enkele minuten zichtbaar.
 
+## SEO en GEO
+
+- Elke pagina heeft in Sanity een blok "Zoekmachines en delen" (meta title, meta description, deelafbeelding, niet indexeren). Leeg = standaard uit `src/content/paginas.ts` (`paginaMeta`).
+- "Instellingen: SEO en merk" in Sanity: standaardomschrijving, standaard deelafbeelding, merkomschrijving voor AI-zoekmachines en sociale-medialinks.
+- Canonical-links wijzen altijd naar `site.url` (`src/config.ts`), ook op `*.vercel.app`.
+- JSON-LD: Organization/OnlineStore en WebSite (layout), Product met Offer, verzending en retourbeleid (home, prijs), HowTo (home, zo werkt het), FAQPage (vragen). Zie `src/lib/gestructureerde-data.ts`.
+- `/robots.txt` laat zoekmachines en AI-crawlers toe, behalve op `/api`, `/bedankt` en `/upload`. `/sitemap.xml` neemt de laatste wijzigingsdatum uit Sanity over.
+- `/llms.txt`: feitelijke samenvatting in Markdown voor AI-assistenten, opgebouwd uit Sanity en `src/config.ts`.
+
 ## Instellingen
 
 Prijs, levertijd, contactgegevens en bedrijfsgegevens staan centraal in `src/config.ts`.

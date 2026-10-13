@@ -3,6 +3,7 @@ import { LegalPage } from "@/components/LegalPage";
 import html from "@/content/juridisch/voorwaarden.html";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/voorwaarden" },
   title: "Algemene voorwaarden – Tante Kleur",
   description: "De algemene voorwaarden van Tante Kleur, een handelsnaam van LaunchLab VOF.",
 };

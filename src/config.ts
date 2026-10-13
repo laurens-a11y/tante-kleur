@@ -2,6 +2,8 @@
 
 export const site = {
   name: "Tante Kleur",
+  // Productiedomein, voor canonical-links, sitemap en gestructureerde data.
+  url: "https://tantekleur.nl",
   price: { intro: 59, regular: 69 },
   // Verzendkosten per boek, incl. btw, in centen (NL en BE).
   shippingCents: 695,

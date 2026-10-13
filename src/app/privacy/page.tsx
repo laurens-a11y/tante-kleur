@@ -3,6 +3,7 @@ import { LegalPage } from "@/components/LegalPage";
 import html from "@/content/juridisch/privacy.html";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacyverklaring – Tante Kleur",
   description: "Hoe Tante Kleur omgaat met je persoonsgegevens en je foto's.",
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { site } from "@/config";
-import { getPagina } from "@/sanity/content";
+import { getPagina, getMetadata } from "@/sanity/content";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -9,10 +9,9 @@ import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
 
-export const metadata: Metadata = {
-  title: "Persoonlijk Sinterklaas- en kerstcadeau: een kleurboek van je eigen foto's – Tante Kleur",
-  description: `Het persoonlijkste cadeau in de schoen of onder de boom. Bestel op tijd: ${site.deadlines.map((d) => `${d.feest} uiterlijk ${d.datum}`).join(", ")}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("feestdagenPagina");
+}
 
 const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 

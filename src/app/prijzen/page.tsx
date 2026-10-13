@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { site } from "@/config";
-import { getPagina } from "@/sanity/content";
+import { getInstellingen, getPagina, getMetadata } from "@/sanity/content";
+import { JsonLd } from "@/components/JsonLd";
+import { product } from "@/lib/gestructureerde-data";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -11,10 +13,9 @@ import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
 
-export const metadata: Metadata = {
-  title: "Prijs – Tante Kleur",
-  description: `Jouw persoonlijke hardcover kleurboek voor €${site.price.intro} (introductieprijs). Inclusief btw, verzending in Nederland en België.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("prijzenPagina");
+}
 
 function formatEuro(cents: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
@@ -22,9 +23,10 @@ function formatEuro(cents: number) {
 
 export default async function PrijzenPage() {
   const { price } = site;
-  const p = await getPagina("prijzenPagina");
+  const [p, instellingen] = await Promise.all([getPagina("prijzenPagina"), getInstellingen()]);
   return (
     <>
+      <JsonLd data={product({ omschrijving: instellingen.merkOmschrijving })} />
       <SiteHeader current="/prijzen" />
       <main>
         <section className={x.pageHero}>

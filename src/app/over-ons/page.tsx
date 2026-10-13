@@ -2,17 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/config";
-import { getPagina } from "@/sanity/content";
+import { getPagina, getMetadata } from "@/sanity/content";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
 
-export const metadata: Metadata = {
-  title: "Over Tante Kleur & contact",
-  description: "Wie Tante Kleur is, waar ze voor staat en hoe je contact opneemt.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("overOnsPagina");
+}
 
 const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 

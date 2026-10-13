@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getVoorbeelden } from "@/sanity/content";
+import { getPagina, getVoorbeelden, getMetadata } from "@/sanity/content";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
 
-export const metadata: Metadata = {
-  title: "Voorbeelden: van foto naar kleurplaat – Tante Kleur",
-  description: "Bekijk hoe gewone telefoonfoto's veranderen in kleurplaten, en hoe het boek eruitziet met je eigen titel op de cover.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("voorbeeldenPagina");
+}
 
 const fallback = {
   _id: "berlijn",
@@ -29,7 +28,7 @@ const covers = [
 ];
 
 export default async function VoorbeeldenPage() {
-  const voorbeelden = await getVoorbeelden();
+  const [voorbeelden, p] = await Promise.all([getVoorbeelden(), getPagina("voorbeeldenPagina")]);
   const items = voorbeelden.length ? voorbeelden : [fallback];
   const linksLabel = voorbeelden.length ? "De foto" : "Het boek";
 
@@ -40,8 +39,8 @@ export default async function VoorbeeldenPage() {
         <section className={x.pageHero}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
             <p className={s.tag}>Voorbeelden</p>
-            <h1 className={`${s.display} ${s.h1}`}>Van camerarol naar kleurplaat.</h1>
-            <p className={s.lead}>Alles hieronder is gemaakt van gewone foto&apos;s, zoals ze op je telefoon staan.</p>
+            <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
+            <p className={s.lead}>{p.intro}</p>
           </div>
         </section>
 

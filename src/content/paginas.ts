@@ -165,5 +165,65 @@ export const overOnsPagina = {
   contactKop: "Vraagje voor Tante?",
 };
 
-export const paginas = { homepagina, hoeHetWerktPagina, prijzenPagina, zakelijkPagina, feestdagenPagina, overOnsPagina };
+export const vragenPagina = {
+  kop: "Tante legt het even uit.",
+};
+
+export const voorbeeldenPagina = {
+  kop: "Van camerarol naar kleurplaat.",
+  intro: "Alles hieronder is gemaakt van gewone foto's, zoals ze op je telefoon staan.",
+};
+
+export const paginas = { homepagina, hoeHetWerktPagina, prijzenPagina, zakelijkPagina, feestdagenPagina, overOnsPagina, vragenPagina, voorbeeldenPagina };
 export type PaginaType = keyof typeof paginas;
+
+// Standaard-SEO per pagina: geldt als de velden onder "Zoekmachines en delen" in Sanity leeg zijn.
+export const paginaMeta: Record<PaginaType, { pad: string; titel: string; omschrijving: string }> = {
+  homepagina: {
+    pad: "/",
+    titel: "Tante Kleur – Gepersonaliseerde kleurboeken van je eigen foto's",
+    omschrijving: "Tante Kleur tovert je mooiste foto's om tot kleurplaten, in een stevig hardcover kleurboek met je eigen titel. Voor jezelf of als cadeau.",
+  },
+  hoeHetWerktPagina: {
+    pad: "/hoe-het-werkt",
+    titel: "Zo werkt het – Tante Kleur",
+    omschrijving: "Van bestellen tot kleuren: hoe Tante Kleur van jouw foto's een kleurboek maakt, en welke foto's het mooist uitpakken.",
+  },
+  prijzenPagina: {
+    pad: "/prijzen",
+    titel: "Prijs – Tante Kleur",
+    omschrijving: "Jouw persoonlijke hardcover kleurboek voor {prijs} (introductieprijs). Inclusief btw, verzending in Nederland en België.",
+  },
+  zakelijkPagina: {
+    pad: "/zakelijk",
+    titel: "Zakelijk: een eindejaarscadeau dat over jullie gaat – Tante Kleur",
+    omschrijving: "Persoonlijke kleurboeken als kerst- of eindejaarsgeschenk, voor jubilea, onboarding of als relatiegeschenk. Vraag een offerte aan.",
+  },
+  feestdagenPagina: {
+    pad: "/sinterklaas-en-kerst",
+    titel: "Persoonlijk Sinterklaas- en kerstcadeau: een kleurboek van je eigen foto's – Tante Kleur",
+    omschrijving: "Het persoonlijkste cadeau in de schoen of onder de boom. Bestel op tijd: {deadlines}.",
+  },
+  overOnsPagina: {
+    pad: "/over-ons",
+    titel: "Over Tante Kleur & contact",
+    omschrijving: "Wie Tante Kleur is, waar ze voor staat en hoe je contact opneemt.",
+  },
+  vragenPagina: {
+    pad: "/vragen",
+    titel: "Veelgestelde vragen – Tante Kleur",
+    omschrijving: "Antwoorden over het boek, je foto's, privacy, bestellen, levertijd en retour.",
+  },
+  voorbeeldenPagina: {
+    pad: "/voorbeelden",
+    titel: "Voorbeelden: van foto naar kleurplaat – Tante Kleur",
+    omschrijving: "Bekijk hoe gewone telefoonfoto's veranderen in kleurplaten, en hoe het boek eruitziet met je eigen titel op de cover.",
+  },
+};
+
+export const instellingen = {
+  standaardOmschrijving: paginaMeta.homepagina.omschrijving,
+  merkOmschrijving:
+    "Tante Kleur maakt gepersonaliseerde kleurboeken van je eigen foto's. Elke foto wordt met hulp van AI omgezet in een kleurplaat en daarna door een mens gecontroleerd; je krijgt altijd eerst een digitale proef. Het boek is een stevige A4-hardcover met {kleurplaten} kleurplaten en een eigen titel op de cover, voor {prijs} inclusief btw. Tante Kleur bezorgt in Nederland en België.",
+  socialeMedia: [] as string[],
+};

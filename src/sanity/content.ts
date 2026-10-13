@@ -3,7 +3,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { createClient, defineQuery } from "next-sanity";
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { site } from "@/config";
-import { paginas, type PaginaType } from "@/content/paginas";
+import type { Metadata } from "next";
+import { instellingen as standaardInstellingen, paginaMeta, paginas, type PaginaType } from "@/content/paginas";
 import { standaardVragen, themas, type Vraag } from "@/content/vragen";
 
 export type { Vraag };
@@ -199,5 +200,107 @@ export async function getVoorbeelden(): Promise<Voorbeeld[]> {
   } catch (error) {
     console.error("Sanity-voorbeelden ophalen mislukt:", error instanceof Error ? error.message : error);
     return [];
+  }
+}
+
+// ---------- SEO ----------
+
+type Seo = { titel?: string; omschrijving?: string; afbeelding?: SanityImage; verbergen?: boolean };
+type RuweInstellingen = {
+  standaardOmschrijving?: string;
+  standaardAfbeelding?: SanityImage;
+  merkOmschrijving?: string;
+  socialeMedia?: string[];
+};
+
+const SEO_QUERY = defineQuery(`*[_type == $type] | order(_updatedAt desc)[0].seo`);
+const INSTELLINGEN_QUERY = defineQuery(
+  `*[_type == "instellingen"] | order(_updatedAt desc)[0]{standaardOmschrijving, standaardAfbeelding, merkOmschrijving, socialeMedia}`,
+);
+const BIJGEWERKT_QUERY = defineQuery(
+  `{"paginas": *[_type in $types]{_type, _updatedAt, "verborgen": seo.verbergen == true}, "vragen": *[_type == "vraag"] | order(_updatedAt desc)[0]._updatedAt, "voorbeelden": *[_type == "voorbeeld"] | order(_updatedAt desc)[0]._updatedAt}`,
+);
+
+async function haalSeoOp(type: PaginaType): Promise<Seo | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("sanity");
+  try {
+    return await client.fetch<Seo | null>(SEO_QUERY, { type });
+  } catch (error) {
+    console.error(`Sanity-SEO ${type} ophalen mislukt:`, error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+async function haalInstellingenOp(): Promise<RuweInstellingen | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("sanity");
+  try {
+    return await client.fetch<RuweInstellingen | null>(INSTELLINGEN_QUERY);
+  } catch (error) {
+    console.error("Sanity-instellingen ophalen mislukt:", error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+function deelafbeelding(image?: SanityImage) {
+  return image?.asset ? imageBuilder.image(image).width(1200).height(630).fit("crop").auto("format").url() : null;
+}
+
+export async function getInstellingen() {
+  const ruw = await haalInstellingenOp();
+  return vulIn({
+    standaardOmschrijving: ruw?.standaardOmschrijving?.trim() || standaardInstellingen.standaardOmschrijving,
+    merkOmschrijving: ruw?.merkOmschrijving?.trim() || standaardInstellingen.merkOmschrijving,
+    socialeMedia: (ruw?.socialeMedia ?? []).filter((u) => /^https?:\/\//.test(u)),
+    standaardAfbeelding: deelafbeelding(ruw?.standaardAfbeelding),
+  });
+}
+
+// Metadata (title, description, canonical, Open Graph) voor een pagina, met Sanity-SEO waar ingevuld.
+export async function getMetadata(type: PaginaType): Promise<Metadata> {
+  const [seo, inst] = await Promise.all([haalSeoOp(type), getInstellingen()]);
+  const std = paginaMeta[type];
+  const titel = vulIn(seo?.titel?.trim() || std.titel);
+  const omschrijving = vulIn(seo?.omschrijving?.trim() || std.omschrijving || inst.standaardOmschrijving);
+  const afbeelding = deelafbeelding(seo?.afbeelding) ?? inst.standaardAfbeelding;
+  const images = afbeelding
+    ? [{ url: afbeelding, width: 1200, height: 630, alt: titel }]
+    : [{ url: "/brand/hero.jpg", width: 1000, height: 1250, alt: "Drie Tante Kleur-kleurboeken op een zonnige tafel" }];
+
+  return {
+    title: { absolute: titel },
+    description: omschrijving,
+    alternates: { canonical: std.pad },
+    openGraph: {
+      type: "website",
+      locale: "nl_NL",
+      siteName: site.name,
+      url: std.pad,
+      title: titel,
+      description: omschrijving,
+      images,
+    },
+    twitter: { card: "summary_large_image", title: titel, description: omschrijving, images: images.map((i) => i.url) },
+    robots: seo?.verbergen ? { index: false, follow: true } : undefined,
+  };
+}
+
+// Laatste wijziging per pagina en welke pagina's verborgen zijn, voor de sitemap.
+export async function getBijgewerkt(): Promise<{
+  paginas: { _type: PaginaType; _updatedAt: string; verborgen: boolean }[];
+  vragen: string | null;
+  voorbeelden: string | null;
+}> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("sanity");
+  try {
+    return await client.fetch(BIJGEWERKT_QUERY, { types: Object.keys(paginas) });
+  } catch (error) {
+    console.error("Sanity-bijgewerkt ophalen mislukt:", error instanceof Error ? error.message : error);
+    return { paginas: [], vragen: null, voorbeelden: null };
   }
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPagina } from "@/sanity/content";
+import { getPagina, getMetadata } from "@/sanity/content";
+import { JsonLd } from "@/components/JsonLd";
+import { stappenplan } from "@/lib/gestructureerde-data";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -8,10 +10,9 @@ import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
 
-export const metadata: Metadata = {
-  title: "Zo werkt het – Tante Kleur",
-  description: "Van bestellen tot kleuren: hoe Tante Kleur van jouw foto's een kleurboek maakt, en welke foto's het mooist uitpakken.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("hoeHetWerktPagina");
+}
 
 const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
@@ -19,6 +20,7 @@ export default async function HoeHetWerktPage() {
   const p = await getPagina("hoeHetWerktPagina");
   return (
     <>
+      <JsonLd data={stappenplan(p.stappen)} />
       <SiteHeader current="/hoe-het-werkt" />
       <main>
         <section className={x.pageHero}>

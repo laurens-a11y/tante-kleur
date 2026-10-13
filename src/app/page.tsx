@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { site } from "@/config";
-import { getHomeContent } from "@/sanity/content";
+import { getHomeContent, getInstellingen, getMetadata } from "@/sanity/content";
+import { JsonLd } from "@/components/JsonLd";
+import { product, stappenplan } from "@/lib/gestructureerde-data";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { CheckoutButton } from "./CheckoutButton";
@@ -24,14 +27,20 @@ function Check() {
   return <Icon name="akkoord" size={22} style={{ marginTop: 2 }} />;
 }
 
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("homepagina");
+}
+
 export default async function Home() {
   const { price } = site;
   // Teksten, vragen en voorbeeld komen uit Sanity; lege velden vallen terug op src/content/paginas.ts.
-  const { homepagina, vragen, voorbeeld } = await getHomeContent();
+  const [{ homepagina, vragen, voorbeeld }, instellingen] = await Promise.all([getHomeContent(), getInstellingen()]);
   const stapKleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
   return (
     <>
+      <JsonLd data={product({ omschrijving: instellingen.merkOmschrijving })} />
+      <JsonLd data={stappenplan(homepagina.stappen)} />
       <SiteHeader current="/" />
 
       <main>

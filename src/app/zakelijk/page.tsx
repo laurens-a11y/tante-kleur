@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { site } from "@/config";
-import { getPagina } from "@/sanity/content";
+import { getPagina, getMetadata } from "@/sanity/content";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { OfferteForm } from "./OfferteForm";
@@ -9,10 +9,9 @@ import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
 
-export const metadata: Metadata = {
-  title: "Zakelijk: een eindejaarscadeau dat over jullie gaat – Tante Kleur",
-  description: "Persoonlijke kleurboeken als kerst- of eindejaarsgeschenk, voor jubilea, onboarding of als relatiegeschenk. Vraag een offerte aan.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getMetadata("zakelijkPagina");
+}
 
 export default async function ZakelijkPage() {
   const p = await getPagina("zakelijkPagina");
