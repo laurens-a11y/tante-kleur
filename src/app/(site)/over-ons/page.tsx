@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/config";
 import { getPagina, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -15,8 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
-export default async function OverOnsPage() {
-  const [homepagina, p] = await Promise.all([getPagina("homepagina"), getPagina("overOnsPagina")]);
+export default function OverOnsPage() {
+  return <MetOpties>{(opties) => <OverOnsInhoud opties={opties} />}</MetOpties>;
+}
+
+async function OverOnsInhoud({ opties }: { opties: FetchOpties }) {
+  const [homepagina, p] = await Promise.all([getPagina("homepagina", opties), getPagina("overOnsPagina", opties)]);
   const { company, email } = site;
 
   return (

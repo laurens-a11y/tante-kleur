@@ -1,30 +1,33 @@
 import "server-only";
-import { cacheLife, cacheTag } from "next/cache";
-import { createClient, defineQuery } from "next-sanity";
+import { defineQuery, stegaClean } from "next-sanity";
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { site } from "@/config";
+import { dataset, projectId } from "./env";
+import { cachedSanity, GEPUBLICEERD, type FetchOpties } from "./live";
 import type { Metadata } from "next";
 import { instellingen as standaardInstellingen, paginaMeta, paginas, type PaginaType } from "@/content/paginas";
 import { standaardVragen, themas, type Vraag } from "@/content/vragen";
 
-export type { Vraag };
+export type { Vraag, FetchOpties };
+export { GEPUBLICEERD };
 
-// Marketingcontent uit Sanity (Studio: https://tantekleur.sanity.studio).
+// Marketingcontent uit Sanity (Studio: /studio op de site).
 // Klantfoto's horen hier nooit in; alleen teksten en showcase-voorbeelden.
-
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "hera4nnf";
-const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
-
-const client = createClient({
-  projectId,
-  dataset,
-  apiVersion: "2026-10-12",
-  useCdn: true,
-  perspective: "published",
-  token: process.env.SANITY_API_READ_TOKEN,
-});
+//
+// Elke functie krijgt FetchOpties mee: gepubliceerd voor gewone bezoekers,
+// concepten met stega in draft mode (Presentation). Zie src/sanity/MetOpties.tsx.
 
 const imageBuilder = createImageUrlBuilder({ projectId, dataset });
+
+async function haal<T>(naam: string, query: string, params: Record<string, unknown>, opties: FetchOpties): Promise<T | null> {
+  try {
+    const { data } = await cachedSanity({ query, params, perspective: opties.perspective, stega: opties.stega });
+    return (data as T) ?? null;
+  } catch (error) {
+    console.error(`Sanity ${naam} ophalen mislukt:`, error instanceof Error ? error.message : error);
+    return null;
+  }
+}
 
 type SanityImage = { asset?: { _ref: string }; alt?: string; hotspot?: unknown; crop?: unknown };
 
@@ -79,7 +82,7 @@ function schoonLijst(sanity: unknown[], voorbeeld: unknown): unknown[] {
   return sanity
     .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
     .filter((item) => velden.every((k) => k === "tekst" || gevuld(item[k])))
-    .map((item) => ("icoon" in voorbeeld ? { ...item, icoon: iconen.has(String(item.icoon)) ? item.icoon : "boek" } : item));
+    .map((item) => ("icoon" in voorbeeld ? { ...item, icoon: iconen.has(stegaClean(String(item.icoon))) ? stegaClean(item.icoon) : "boek" } : item));
 }
 
 // Per veld: waarde uit Sanity als die gevuld is, anders de standaardtekst.
@@ -94,22 +97,10 @@ function samenvoegen<T extends Record<string, unknown>>(standaard: T, sanity: Re
   return uit as T;
 }
 
-async function haalPaginaOp(type: PaginaType): Promise<Record<string, unknown> | null> {
-  "use cache";
-  // Wijzigingen in de Studio staan binnen enkele minuten op de site.
-  cacheLife("minutes");
-  cacheTag("sanity");
-  try {
-    return await client.fetch<Record<string, unknown> | null>(PAGINA_QUERY, { type });
-  } catch (error) {
-    console.error(`Sanity-pagina ${type} ophalen mislukt:`, error instanceof Error ? error.message : error);
-    return null;
-  }
-}
-
-export async function getPagina<K extends PaginaType>(type: K): Promise<(typeof paginas)[K]> {
+export async function getPagina<K extends PaginaType>(type: K, opties: FetchOpties): Promise<(typeof paginas)[K]> {
   const standaard = paginas[type] as Record<string, unknown>;
-  return vulIn(samenvoegen(standaard, await haalPaginaOp(type))) as (typeof paginas)[K];
+  const sanity = await haal<Record<string, unknown>>(`pagina ${type}`, PAGINA_QUERY, { type }, opties);
+  return vulIn(samenvoegen(standaard, sanity)) as (typeof paginas)[K];
 }
 
 const PAGINA_QUERY = defineQuery(`*[_type == $type] | order(_updatedAt desc)[0]`);
@@ -120,24 +111,17 @@ const VRAGEN_QUERY = defineQuery(
   `*[_type == "vraag" && defined(vraag) && defined(antwoord)] | order(coalesce(volgorde, 999) asc, _createdAt asc){_id, vraag, antwoord, thema, opHomepage}`,
 );
 
-async function haalVragenOp(): Promise<Vraag[] | null> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("sanity");
-  try {
-    const rows = await client.fetch<Vraag[]>(VRAGEN_QUERY);
-    return rows.length ? rows : null;
-  } catch (error) {
-    console.error("Sanity-vragen ophalen mislukt:", error instanceof Error ? error.message : error);
-    return null;
-  }
-}
-
 // Alle vragen, voor /vragen. Vragen zonder (geldig) thema komen bij het laatste thema.
-export async function getVragen(): Promise<Vraag[]> {
+export async function getVragen(opties: FetchOpties): Promise<Vraag[]> {
   const geldig = new Set<string>(themas.map((t) => t.id));
-  const rows = (await haalVragenOp()) ?? standaardVragen;
-  return vulIn(rows.map((v) => ({ ...v, thema: geldig.has(v.thema) ? v.thema : themas[themas.length - 1].id })));
+  const gevonden = await haal<Vraag[]>("vragen", VRAGEN_QUERY, {}, opties);
+  const rows = gevonden?.length ? gevonden : standaardVragen;
+  return vulIn(
+    rows.map((v) => {
+      const thema = stegaClean(v.thema);
+      return { ...v, thema: geldig.has(thema) ? thema : themas[themas.length - 1].id };
+    }),
+  );
 }
 
 // ---------- Homepage ----------
@@ -150,27 +134,23 @@ function imageUrl(image: SanityImage, width: number, height: number) {
   return imageBuilder.image(image).width(width).height(height).fit("crop").auto("format").quality(82).url();
 }
 
-async function haalVoorbeeldOp(): Promise<Voorbeeld | null> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("sanity");
-  try {
-    const v = await client.fetch<{ _id: string; foto: SanityImage; kleurplaat: SanityImage } | null>(VOORBEELD_QUERY);
-    return v
-      ? {
-          _id: v._id,
-          foto: { url: imageUrl(v.foto, 800, 1000), alt: v.foto.alt || "Originele foto" },
-          kleurplaat: { url: imageUrl(v.kleurplaat, 800, 1000), alt: v.kleurplaat.alt || "Kleurplaat" },
-        }
-      : null;
-  } catch (error) {
-    console.error("Sanity-voorbeeld ophalen mislukt:", error instanceof Error ? error.message : error);
-    return null;
-  }
+type RuwVoorbeeld = { _id: string; foto: SanityImage; kleurplaat: SanityImage };
+
+function naarVoorbeeld(v: RuwVoorbeeld): Voorbeeld {
+  return {
+    _id: v._id,
+    foto: { url: imageUrl(v.foto, 800, 1000), alt: v.foto.alt || "Originele foto" },
+    kleurplaat: { url: imageUrl(v.kleurplaat, 800, 1000), alt: v.kleurplaat.alt || "Kleurplaat" },
+  };
 }
 
-export async function getHomeContent() {
-  const [homepagina, vragen, voorbeeld] = await Promise.all([getPagina("homepagina"), getVragen(), haalVoorbeeldOp()]);
+export async function getHomeContent(opties: FetchOpties) {
+  const [homepagina, vragen, ruwVoorbeeld] = await Promise.all([
+    getPagina("homepagina", opties),
+    getVragen(opties),
+    haal<RuwVoorbeeld>("voorbeeld", VOORBEELD_QUERY, {}, opties),
+  ]);
+  const voorbeeld = ruwVoorbeeld ? naarVoorbeeld(ruwVoorbeeld) : null;
   const opHomepage = vragen.filter((v) => v.opHomepage);
   return {
     homepagina,
@@ -185,22 +165,9 @@ const VOORBEELDEN_QUERY = defineQuery(
 );
 
 // Alle voorbeelden met toestemming, voor /voorbeelden.
-export async function getVoorbeelden(): Promise<Voorbeeld[]> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("sanity");
-
-  try {
-    const rows = await client.fetch<{ _id: string; foto: SanityImage; kleurplaat: SanityImage }[]>(VOORBEELDEN_QUERY);
-    return rows.map((v) => ({
-      _id: v._id,
-      foto: { url: imageUrl(v.foto, 800, 1000), alt: v.foto.alt || "Originele foto" },
-      kleurplaat: { url: imageUrl(v.kleurplaat, 800, 1000), alt: v.kleurplaat.alt || "Kleurplaat" },
-    }));
-  } catch (error) {
-    console.error("Sanity-voorbeelden ophalen mislukt:", error instanceof Error ? error.message : error);
-    return [];
-  }
+export async function getVoorbeelden(opties: FetchOpties): Promise<Voorbeeld[]> {
+  const rows = await haal<RuwVoorbeeld[]>("voorbeelden", VOORBEELDEN_QUERY, {}, opties);
+  return (rows ?? []).map(naarVoorbeeld);
 }
 
 // ---------- SEO ----------
@@ -221,36 +188,14 @@ const BIJGEWERKT_QUERY = defineQuery(
   `{"paginas": *[_type in $types]{_type, _updatedAt, "verborgen": seo.verbergen == true}, "vragen": *[_type == "vraag"] | order(_updatedAt desc)[0]._updatedAt, "voorbeelden": *[_type == "voorbeeld"] | order(_updatedAt desc)[0]._updatedAt}`,
 );
 
-async function haalSeoOp(type: PaginaType): Promise<Seo | null> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("sanity");
-  try {
-    return await client.fetch<Seo | null>(SEO_QUERY, { type });
-  } catch (error) {
-    console.error(`Sanity-SEO ${type} ophalen mislukt:`, error instanceof Error ? error.message : error);
-    return null;
-  }
-}
-
-async function haalInstellingenOp(): Promise<RuweInstellingen | null> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("sanity");
-  try {
-    return await client.fetch<RuweInstellingen | null>(INSTELLINGEN_QUERY);
-  } catch (error) {
-    console.error("Sanity-instellingen ophalen mislukt:", error instanceof Error ? error.message : error);
-    return null;
-  }
-}
-
 function deelafbeelding(image?: SanityImage) {
   return image?.asset ? imageBuilder.image(image).width(1200).height(630).fit("crop").auto("format").url() : null;
 }
 
+// Instellingen, SEO en sitemap gebruiken altijd gepubliceerde content zonder
+// stega: die belanden in <head>, JSON-LD en XML, waar onzichtbare tekens schaden.
 export async function getInstellingen() {
-  const ruw = await haalInstellingenOp();
+  const ruw = await haal<RuweInstellingen>("instellingen", INSTELLINGEN_QUERY, {}, GEPUBLICEERD);
   return vulIn({
     standaardOmschrijving: ruw?.standaardOmschrijving?.trim() || standaardInstellingen.standaardOmschrijving,
     merkOmschrijving: ruw?.merkOmschrijving?.trim() || standaardInstellingen.merkOmschrijving,
@@ -261,7 +206,7 @@ export async function getInstellingen() {
 
 // Metadata (title, description, canonical, Open Graph) voor een pagina, met Sanity-SEO waar ingevuld.
 export async function getMetadata(type: PaginaType): Promise<Metadata> {
-  const [seo, inst] = await Promise.all([haalSeoOp(type), getInstellingen()]);
+  const [seo, inst] = await Promise.all([haal<Seo>(`SEO ${type}`, SEO_QUERY, { type }, GEPUBLICEERD), getInstellingen()]);
   const std = paginaMeta[type];
   const titel = vulIn(seo?.titel?.trim() || std.titel);
   const omschrijving = vulIn(seo?.omschrijving?.trim() || std.omschrijving || inst.standaardOmschrijving);
@@ -294,13 +239,10 @@ export async function getBijgewerkt(): Promise<{
   vragen: string | null;
   voorbeelden: string | null;
 }> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("sanity");
-  try {
-    return await client.fetch(BIJGEWERKT_QUERY, { types: Object.keys(paginas) });
-  } catch (error) {
-    console.error("Sanity-bijgewerkt ophalen mislukt:", error instanceof Error ? error.message : error);
-    return { paginas: [], vragen: null, voorbeelden: null };
-  }
+  const data = await haal<{
+    paginas: { _type: PaginaType; _updatedAt: string; verborgen: boolean }[];
+    vragen: string | null;
+    voorbeelden: string | null;
+  }>("bijgewerkt", BIJGEWERKT_QUERY, { types: Object.keys(paginas) }, GEPUBLICEERD);
+  return data ?? { paginas: [], vragen: null, voorbeelden: null };
 }

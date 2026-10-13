@@ -1,7 +1,7 @@
 import { site } from "@/config";
 import { paginaMeta, type PaginaType } from "@/content/paginas";
 import { themas } from "@/content/vragen";
-import { getInstellingen, getVragen, vulIn } from "@/sanity/content";
+import { GEPUBLICEERD, getInstellingen, getVragen, vulIn } from "@/sanity/content";
 
 // /llms.txt: een feitelijke samenvatting van Tante Kleur in Markdown, zodat
 // AI-assistenten (ChatGPT, Claude, Perplexity) het bedrijf correct beschrijven.
@@ -29,7 +29,7 @@ const namen: Record<PaginaType, string> = {
 };
 
 export async function GET() {
-  const [instellingen, vragen] = await Promise.all([getInstellingen(), getVragen()]);
+  const [instellingen, vragen] = await Promise.all([getInstellingen(), getVragen(GEPUBLICEERD)]);
   const { company } = site;
 
   const feiten = vulIn([

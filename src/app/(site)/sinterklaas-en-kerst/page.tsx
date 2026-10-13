@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { site } from "@/config";
 import { getPagina, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -15,8 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
-export default async function FeestdagenPage() {
-  const p = await getPagina("feestdagenPagina");
+export default function FeestdagenPage() {
+  return <MetOpties>{(opties) => <FeestdagenInhoud opties={opties} />}</MetOpties>;
+}
+
+async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
+  const p = await getPagina("feestdagenPagina", opties);
   return (
     <>
       <SiteHeader current="/sinterklaas-en-kerst" />

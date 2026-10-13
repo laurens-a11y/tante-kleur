@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPagina, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { JsonLd } from "@/components/JsonLd";
 import { stappenplan } from "@/lib/gestructureerde-data";
 import { CheckoutButton } from "../CheckoutButton";
@@ -16,8 +18,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
-export default async function HoeHetWerktPage() {
-  const p = await getPagina("hoeHetWerktPagina");
+export default function HoeHetWerktPage() {
+  return <MetOpties>{(opties) => <HoeHetWerktInhoud opties={opties} />}</MetOpties>;
+}
+
+async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
+  const p = await getPagina("hoeHetWerktPagina", opties);
   return (
     <>
       <JsonLd data={stappenplan(p.stappen)} />

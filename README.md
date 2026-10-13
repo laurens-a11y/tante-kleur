@@ -16,7 +16,7 @@ Open http://localhost:3000.
 | Onderdeel | Keuze |
 |---|---|
 | Voorkant + API-routes | Next.js (App Router) op Vercel, functies in `fra1` |
-| Content | Sanity, beheer via https://tantekleur.sanity.studio (teksten van home, zo werkt het, prijs, zakelijk, Sinterklaas & kerst en over ons; alle veelgestelde vragen; voorbeelden) |
+| Content | Sanity, beheer via https://tantekleur.nl/studio (teksten van home, zo werkt het, prijs, zakelijk, Sinterklaas & kerst en over ons; alle veelgestelde vragen; voorbeelden) |
 | Betaling | Stripe Checkout (hosted) via `/api/checkout`, webhook op `/api/stripe/webhook` |
 | Drukwerk | PrintAPI (MVP: handmatig bestellen) |
 | Later | Supabase (EU) voor orders en privé foto-opslag, jobrunner voor AI-generatie |
@@ -41,7 +41,12 @@ Lokaal: `vercel env pull .env.local`.
 
 Teksten staan in Sanity; de standaardteksten in `src/content/paginas.ts` en `src/content/vragen.ts` gelden alleen als een veld leeg is of Sanity onbereikbaar is. In teksten kun je `{prijs}`, `{normalePrijs}`, `{verzendkosten}`, `{kleurplaten}`, `{levertijd}`, `{deadlines}` en `{email}` gebruiken; die worden ingevuld vanuit `src/config.ts`. Prijzen, deadlines, juridische teksten, upload- en bedankpagina blijven bewust in de code.
 
-Het schema is MCP-beheerd (geen lokale Studio in deze repo). Wijzigingen worden binnen enkele minuten zichtbaar.
+De Studio draait in deze site op `/studio` (`sanity.config.ts`, schema in `src/sanity/schema`). Het tabblad **Live bewerken** (Presentation) toont de site met klikken-en-bewerken en concepten. Gepubliceerde wijzigingen staan via `<SanityLive />` direct op de site; als vangnet ververst de cache uiterlijk na 10 minuten (`cacheLife` in `next.config.ts`).
+
+- Pagina's ophalen gaat via `MetOpties` (`src/sanity/MetOpties.tsx`): gewoon bezoek krijgt gepubliceerde, statisch gecachete content; in draft mode concepten met stega.
+- Draft mode: `/api/draft-mode/enable` (aangeroepen door de Studio) en `/api/draft-mode/disable`. Vereist `SANITY_API_READ_TOKEN` met Viewer-rechten.
+- CORS in Sanity: `https://tantekleur.nl`, `https://tante-kleur.vercel.app`, `https://*-getflipd.vercel.app`, localhost 3000/3333.
+- Het schema bestaat twee keer: in code (voor de Studio) en als MCP-schema in Sanity (voor AI-tools en de oude Studio op tantekleur.sanity.studio). Pas bij een schemawijziging beide aan.
 
 ## SEO en GEO
 

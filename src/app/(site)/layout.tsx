@@ -5,6 +5,10 @@ import { site } from "@/config";
 import { getInstellingen } from "@/sanity/content";
 import { JsonLd } from "@/components/JsonLd";
 import { organisatie } from "@/lib/gestructureerde-data";
+import { draftMode } from "next/headers";
+import { VisualEditing } from "next-sanity/visual-editing";
+import { SanityLive } from "@/sanity/live";
+import { DraftModeKnop } from "@/components/DraftModeKnop";
 
 // Tijdelijke vervangers voor de merkfonts (Swear Display + Widescreen).
 // Zodra de webfontlicenties er zijn: vervangen door next/font/local.
@@ -30,12 +34,20 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const instellingen = await getInstellingen();
+  const [instellingen, { isEnabled: isDraftMode }] = await Promise.all([getInstellingen(), draftMode()]);
   return (
     <html lang="nl" className={`${display.variable} ${sans.variable}`}>
       <body>
         <JsonLd data={organisatie({ omschrijving: instellingen.merkOmschrijving, socialeMedia: instellingen.socialeMedia })} />
         {children}
+        {/* Live: gepubliceerde wijzigingen direct op de site; in draft mode ook concepten. */}
+        <SanityLive includeDrafts={isDraftMode} />
+        {isDraftMode && (
+          <>
+            <VisualEditing />
+            <DraftModeKnop />
+          </>
+        )}
       </body>
     </html>
   );

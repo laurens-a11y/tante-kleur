@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/config";
-import { CheckoutButton } from "@/app/CheckoutButton";
-import s from "@/app/page.module.css";
+import { CheckoutButton } from "@/app/(site)/CheckoutButton";
+import s from "@/app/(site)/page.module.css";
 import x from "./site.module.css";
 import { Icon } from "@/components/Icon";
 

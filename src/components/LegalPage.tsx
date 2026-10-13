@@ -1,6 +1,6 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import s from "@/app/page.module.css";
+import s from "@/app/(site)/page.module.css";
 import x from "./site.module.css";
 
 // Juridische tekst, gegenereerd uit Markdown door scripts/juridisch.sh (eigen, vertrouwde inhoud).

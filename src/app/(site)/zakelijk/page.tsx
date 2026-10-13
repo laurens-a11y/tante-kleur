@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { site } from "@/config";
 import { getPagina, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { OfferteForm } from "./OfferteForm";
@@ -13,8 +15,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("zakelijkPagina");
 }
 
-export default async function ZakelijkPage() {
-  const p = await getPagina("zakelijkPagina");
+export default function ZakelijkPage() {
+  return <MetOpties>{(opties) => <ZakelijkInhoud opties={opties} />}</MetOpties>;
+}
+
+async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
+  const p = await getPagina("zakelijkPagina", opties);
   // "Voor kerst? Vraag je offerte..." → eerste zin vet.
   const [kerstVraag, ...kerstRest] = p.kerstTekst.split(/(?<=\?)\s+/);
   return (

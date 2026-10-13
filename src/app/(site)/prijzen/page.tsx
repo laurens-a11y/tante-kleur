@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { site } from "@/config";
 import { getInstellingen, getPagina, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { JsonLd } from "@/components/JsonLd";
 import { product } from "@/lib/gestructureerde-data";
 import { CheckoutButton } from "../CheckoutButton";
@@ -21,9 +23,13 @@ function formatEuro(cents: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
-export default async function PrijzenPage() {
+export default function PrijzenPage() {
+  return <MetOpties>{(opties) => <PrijzenInhoud opties={opties} />}</MetOpties>;
+}
+
+async function PrijzenInhoud({ opties }: { opties: FetchOpties }) {
   const { price } = site;
-  const [p, instellingen] = await Promise.all([getPagina("prijzenPagina"), getInstellingen()]);
+  const [p, instellingen] = await Promise.all([getPagina("prijzenPagina", opties), getInstellingen()]);
   return (
     <>
       <JsonLd data={product({ omschrijving: instellingen.merkOmschrijving })} />

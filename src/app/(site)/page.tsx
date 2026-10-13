@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { site } from "@/config";
 import { getHomeContent, getInstellingen, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { JsonLd } from "@/components/JsonLd";
 import { product, stappenplan } from "@/lib/gestructureerde-data";
 import Link from "next/link";
@@ -31,10 +33,14 @@ export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("homepagina");
 }
 
-export default async function Home() {
+export default function Home() {
+  return <MetOpties>{(opties) => <HomeInhoud opties={opties} />}</MetOpties>;
+}
+
+async function HomeInhoud({ opties }: { opties: FetchOpties }) {
   const { price } = site;
   // Teksten, vragen en voorbeeld komen uit Sanity; lege velden vallen terug op src/content/paginas.ts.
-  const [{ homepagina, vragen, voorbeeld }, instellingen] = await Promise.all([getHomeContent(), getInstellingen()]);
+  const [{ homepagina, vragen, voorbeeld }, instellingen] = await Promise.all([getHomeContent(opties), getInstellingen()]);
   const stapKleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
   return (

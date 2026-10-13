@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { getPagina, getVoorbeelden, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -27,8 +29,12 @@ const covers = [
   { src: "/brand/spanje-yellow.jpg", alt: "Geel kleurboek Spanje 2025 onder de arm" },
 ];
 
-export default async function VoorbeeldenPage() {
-  const [voorbeelden, p] = await Promise.all([getVoorbeelden(), getPagina("voorbeeldenPagina")]);
+export default function VoorbeeldenPage() {
+  return <MetOpties>{(opties) => <VoorbeeldenInhoud opties={opties} />}</MetOpties>;
+}
+
+async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
+  const [voorbeelden, p] = await Promise.all([getVoorbeelden(opties), getPagina("voorbeeldenPagina", opties)]);
   const items = voorbeelden.length ? voorbeelden : [fallback];
   const linksLabel = voorbeelden.length ? "De foto" : "Het boek";
 

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { site } from "@/config";
 import { themas } from "@/content/vragen";
 import { getPagina, getVragen, getMetadata } from "@/sanity/content";
+import { MetOpties } from "@/sanity/MetOpties";
+import type { FetchOpties } from "@/sanity/live";
 import { JsonLd } from "@/components/JsonLd";
 import { faqPagina } from "@/lib/gestructureerde-data";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -15,9 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("vragenPagina");
 }
 
-export default async function VragenPage() {
+export default function VragenPage() {
+  return <MetOpties>{(opties) => <VragenInhoud opties={opties} />}</MetOpties>;
+}
+
+async function VragenInhoud({ opties }: { opties: FetchOpties }) {
   // Vragen komen uit Sanity, gegroepeerd per thema in een vaste volgorde.
-  const [vragen, p] = await Promise.all([getVragen(), getPagina("vragenPagina")]);
+  const [vragen, p] = await Promise.all([getVragen(opties), getPagina("vragenPagina", opties)]);
   const groepen = themas
     .map((t) => ({ thema: t.titel, vragen: vragen.filter((v) => v.thema === t.id) }))
     .filter((g) => g.vragen.length);
