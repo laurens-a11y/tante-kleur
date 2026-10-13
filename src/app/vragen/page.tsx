@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Veelgestelde vragen – Tante Kleur",
@@ -35,7 +36,7 @@ export default function VragenPage() {
                 <div>
                   {groep.vragen.map((v) => (
                     <details key={v.q} className={x.faqDetails}>
-                      <summary>{v.q}</summary>
+                      <summary><span>{v.q}</span><Icon name="toevoegen" size={20} className={x.faqPlus} /></summary>
                       <p className={s.body}>{v.a}</p>
                     </details>
                   ))}

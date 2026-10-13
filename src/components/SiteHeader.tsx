@@ -4,6 +4,7 @@ import { site } from "@/config";
 import { CheckoutButton } from "@/app/CheckoutButton";
 import s from "@/app/page.module.css";
 import x from "./site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const navItems = [
   { href: "/voorbeelden", label: "Voorbeelden" },
@@ -44,7 +45,7 @@ export function SiteHeader({ current }: { current?: string }) {
             <CheckoutButton className={`${s.btn} ${s.btnSmall}`} />
           </div>
           <details className={x.mobileMenu}>
-            <summary>Menu</summary>
+            <summary aria-label="Menu"><Icon name="menu" size={26} /></summary>
             <div className={x.mobilePanel}>
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>

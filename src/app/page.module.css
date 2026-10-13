@@ -213,20 +213,17 @@
 
 .heroBadge {
   position: absolute;
-  left: -28px;
-  bottom: -36px;
-  width: 150px;
-  background: var(--blauw);
-  padding: 22px 20px;
-  border-radius: 18px;
-  transform: rotate(-10deg);
+  left: -48px;
+  bottom: -64px;
+  width: 210px;
+  filter: drop-shadow(0 12px 24px rgba(0, 44, 212, 0.18));
 }
 
 @media (max-width: 720px) {
   .heroBadge {
-    left: -8px;
-    width: 110px;
-    padding: 16px 14px;
+    left: -12px;
+    bottom: -48px;
+    width: 150px;
   }
 }
 

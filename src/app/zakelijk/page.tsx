@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { OfferteForm } from "./OfferteForm";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Zakelijk: een eindejaarscadeau dat over jullie gaat – Tante Kleur",
@@ -13,11 +14,11 @@ export const metadata: Metadata = {
 };
 
 const gelegenheden = [
-  { titel: "Eindejaarsgeschenk", tekst: "Een jaaroverzicht om in te kleuren, in plaats van een kerstpakket dat na twee weken op is." },
-  { titel: "Jubileum", tekst: "Tien, vijfentwintig of veertig jaar in dienst: de mooiste momenten in één boek." },
-  { titel: "Onboarding", tekst: "Een warm welkom voor nieuwe collega's, met het team en de werkplek erin." },
-  { titel: "Afscheid", tekst: "Een herinnering aan de collega's en momenten waar iemand jaren deel van was." },
-  { titel: "Relatiegeschenk", tekst: "Voor klanten en partners: jullie gezamenlijke projecten en mijlpalen." },
+  { icon: "cadeau" as const, titel: "Eindejaarsgeschenk", tekst: "Een jaaroverzicht om in te kleuren, in plaats van een kerstpakket dat na twee weken op is." },
+  { icon: "favoriet" as const, titel: "Jubileum", tekst: "Tien, vijfentwintig of veertig jaar in dienst: de mooiste momenten in één boek." },
+  { icon: "account" as const, titel: "Onboarding", tekst: "Een warm welkom voor nieuwe collega's, met het team en de werkplek erin." },
+  { icon: "hartje" as const, titel: "Afscheid", tekst: "Een herinnering aan de collega's en momenten waar iemand jaren deel van was." },
+  { icon: "label" as const, titel: "Relatiegeschenk", tekst: "Voor klanten en partners: jullie gezamenlijke projecten en mijlpalen." },
 ];
 
 const stappen = [
@@ -53,6 +54,7 @@ export default function ZakelijkPage() {
             <div className={x.cards}>
               {gelegenheden.map((g, i) => (
                 <div key={g.titel} className={x.card} style={{ background: ["var(--roze)", "var(--lichtblauw)"][i % 2] }}>
+                  <Icon name={g.icon} size={44} />
                   <h3 className={x.cardTitle}>{g.titel}</h3>
                   <p className={s.body}>{g.tekst}</p>
                 </div>
@@ -66,10 +68,12 @@ export default function ZakelijkPage() {
             <h2 className={`${s.display} ${s.h2}`}>Twee mogelijkheden</h2>
             <div className={x.cards}>
               <div className={x.card} style={{ background: "var(--wit)", color: "var(--blauw)" }}>
+                <Icon name="boek" size={44} />
                 <h3 className={x.cardTitle}>Eén teamboek</h3>
                 <p className={s.body}>Iedereen krijgt hetzelfde boek met de mooiste momenten van het team of het jaar. Ideaal als jaaroverzicht.</p>
               </div>
               <div className={x.card} style={{ background: "var(--wit)", color: "var(--blauw)" }}>
+                <Icon name="account" size={44} />
                 <h3 className={x.cardTitle}>Een eigen boek per persoon</h3>
                 <p className={s.body}>Elke medewerker of relatie krijgt een boek met eigen foto&apos;s. Persoonlijker kan het niet.</p>
               </div>

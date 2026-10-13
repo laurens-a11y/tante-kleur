@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Zo werkt het – Tante Kleur",
@@ -13,10 +14,10 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  { kleur: "var(--roze)", titel: "Bestel je boek", tekst: "Klik op Maak mijn boek, reken af en bedenk een titel voor de cover." },
-  { kleur: "var(--lichtblauw)", titel: "Stuur je foto's", tekst: `Na het afrekenen upload je ${site.plates} foto's van de mensen, dieren en plekken die je dierbaar zijn.` },
-  { kleur: "var(--geel)", titel: "Bekijk je proef", tekst: "Binnen een paar dagen krijg je een digitale proef. Je mag platen laten aanpassen, verwisselen of weglaten." },
-  { kleur: "var(--roze)", titel: "Jij kleurt", tekst: `Na je akkoord drukken we jouw boek. Binnen ${site.leadTimeDays} werkdagen ligt het bij je op de mat.` },
+  { icon: "winkelmandje" as const, kleur: "var(--roze)", titel: "Bestel je boek", tekst: "Klik op Maak mijn boek, reken af en bedenk een titel voor de cover." },
+  { icon: "uploaden" as const, kleur: "var(--lichtblauw)", titel: "Stuur je foto's", tekst: `Na het afrekenen upload je ${site.plates} foto's van de mensen, dieren en plekken die je dierbaar zijn.` },
+  { icon: "zoeken" as const, kleur: "var(--geel)", titel: "Bekijk je proef", tekst: "Binnen een paar dagen krijg je een digitale proef. Je mag platen laten aanpassen, verwisselen of weglaten." },
+  { icon: "boek" as const, kleur: "var(--roze)", titel: "Jij kleurt", tekst: `Na je akkoord drukken we jouw boek. Binnen ${site.leadTimeDays} werkdagen ligt het bij je op de mat.` },
 ];
 
 export default function HoeHetWerktPage() {
@@ -38,6 +39,7 @@ export default function HoeHetWerktPage() {
             <div className={s.steps}>
               {steps.map((st, i) => (
                 <div key={st.titel} className={s.step} style={{ background: st.kleur }}>
+                  <Icon name={st.icon} size={52} />
                   <p className={s.wide} style={{ color: "var(--rood)", fontSize: 15 }}>Stap {i + 1}</p>
                   <h3 className={`${s.display} ${s.h3}`}>{st.titel}</h3>
                   <p className={s.body}>{st.tekst}</p>
@@ -67,7 +69,7 @@ export default function HoeHetWerktPage() {
             </div>
             <div className={x.tips}>
               <div className={x.card} style={{ background: "var(--lichtblauw)" }}>
-                <h3 className={x.cardTitle}>Werkt goed</h3>
+                <h3 className={x.cardTitle} style={{ display: "flex", gap: 10, alignItems: "center" }}><Icon name="akkoord" size={26} />Werkt goed</h3>
                 <ul>
                   <li>Scherpe foto&apos;s met genoeg licht; een gewone telefoonfoto is prima</li>
                   <li>Gezichten goed in beeld, van voren of iets gedraaid</li>
@@ -76,7 +78,7 @@ export default function HoeHetWerktPage() {
                 </ul>
               </div>
               <div className={x.card} style={{ background: "var(--roze)" }}>
-                <h3 className={x.cardTitle}>Werkt minder goed</h3>
+                <h3 className={x.cardTitle} style={{ display: "flex", gap: 10, alignItems: "center" }}><Icon name="verwijderen" size={24} />Werkt minder goed</h3>
                 <ul>
                   <li>Donkere foto&apos;s, avondfoto&apos;s of fel tegenlicht</li>
                   <li>Grote groepsfoto&apos;s</li>
@@ -104,9 +106,9 @@ export default function HoeHetWerktPage() {
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
             <h2 className={`${s.display} ${s.h2}`}>Je foto&apos;s zijn bij Tante veilig</h2>
             <ul className={s.checks}>
-              <li>We gebruiken je foto&apos;s alleen om jouw boek te maken.</li>
-              <li>Zodra je boek naar de drukker gaat, verwijderen we ze direct.</li>
-              <li>Je foto&apos;s worden niet gebruikt om AI te trainen.</li>
+              <li><Icon name="akkoord" size={22} /><span>We gebruiken je foto&apos;s alleen om jouw boek te maken.</span></li>
+              <li><Icon name="akkoord" size={22} /><span>Zodra je boek naar de drukker gaat, verwijderen we ze direct.</span></li>
+              <li><Icon name="akkoord" size={22} /><span>Je foto&apos;s worden niet gebruikt om AI te trainen.</span></li>
             </ul>
             <p className={s.body}>
               Meer lezen? Bekijk de <Link href="/privacy">privacyverklaring</Link>.

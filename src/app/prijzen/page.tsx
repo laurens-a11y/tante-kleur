@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Prijs – Tante Kleur",
@@ -62,12 +63,13 @@ export default function PrijzenPage() {
 
         <section id="verzending" className={s.section}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
+            <Icon name="verzending" size={64} />
             <h2 className={`${s.display} ${s.h2}`}>Verzending en levertijd</h2>
             <ul className={s.checks}>
-              <li>We bezorgen in Nederland en België voor {formatEuro(site.shippingCents)} per boek.</li>
-              <li>Na je akkoord op de proef ligt je boek binnen {site.leadTimeDays} werkdagen bij je thuis.</li>
+              <li><Icon name="akkoord" size={22} /><span>We bezorgen in Nederland en België voor {formatEuro(site.shippingCents)} per boek.</span></li>
+              <li><Icon name="akkoord" size={22} /><span>Na je akkoord op de proef ligt je boek binnen {site.leadTimeDays} werkdagen bij je thuis.</span></li>
               {site.deadlines.map((d) => (
-                <li key={d.feest}>Voor {d.feest}: bestel uiterlijk {d.datum}.</li>
+                <li key={d.feest}><Icon name="cadeau" size={22} /><span>Voor {d.feest}: bestel uiterlijk {d.datum}.</span></li>
               ))}
             </ul>
           </div>

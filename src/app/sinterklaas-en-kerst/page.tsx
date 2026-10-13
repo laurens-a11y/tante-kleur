@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Persoonlijk Sinterklaas- en kerstcadeau: een kleurboek van je eigen foto's – Tante Kleur",
@@ -13,10 +14,10 @@ export const metadata: Metadata = {
 };
 
 const ideeen = [
-  { titel: "Voor opa en oma", tekst: "Alle kleinkinderen in één boek. Om samen in te kleuren als ze op bezoek komen.", kleur: "var(--roze)" },
-  { titel: "Van de kinderen", tekst: "Voor papa of mama: de mooiste momenten van het jaar, door de kinderen zelf gekozen.", kleur: "var(--lichtblauw)" },
-  { titel: "Het jaar van het gezin", tekst: "Vakantie, verjaardagen en die ene zondagmiddag. Een jaaroverzicht om in te kleuren.", kleur: "var(--geel)" },
-  { titel: "Voor de vriendinnen", tekst: "Het weekendje weg, de festivals, de eindeloze etentjes. Elk een eigen boek.", kleur: "var(--roze)" },
+  { icon: "hartje" as const, titel: "Voor opa en oma", tekst: "Alle kleinkinderen in één boek. Om samen in te kleuren als ze op bezoek komen.", kleur: "var(--roze)" },
+  { icon: "cadeau" as const, titel: "Van de kinderen", tekst: "Voor papa of mama: de mooiste momenten van het jaar, door de kinderen zelf gekozen.", kleur: "var(--lichtblauw)" },
+  { icon: "boek" as const, titel: "Het jaar van het gezin", tekst: "Vakantie, verjaardagen en die ene zondagmiddag. Een jaaroverzicht om in te kleuren.", kleur: "var(--geel)" },
+  { icon: "favoriet" as const, titel: "Voor de vriendinnen", tekst: "Het weekendje weg, de festivals, de eindeloze etentjes. Elk een eigen boek.", kleur: "var(--roze)" },
 ];
 
 export default function FeestdagenPage() {
@@ -51,6 +52,7 @@ export default function FeestdagenPage() {
             <div className={x.deadlines}>
               {site.deadlines.map((d) => (
                 <div key={d.feest} className={x.deadline}>
+                  <Icon name="cadeau" size={40} />
                   <p className={s.wide}>Voor {d.feest}</p>
                   <p className={`${s.display} ${x.deadlineDate}`}>{d.datum}</p>
                 </div>
@@ -65,6 +67,7 @@ export default function FeestdagenPage() {
             <div className={x.cards}>
               {ideeen.map((i) => (
                 <div key={i.titel} className={x.card} style={{ background: i.kleur }}>
+                  <Icon name={i.icon} size={44} />
                   <h3 className={x.cardTitle}>{i.titel}</h3>
                   <p className={s.body}>{i.tekst}</p>
                 </div>

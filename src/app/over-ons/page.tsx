@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Over Tante Kleur & contact",
@@ -14,9 +15,9 @@ export const metadata: Metadata = {
 };
 
 const waarden = [
-  { titel: "Een boek om te bewaren", tekst: "Stevige hardcover, eigen titel, rustige lijnen. Geen printje, maar iets voor in de kast.", kleur: "var(--roze)" },
-  { titel: "Eerlijk over AI", tekst: "Tante tekent met hulp van AI en kijkt elke plaat na. Jij ziet altijd eerst een proef.", kleur: "var(--lichtblauw)" },
-  { titel: "Zorgvuldig met je foto's", tekst: "Alleen voor jouw boek, en direct verwijderd zodra het naar de drukker gaat.", kleur: "var(--geel)" },
+  { icon: "boek" as const, titel: "Een boek om te bewaren", tekst: "Stevige hardcover, eigen titel, rustige lijnen. Geen printje, maar iets voor in de kast.", kleur: "var(--roze)" },
+  { icon: "uitgelicht" as const, titel: "Eerlijk over AI", tekst: "Tante tekent met hulp van AI en kijkt elke plaat na. Jij ziet altijd eerst een proef.", kleur: "var(--lichtblauw)" },
+  { icon: "hartje" as const, titel: "Zorgvuldig met je foto's", tekst: "Alleen voor jouw boek, en direct verwijderd zodra het naar de drukker gaat.", kleur: "var(--geel)" },
 ];
 
 export default async function OverOnsPage() {
@@ -46,6 +47,7 @@ export default async function OverOnsPage() {
             <div className={x.cards}>
               {waarden.map((w) => (
                 <div key={w.titel} className={x.card} style={{ background: w.kleur }}>
+                  <Icon name={w.icon} size={44} />
                   <h3 className={x.cardTitle}>{w.titel}</h3>
                   <p className={s.body}>{w.tekst}</p>
                 </div>
@@ -57,6 +59,7 @@ export default async function OverOnsPage() {
         <section id="contact" className={`${s.section} ${s.story}`}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 24 }}>
             <p className={s.tag} style={{ color: "var(--roze)" }}>Contact</p>
+            <Icon name="chat" size={56} />
             <h2 className={`${s.display} ${s.h2}`}>Vraagje voor Tante?</h2>
             <p className={s.lead}>
               Mail naar <a href={`mailto:${email}`}>{email}</a>. Heb je al besteld? Zet dan je ordernummer of de naam op je

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { site } from "@/config";
 import { getHomeContent } from "@/sanity/content";
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { CheckoutButton } from "./CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -46,11 +47,7 @@ function formatEuro(cents: number) {
 }
 
 function Check() {
-  return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F73D11" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 12l5 5L20 6" />
-    </svg>
-  );
+  return <Icon name="akkoord" size={22} style={{ marginTop: 2 }} />;
 }
 
 export default async function Home() {
@@ -91,7 +88,7 @@ export default async function Home() {
                 sizes="(max-width: 900px) 100vw, 600px"
                 className={s.heroPhoto}
               />
-              <Image src="/brand/mark-onblue.png" alt="" aria-hidden="true" width={700} height={308} className={s.heroBadge} />
+              <Image src="/brand/sticker-blauw.svg" alt="" aria-hidden="true" width={787} height={787} unoptimized className={s.heroBadge} />
             </div>
           </div>
         </section>
@@ -116,19 +113,19 @@ export default async function Home() {
             </div>
             <div className={s.steps}>
               <div className={s.step} style={{ background: "var(--roze)" }}>
-                <svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="15" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M21 16l-5-5-8 9" /><path d="M16 2v6M13 5h6" /></svg>
+                <Icon name="uploaden" size={52} />
                 <p className={s.wide} style={{ color: "var(--rood)", fontSize: 15 }}>Stap 1</p>
                 <h3 className={`${s.display} ${s.h3}`}>Kies je foto&apos;s</h3>
                 <p className={s.body}>Upload 20 tot 25 foto&apos;s van de mensen, dieren en plekken die je dierbaar zijn, en bedenk een titel voor de cover.</p>
               </div>
               <div className={s.step} style={{ background: "var(--lichtblauw)" }}>
-                <svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                <Icon name="favoriet" size={52} />
                 <p className={s.wide} style={{ color: "var(--rood)", fontSize: 15 }}>Stap 2</p>
                 <h3 className={`${s.display} ${s.h3}`}>Tante tekent</h3>
                 <p className={s.body}>Elke foto wordt een kleurplaat. Je krijgt eerst een digitale proef en mag platen laten aanpassen, verwisselen of weglaten.</p>
               </div>
               <div className={s.step} style={{ background: "var(--geel)" }}>
-                <svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z" /><path d="M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z" /></svg>
+                <Icon name="boek" size={52} />
                 <p className={s.wide} style={{ fontSize: 15 }}>Stap 3</p>
                 <h3 className={`${s.display} ${s.h3}`}>Jij kleurt</h3>
                 <p className={s.body}>Na je akkoord drukken we jouw boek. Binnen {site.leadTimeDays} werkdagen ligt het bij je op de mat, klaar om te pronken op de koffietafel.</p>

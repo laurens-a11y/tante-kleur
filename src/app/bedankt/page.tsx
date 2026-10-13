@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { getStripe } from "@/lib/stripe";
 import { site } from "@/config";
 import s from "../page.module.css";
+import { Icon } from "@/components/Icon";
 
 export const metadata: Metadata = {
   title: "Bedankt voor je bestelling – Tante Kleur",
@@ -15,7 +16,7 @@ export default function BedanktPage({ searchParams }: PageProps<"/bedankt">) {
   return (
     <main className={s.hero} style={{ minHeight: "100vh" }}>
       <div className={`${s.narrow} ${s.stack}`} style={{ gap: 28, paddingTop: 48 }}>
-        <Link href="/" className={s.tag}>← Tante Kleur</Link>
+        <Link href="/" className={s.tag} style={{ display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start" }}><Icon name="links" size={18} />Tante Kleur</Link>
         <Suspense fallback={<p className={s.lead}>Even kijken…</p>}>
           <OrderStatus searchParams={searchParams} />
         </Suspense>

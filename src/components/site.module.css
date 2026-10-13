@@ -9,11 +9,8 @@
 .mobileMenu summary {
   list-style: none;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 15px;
-  padding: 12px 16px;
-  border: 2px solid var(--blauw);
-  border-radius: 4px;
+  display: flex;
+  padding: 10px;
 }
 
 .mobileMenu summary::-webkit-details-marker {
@@ -260,7 +257,23 @@
   cursor: pointer;
   font-size: 20px;
   font-weight: 700;
-  list-style-position: outside;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.faqDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqPlus {
+  transition: transform 0.2s ease;
+}
+
+.faqDetails[open] .faqPlus {
+  transform: rotate(45deg);
 }
 
 .faqDetails p {
