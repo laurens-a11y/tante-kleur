@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 
 const fallback = {
   _id: "berlijn",
-  foto: { url: "/brand/foto-berlijn.jpg", alt: "Selfie van twee vriendinnen op een treinperron in Berlijn" },
+  // Geen originele foto tonen zonder toestemming: het boek zelf als tegenhanger.
+  foto: { url: "/brand/berlijn-hold.jpg", alt: "Roze kleurboek Weekend Berlijn met een lijntekening op de cover" },
   kleurplaat: { url: "/brand/kleurplaat-berlijn.jpg", alt: "Kleurplaat van twee vriendinnen op een treinstation in Berlijn" },
 };
 
@@ -30,6 +31,7 @@ const covers = [
 export default async function VoorbeeldenPage() {
   const voorbeelden = await getVoorbeelden();
   const items = voorbeelden.length ? voorbeelden : [fallback];
+  const linksLabel = voorbeelden.length ? "De foto" : "Het boek";
 
   return (
     <>
@@ -45,13 +47,13 @@ export default async function VoorbeeldenPage() {
 
         <section className={s.section}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
-            <h2 className={`${s.display} ${s.h2}`}>De foto en de kleurplaat</h2>
+            <h2 className={`${s.display} ${s.h2}`}>{voorbeelden.length ? "De foto en de kleurplaat" : "Zo ziet een kleurplaat eruit"}</h2>
             <div className={x.gallery}>
               {items.map((v) => (
                 <div key={v._id} className={x.pair}>
                   <div className={s.stack} style={{ gap: 8 }}>
                     <Image src={v.foto.url} alt={v.foto.alt} width={800} height={1000} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
-                    <p className={s.wide}>De foto</p>
+                    <p className={s.wide}>{linksLabel}</p>
                   </div>
                   <div className={s.stack} style={{ gap: 8 }}>
                     <Image src={v.kleurplaat.url} alt={v.kleurplaat.alt} width={800} height={1000} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />

@@ -151,14 +151,14 @@ export default async function Home() {
             <div className={s.compare}>
               <div className={s.stack} style={{ gap: 10 }}>
                 <Image
-                  src={voorbeeld?.foto.url ?? "/brand/foto-berlijn.jpg"}
-                  alt={voorbeeld?.foto.alt ?? "Selfie van twee vriendinnen op een treinperron in Berlijn"}
+                  src={voorbeeld?.foto.url ?? "/brand/berlijn-hold.jpg"}
+                  alt={voorbeeld?.foto.alt ?? "Roze kleurboek Weekend Berlijn met een lijntekening op de cover"}
                   width={800}
                   height={1000}
                   sizes="(max-width: 700px) 50vw, 360px"
                   className={s.frame}
                 />
-                <p className={s.wide}>De foto</p>
+                <p className={s.wide}>{voorbeeld ? "De foto" : "Het boek"}</p>
               </div>
               <div className={s.stack} style={{ gap: 10 }}>
                 <Image
