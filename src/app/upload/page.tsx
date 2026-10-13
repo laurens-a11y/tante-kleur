@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { Suspense } from "react";
 import { site } from "@/config";
 import s from "../page.module.css";
@@ -22,8 +21,6 @@ export default function UploadPage({ searchParams }: PageProps<"/upload">) {
           <TallyForm searchParams={searchParams} />
         </Suspense>
       </div>
-      {/* Tally past de hoogte van het formulier automatisch aan. */}
-      <Script src="https://tally.so/widgets/embed.js" strategy="afterInteractive" />
     </main>
   );
 }
@@ -31,9 +28,11 @@ export default function UploadPage({ searchParams }: PageProps<"/upload">) {
 async function TallyForm({ searchParams }: { searchParams: PageProps<"/upload">["searchParams"] }) {
   const { order } = await searchParams;
 
+  // Geen dynamicHeight: dan schakelt Tally het scrollen in het formulier uit en
+  // moet de pagina de hoogte overnemen, wat niet altijd lukte. Nu scrolt het
+  // formulier zelf binnen een iframe ter hoogte van het scherm.
   const params = new URLSearchParams({
     transparentBackground: "1",
-    dynamicHeight: "1",
     alignLeft: "1",
   });
   // Ordernummer (Stripe Checkout Session) als verborgen veld meegeven.
@@ -41,14 +40,19 @@ async function TallyForm({ searchParams }: { searchParams: PageProps<"/upload">[
     params.set("order", order);
   }
 
+  const formUrl = `https://tally.so/r/${site.tallyFormId}?${params.toString()}`;
+
   return (
-    <iframe
-      data-tally-src={`https://tally.so/r/${site.tallyFormId}?${params.toString()}`}
-      loading="lazy"
-      width="100%"
-      height="900"
-      style={{ border: 0, width: "100%" }}
-      title="Stuur Tante je mooiste foto's"
-    />
+    <>
+      <iframe
+        src={formUrl}
+        width="100%"
+        style={{ border: 0, width: "100%", height: "calc(100dvh - 180px)", minHeight: 560, display: "block" }}
+        title="Stuur Tante je mooiste foto's"
+      />
+      <p className={s.body} style={{ fontSize: 15 }}>
+        Lukt het uploaden niet goed? <a href={formUrl} target="_blank" rel="noopener">Open het formulier in een nieuw venster</a>.
+      </p>
+    </>
   );
 }
