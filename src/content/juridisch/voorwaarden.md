@@ -70,7 +70,7 @@ In deze algemene voorwaarden wordt verstaan onder:
 
 ## Artikel 9 – Klachten, gebreken en beschadiging
 
-1. De klant controleert het kleurboek bij ontvangst. Is het beschadigd, onjuist gedrukt of wijkt het af van de goedgekeurde proef, dan meldt de klant dit zo snel mogelijk, bij voorkeur binnen 14 dagen, via hallo@tantekleur.nl, met een foto van het probleem.
+1. De klant controleert het kleurboek bij ontvangst. Is het beschadigd, onjuist gedrukt of wijkt het af van de goedgekeurde proef, dan meldt de klant dit zo snel mogelijk, bij voorkeur binnen 14 dagen, via tante@tantekleur.nl, met een foto van het probleem.
 2. Is er sprake van een gebrek dat aan Tante Kleur of de drukkerij is toe te rekenen, dan laat Tante Kleur het kleurboek kosteloos opnieuw drukken of betaalt Tante Kleur het aankoopbedrag terug.
 3. Afwijkingen die al in de goedgekeurde proef te zien waren, gelden niet als gebrek.
 4. Voor consumenten gelden daarnaast de wettelijke regels over conformiteit.
@@ -125,7 +125,7 @@ In deze algemene voorwaarden wordt verstaan onder:
 ## Artikel 17 – Toepasselijk recht en geschillen
 
 1. Op alle overeenkomsten met Tante Kleur is Nederlands recht van toepassing.
-2. Partijen proberen een geschil eerst samen op te lossen. Een klacht kan worden gestuurd naar hallo@tantekleur.nl.
+2. Partijen proberen een geschil eerst samen op te lossen. Een klacht kan worden gestuurd naar tante@tantekleur.nl.
 3. Geschillen met zakelijke klanten worden voorgelegd aan de bevoegde rechter in het arrondissement waarin Tante Kleur is gevestigd, tenzij dwingend recht anders bepaalt.
 4. Voor consumenten geldt de volgens de wet bevoegde rechter.
 
@@ -135,4 +135,4 @@ Sportlaan 22B\
 KvK: 42128246\
 Vestigingsnummer: 000066323568\
 Btw-identificatienummer: NL869851615B01\
-E-mail: hallo@tantekleur.nl
+E-mail: tante@tantekleur.nl

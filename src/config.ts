@@ -9,8 +9,7 @@ export const site = {
   // mee als verborgen veld "order".
   tallyFormId: "vG7pM4",
   uploadUrl: "/upload",
-  // TODO: definitief e-mailadres invullen
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hallo@tantekleur.nl",
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "tante@tantekleur.nl",
   // TODO: levertijd bevestigen na eerste proefdruk bij PrintAPI
   leadTimeDays: "10",
   company: {

@@ -13,7 +13,7 @@ Sportlaan 22B\
 5242 CR Rosmalen\
 KvK: 42128246\
 Vestigingsnummer: 000066323568\
-E-mail: hallo@tantekleur.nl
+E-mail: tante@tantekleur.nl
 
 ## 2. Welke persoonsgegevens verwerken we?
 
@@ -161,7 +161,7 @@ Je hebt, afhankelijk van de situatie, het recht om ons te vragen om:
 - bezwaar tegen bepaalde verwerkingen;
 - intrekking van eerder gegeven toestemming.
 
-Stuur je verzoek naar **hallo@tantekleur.nl**. We kunnen om aanvullende informatie vragen als dat nodig is om je identiteit vast te stellen.
+Stuur je verzoek naar **tante@tantekleur.nl**. We kunnen om aanvullende informatie vragen als dat nodig is om je identiteit vast te stellen.
 
 Je hebt ook het recht om een klacht in te dienen bij de Autoriteit Persoonsgegevens.
 
@@ -176,4 +176,4 @@ Heb je vragen over deze privacyverklaring of over wat we met je gegevens doen? N
 **Tante Kleur (LaunchLab VOF)**\
 Sportlaan 22B\
 5242 CR Rosmalen\
-E-mail: hallo@tantekleur.nl
+E-mail: tante@tantekleur.nl
