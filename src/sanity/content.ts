@@ -102,3 +102,26 @@ export async function getHomeContent(): Promise<{
     return { homepagina: fallbackHomepagina, vragen: null, voorbeeld: null };
   }
 }
+
+const VOORBEELDEN_QUERY = defineQuery(
+  `*[_type == "voorbeeld" && toestemming == true && defined(foto.asset) && defined(kleurplaat.asset)] | order(coalesce(volgorde, 999) asc, _createdAt asc){_id, foto, kleurplaat}`,
+);
+
+// Alle voorbeelden met toestemming, voor /voorbeelden.
+export async function getVoorbeelden(): Promise<Voorbeeld[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("sanity");
+
+  try {
+    const rows = await client.fetch<{ _id: string; foto: SanityImage; kleurplaat: SanityImage }[]>(VOORBEELDEN_QUERY);
+    return rows.map((v) => ({
+      _id: v._id,
+      foto: { url: imageUrl(v.foto, 800, 1000), alt: v.foto.alt || "Originele foto" },
+      kleurplaat: { url: imageUrl(v.kleurplaat, 800, 1000), alt: v.kleurplaat.alt || "Kleurplaat" },
+    }));
+  } catch (error) {
+    console.error("Sanity-voorbeelden ophalen mislukt:", error instanceof Error ? error.message : error);
+    return [];
+  }
+}

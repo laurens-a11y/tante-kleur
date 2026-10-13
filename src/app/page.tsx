@@ -1,7 +1,10 @@
 import Image from "next/image";
 import { site } from "@/config";
 import { getHomeContent } from "@/sanity/content";
+import Link from "next/link";
 import { CheckoutButton } from "./CheckoutButton";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import s from "./page.module.css";
 
 const covers = [
@@ -51,32 +54,14 @@ function Check() {
 }
 
 export default async function Home() {
-  const { price, email, company } = site;
+  const { price } = site;
   // Teksten, vragen en voorbeeld komen uit Sanity; zonder Sanity-content vallen we terug op de standaardteksten.
   const { homepagina, vragen, voorbeeld } = await getHomeContent();
   const faqs = vragen ? vragen.map((v) => ({ key: v._id, q: v.vraag, a: v.antwoord })) : fallbackFaqs.map((f) => ({ key: f.q, ...f }));
 
   return (
     <>
-      <div className={s.announce}>
-        Introductieprijs: jouw kleurboek voor €{price.intro}, straks €{price.regular}.
-      </div>
-
-      <header className={s.header}>
-        <nav className={s.nav} aria-label="Hoofdmenu">
-          <a href="#top" aria-label="Tante Kleur, naar boven">
-            <Image src="/brand/mark-color.png" alt="Tante Kleur" width={118} height={52} priority />
-          </a>
-          <div className={s.navLinks}>
-            <a href="#hoe">Zo werkt het</a>
-            <a href="#voorbeelden">Voorbeelden</a>
-            <a href="#prijs">Prijs</a>
-            <a href="#zakelijk">Zakelijk</a>
-            <a href="#vragen">Vragen</a>
-          </div>
-          <CheckoutButton className={`${s.btn} ${s.btnSmall}`} />
-        </nav>
-      </header>
+      <SiteHeader current="/" />
 
       <main>
         {/* Hero */}
@@ -88,7 +73,7 @@ export default async function Home() {
               <p className={s.lead} style={{ maxWidth: 480 }}>{homepagina.heroIntro}</p>
               <div className={s.buttons}>
                 <CheckoutButton className={s.btn} />
-                <a href="#voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</a>
+                <Link href="/voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</Link>
               </div>
               <p className={s.heroPerks}>
                 <span>Hardcover A4</span>
@@ -247,6 +232,7 @@ export default async function Home() {
                 Voor je moeder, je beste vriendin of opa en oma met al hun kleinkinderen. Een herinnering die je samen
                 kleurt, en die daarna gewoon in de kast blijft staan.
               </p>
+              <Link href="/sinterklaas-en-kerst" className={s.btnPink}>Op tijd voor Sinterklaas en kerst</Link>
             </div>
             <div className={s.giftGrid}>
               <Image src="/brand/xmas-duo.jpg" alt="Twee Tante Kleur-boeken in kerstsfeer" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
@@ -265,7 +251,7 @@ export default async function Home() {
                 Voor teamuitjes, jubilea, onboarding of de kerstattentie. Iedere medewerker krijgt een eigen, persoonlijk boek.
               </p>
             </div>
-            <a href={`mailto:${email}?subject=Offerte%20zakelijke%20kleurboeken`} className={s.btn}>Vraag een offerte aan</a>
+            <Link href="/zakelijk" className={s.btn}>Bekijk zakelijke mogelijkheden</Link>
           </div>
         </section>
 
@@ -284,32 +270,12 @@ export default async function Home() {
                 </div>
               ))}
             </div>
+            <Link href="/vragen" className={s.btnGhost} style={{ alignSelf: "flex-start" }}>Alle vragen</Link>
           </div>
         </section>
       </main>
 
-      <footer className={s.footer}>
-        <div className={`${s.wrap} ${s.stack}`} style={{ gap: 72 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 40 }}>
-            <div className={s.stack} style={{ flex: "1 1 420px", minWidth: 0, gap: 24 }}>
-              <p className={s.display} style={{ fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 1, color: "var(--roze)" }}>
-                Kleur met Tante Kleur.
-              </p>
-              <CheckoutButton className={s.btnPink} />
-            </div>
-            <Image src="/brand/logo-onblue.png" alt="Tante Kleur, gepersonaliseerde kleurboeken" width={280} height={190} />
-          </div>
-          <div className={s.footerBottom}>
-            <span>© 2026 Tante Kleur · KvK {company.kvk} · btw {company.vat}</span>
-            <div className={s.footerLinks}>
-              {/* TODO: privacyverklaring en algemene voorwaarden als eigen pagina's */}
-              <a href="#vragen">Privacy</a>
-              <a href="#vragen">Voorwaarden</a>
-              <a href={`mailto:${email}`}>Contact</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }

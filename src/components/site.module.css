@@ -1,0 +1,314 @@
+/* Aanvullende stijlen voor de losse pagina's. Basis staat in app/page.module.css. */
+
+/* Mobiel menu (werkt zonder JavaScript via <details>) */
+.mobileMenu {
+  display: none;
+  position: relative;
+}
+
+.mobileMenu summary {
+  list-style: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 16px;
+  border: 2px solid var(--blauw);
+  border-radius: 4px;
+}
+
+.mobileMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobilePanel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  background: var(--wit);
+  border-radius: 6px;
+  box-shadow: 0 16px 40px rgba(0, 44, 212, 0.18);
+  padding: 12px 0;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobilePanel a {
+  padding: 12px 20px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.mobilePanel a:hover {
+  background: var(--roze);
+}
+
+@media (max-width: 720px) {
+  .mobileMenu {
+    display: block;
+  }
+  .desktopCta {
+    display: none;
+  }
+}
+
+.navActive {
+  color: var(--rood);
+}
+
+/* Paginakop */
+.pageHero {
+  background: var(--roze);
+  padding: 56px 24px 88px;
+}
+
+@media (max-width: 720px) {
+  .pageHero {
+    padding: 40px 20px 64px;
+  }
+}
+
+/* Kaarten */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  border-radius: 6px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+/* Twee kolommen goed / minder goed */
+.tips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.tips ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Tijdlijn */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0;
+  counter-reset: stap;
+}
+
+.timeline li {
+  border-top: 4px solid var(--blauw);
+  padding: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  counter-increment: stap;
+}
+
+.timeline li::before {
+  content: counter(stap);
+  font-weight: 800;
+  color: var(--rood);
+  font-size: 15px;
+}
+
+/* Deadlines */
+.deadlines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.deadline {
+  background: var(--wit);
+  border-radius: 6px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deadlineDate {
+  font-size: clamp(36px, 4vw, 52px);
+  line-height: 1;
+  color: var(--rood);
+}
+
+/* Specificaties */
+.specs {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 14px 32px;
+  font-size: 17px;
+}
+
+.specs dt {
+  font-weight: 700;
+}
+
+.specs dd {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .specs {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .specs dd {
+    margin-bottom: 12px;
+  }
+}
+
+/* Formulier */
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.field input,
+.field select,
+.field textarea {
+  font: inherit;
+  font-weight: 400;
+  font-size: 17px;
+  padding: 14px 16px;
+  border: 2px solid var(--blauw);
+  border-radius: 4px;
+  background: var(--wit);
+  color: var(--blauw);
+}
+
+.field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+/* Juridische tekst */
+.prose {
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.prose h2 {
+  font-size: 24px;
+  margin: 40px 0 12px;
+}
+
+.prose p,
+.prose ul {
+  margin: 0 0 14px;
+}
+
+.prose ul {
+  padding-left: 22px;
+}
+
+/* Vragen per thema */
+.faqGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+.faqDetails {
+  border-top: 2px solid var(--blauw);
+  padding: 22px 0;
+}
+
+.faqDetails:last-child {
+  border-bottom: 2px solid var(--blauw);
+}
+
+.faqDetails summary {
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 700;
+  list-style-position: outside;
+}
+
+.faqDetails p {
+  margin: 12px 0 0;
+}
+
+/* Voorbeeldgalerij */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px 24px;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.footerCols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+  font-size: 15px;
+}
+
+.footerCols ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerCols a {
+  text-decoration: none;
+}
+
+.footerCols a:hover {
+  text-decoration: underline;
+}
+
+.footerHead {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--roze);
+}

@@ -49,6 +49,12 @@ export async function POST(request: Request) {
           text: { minimum_length: 1, maximum_length: 40 },
         },
       ],
+      // Wettelijk verplicht: vóór betaling melden dat herroepingsrecht niet geldt bij maatwerk.
+      custom_text: {
+        submit: {
+          message: `Je kleurboek wordt speciaal voor jou gemaakt, daarom geldt het herroepingsrecht niet. Lees de algemene voorwaarden: ${origin}/voorwaarden`,
+        },
+      },
       // Zakelijke klanten kunnen hun btw-nummer opgeven (verleggingsregeling).
       tax_id_collection: { enabled: true },
       automatic_tax: { enabled: checkoutConfig.automaticTax },
