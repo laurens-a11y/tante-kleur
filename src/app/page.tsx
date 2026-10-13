@@ -16,32 +16,6 @@ const covers = [
   { src: "/brand/spanje-yellow.jpg", alt: "Geel kleurboek Spanje 2025 onder de arm" },
 ];
 
-const perks = [
-  "20 tot 25 kleurplaten van jouw eigen foto's",
-  "Stevige hardcover op A4-formaat",
-  "Je eigen titel en kleur op de cover",
-  "Eerst een digitale proef, pas daarna drukken",
-];
-
-const fallbackFaqs = [
-  {
-    q: "Welke foto's werken het best?",
-    a: "Scherpe foto's met goed licht, waarop gezichten goed te zien zijn. Selfies, portretten, huisdieren en vakantiekiekjes werken prima. Grote groepsfoto's en donkere of wazige foto's minder.",
-  },
-  {
-    q: "Wat gebeurt er met mijn foto's?",
-    a: "We gebruiken je foto's alleen om jouw boek te maken. Zodra je boek naar de drukker gaat, verwijderen we ze direct. Zonder jouw toestemming laten we ze nooit aan iemand anders zien.",
-  },
-  {
-    q: "Kan ik iets laten aanpassen?",
-    a: "Ja. Je krijgt eerst een digitale proef. Is een plaat niet goed gelukt, dan maken we hem opnieuw of kies je een andere foto.",
-  },
-  {
-    q: "Hoe lang duurt het?",
-    a: `Na je akkoord op de proef ligt je boek binnen ${site.leadTimeDays} werkdagen bij je thuis. Wil je het voor een verjaardag of feestdag? Bestel dan op tijd.`,
-  },
-];
-
 function formatEuro(cents: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
 }
@@ -52,9 +26,9 @@ function Check() {
 
 export default async function Home() {
   const { price } = site;
-  // Teksten, vragen en voorbeeld komen uit Sanity; zonder Sanity-content vallen we terug op de standaardteksten.
+  // Teksten, vragen en voorbeeld komen uit Sanity; lege velden vallen terug op src/content/paginas.ts.
   const { homepagina, vragen, voorbeeld } = await getHomeContent();
-  const faqs = vragen ? vragen.map((v) => ({ key: v._id, q: v.vraag, a: v.antwoord })) : fallbackFaqs.map((f) => ({ key: f.q, ...f }));
+  const stapKleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
   return (
     <>
@@ -73,9 +47,9 @@ export default async function Home() {
                 <Link href="/voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</Link>
               </div>
               <p className={s.heroPerks}>
-                <span>Hardcover A4</span>
-                <span>Jouw foto&apos;s, jouw titel</span>
-                <span>Eerst een proef, dan pas drukken</span>
+                {homepagina.heroKenmerken.map((k) => (
+                  <span key={k}>{k}</span>
+                ))}
               </p>
             </div>
             <div className={s.heroMedia}>
@@ -109,27 +83,17 @@ export default async function Home() {
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 56 }}>
             <div className={s.stack} style={{ gap: 12, maxWidth: 640 }}>
               <p className={s.tag}>Zo werkt het</p>
-              <h2 className={`${s.display} ${s.h2}`}>Laat het maar aan Tante over.</h2>
+              <h2 className={`${s.display} ${s.h2}`}>{homepagina.stappenKop}</h2>
             </div>
             <div className={s.steps}>
-              <div className={s.step} style={{ background: "var(--roze)" }}>
-                <Icon name="uploaden" size={52} />
-                <p className={s.wide} style={{ color: "var(--rood)", fontSize: 15 }}>Stap 1</p>
-                <h3 className={`${s.display} ${s.h3}`}>Kies je foto&apos;s</h3>
-                <p className={s.body}>Upload 20 tot 25 foto&apos;s van de mensen, dieren en plekken die je dierbaar zijn, en bedenk een titel voor de cover.</p>
-              </div>
-              <div className={s.step} style={{ background: "var(--lichtblauw)" }}>
-                <Icon name="favoriet" size={52} />
-                <p className={s.wide} style={{ color: "var(--rood)", fontSize: 15 }}>Stap 2</p>
-                <h3 className={`${s.display} ${s.h3}`}>Tante tekent</h3>
-                <p className={s.body}>Elke foto wordt een kleurplaat. Je krijgt eerst een digitale proef en mag platen laten aanpassen, verwisselen of weglaten.</p>
-              </div>
-              <div className={s.step} style={{ background: "var(--geel)" }}>
-                <Icon name="boek" size={52} />
-                <p className={s.wide} style={{ fontSize: 15 }}>Stap 3</p>
-                <h3 className={`${s.display} ${s.h3}`}>Jij kleurt</h3>
-                <p className={s.body}>Na je akkoord drukken we jouw boek. Binnen {site.leadTimeDays} werkdagen ligt het bij je op de mat, klaar om te pronken op de koffietafel.</p>
-              </div>
+              {homepagina.stappen.map((st, i) => (
+                <div key={st._key ?? st.titel} className={s.step} style={{ background: stapKleuren[i % stapKleuren.length] }}>
+                  <Icon name={st.icoon} size={52} />
+                  <p className={s.wide} style={{ color: i % stapKleuren.length === 2 ? undefined : "var(--rood)", fontSize: 15 }}>Stap {i + 1}</p>
+                  <h3 className={`${s.display} ${s.h3}`}>{st.titel}</h3>
+                  <p className={s.body}>{st.tekst}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -139,11 +103,8 @@ export default async function Home() {
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ flexBasis: 380 }}>
               <p className={s.tag}>Van camerarol naar kleurplaat</p>
-              <h2 className={`${s.display} ${s.h2}`}>Jouw mensen, jouw plekken, jouw verhaal.</h2>
-              <p className={s.body} style={{ fontSize: 18 }}>
-                Geen standaard plaatjes, maar je eigen herinneringen. Fijne, rustige lijnen die herkenbaar blijven, met
-                genoeg detail om er een avond lekker in te verdwalen.
-              </p>
+              <h2 className={`${s.display} ${s.h2}`}>{homepagina.voorbeeldKop}</h2>
+              <p className={s.body} style={{ fontSize: 18 }}>{homepagina.voorbeeldTekst}</p>
             </div>
             <div className={s.compare}>
               <div className={s.stack} style={{ gap: 10 }}>
@@ -179,9 +140,9 @@ export default async function Home() {
             <div className={s.coverHead}>
               <div className={s.stack} style={{ gap: 12, maxWidth: 620 }}>
                 <p className={s.tag}>Jouw titel op de cover</p>
-                <h2 className={`${s.display} ${s.h2}`}>Henk &amp; Ingrid. Spanje 2025. Weekend Berlijn.</h2>
+                <h2 className={`${s.display} ${s.h2}`}>{homepagina.coverKop}</h2>
               </div>
-              <p className={s.body} style={{ maxWidth: 360 }}>Kies een kleur, zet er je eigen titel op en Tante doet de rest.</p>
+              <p className={s.body} style={{ maxWidth: 360 }}>{homepagina.coverTekst}</p>
             </div>
             <div className={s.covers}>
               {covers.map((c) => (
@@ -210,7 +171,7 @@ export default async function Home() {
                 </p>
               </div>
               <ul className={s.checks}>
-                {perks.map((p) => (
+                {homepagina.prijsKenmerken.map((p) => (
                   <li key={p}><Check /><span>{p}</span></li>
                 ))}
               </ul>
@@ -224,11 +185,8 @@ export default async function Home() {
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ flexBasis: 400 }}>
               <p className={s.tag} style={{ color: "var(--geel)" }}>Voor jezelf of iemand dierbaars</p>
-              <h2 className={`${s.display} ${s.h2}`} style={{ color: "var(--geel)" }}>Het liefste cadeau dat je zelf hebt gemaakt.</h2>
-              <p className={s.body} style={{ fontSize: 18 }}>
-                Voor je moeder, je beste vriendin of opa en oma met al hun kleinkinderen. Een herinnering die je samen
-                kleurt, en die daarna gewoon in de kast blijft staan.
-              </p>
+              <h2 className={`${s.display} ${s.h2}`} style={{ color: "var(--geel)" }}>{homepagina.cadeauKop}</h2>
+              <p className={s.body} style={{ fontSize: 18 }}>{homepagina.cadeauTekst}</p>
               <Link href="/sinterklaas-en-kerst" className={s.btnPink}>Op tijd voor Sinterklaas en kerst</Link>
             </div>
             <div className={s.giftGrid}>
@@ -243,10 +201,8 @@ export default async function Home() {
           <div className={s.wrap} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
             <div className={s.stack} style={{ flex: "1 1 520px", minWidth: 0, gap: 16 }}>
               <p className={s.tag} style={{ color: "var(--blauw)" }}>Zakelijk</p>
-              <h2 className={`${s.display} ${s.h2}`}>Een relatiegeschenk dat niemand weggeeft.</h2>
-              <p className={s.body} style={{ fontSize: 18, maxWidth: 620 }}>
-                Voor teamuitjes, jubilea, onboarding of de kerstattentie. Iedere medewerker krijgt een eigen, persoonlijk boek.
-              </p>
+              <h2 className={`${s.display} ${s.h2}`}>{homepagina.zakelijkKop}</h2>
+              <p className={s.body} style={{ fontSize: 18, maxWidth: 620 }}>{homepagina.zakelijkTekst}</p>
             </div>
             <Link href="/zakelijk" className={s.btn}>Bekijk zakelijke mogelijkheden</Link>
           </div>
@@ -260,10 +216,10 @@ export default async function Home() {
               <h2 className={`${s.display} ${s.h2}`}>Tante legt het even uit.</h2>
             </div>
             <div className={s.faq}>
-              {faqs.map((f) => (
-                <div key={f.key} className={s.faqItem}>
-                  <h3>{f.q}</h3>
-                  <p className={s.body}>{f.a}</p>
+              {vragen.map((v) => (
+                <div key={v._id} className={s.faqItem}>
+                  <h3>{v.vraag}</h3>
+                  <p className={s.body}>{v.antwoord}</p>
                 </div>
               ))}
             </div>

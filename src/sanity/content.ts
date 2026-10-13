@@ -2,6 +2,11 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createClient, defineQuery } from "next-sanity";
 import { createImageUrlBuilder } from "@sanity/image-url";
+import { site } from "@/config";
+import { paginas, type PaginaType } from "@/content/paginas";
+import { standaardVragen, themas, type Vraag } from "@/content/vragen";
+
+export type { Vraag };
 
 // Marketingcontent uit Sanity (Studio: https://tantekleur.sanity.studio).
 // Klantfoto's horen hier nooit in; alleen teksten en showcase-voorbeelden.
@@ -22,39 +27,120 @@ const imageBuilder = createImageUrlBuilder({ projectId, dataset });
 
 type SanityImage = { asset?: { _ref: string }; alt?: string; hotspot?: unknown; crop?: unknown };
 
-export type Homepagina = {
-  heroKop: string;
-  heroIntro: string;
-  verhaalVraag: string;
-  verhaalAntwoord: string;
-  verhaalTekst: string;
-};
-
-export type Vraag = { _id: string; vraag: string; antwoord: string };
-
 export type Voorbeeld = {
   _id: string;
   foto: { url: string; alt: string };
   kleurplaat: { url: string; alt: string };
 };
 
-// Standaardteksten: de site blijft werken als Sanity even niet bereikbaar is.
-const fallbackHomepagina: Homepagina = {
-  heroKop: "Je mooiste momenten, om in te kleuren.",
-  heroIntro:
-    "Jij en je lief in Spanje, je jaarlijkse vriendenweekend of het eerste jaar van je kleintje. Tante Kleur tovert jouw foto's om tot kleurplaten, in een boek dat net zo bijzonder is als wat erin staat.",
-  verhaalVraag: "Ze staan allemaal ergens in je camerarol. En daar blijven ze ook, toch?",
-  verhaalAntwoord: "Niet als het aan Tante Kleur ligt.",
-  verhaalTekst:
-    "Ze houdt van mooie dingen, van mensen en van kleur. En ze vindt dat jouw foto's wel wat meer verdienen. Dus maakt ze er een kleurboek van, met jouw mensen, jouw plekken en jouw verhalen. Aan jou om je herinneringen een kleurtje te geven. Binnen de lijntjes of er lekker buiten. Tante vindt alles goed.",
+// ---------- Placeholders ----------
+// Teksten in Sanity mogen {prijs}, {normalePrijs}, {verzendkosten}, {kleurplaten},
+// {levertijd}, {deadlines} en {email} bevatten; die vullen we hier in vanuit src/config.ts.
+
+const placeholders: Record<string, string> = {
+  prijs: `€${site.price.intro}`,
+  normalePrijs: `€${site.price.regular}`,
+  verzendkosten: new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(site.shippingCents / 100),
+  kleurplaten: site.plates,
+  levertijd: site.leadTimeDays,
+  deadlines: site.deadlines.map((d) => `Voor ${d.feest} uiterlijk ${d.datum}`).join(", "),
+  email: site.email,
 };
 
-const HOMEPAGINA_QUERY = defineQuery(
-  `*[_type == "homepagina"] | order(_updatedAt desc)[0]{heroKop, heroIntro, verhaalVraag, verhaalAntwoord, verhaalTekst}`,
-);
+export function vulIn<T>(waarde: T): T {
+  if (typeof waarde === "string") {
+    return waarde.replace(/\{(\w+)\}/g, (heel, naam: string) => placeholders[naam] ?? heel) as T;
+  }
+  if (Array.isArray(waarde)) return waarde.map(vulIn) as T;
+  if (waarde && typeof waarde === "object") {
+    return Object.fromEntries(Object.entries(waarde).map(([k, v]) => [k, vulIn(v)])) as T;
+  }
+  return waarde;
+}
+
+// ---------- Paginateksten ----------
+
+const iconen = new Set<string>([
+  "account", "akkoord", "boek", "cadeau", "chat", "favoriet", "hartje", "home", "label", "uitgelicht", "uploaden", "verzending", "winkelmandje", "zoeken",
+]);
+
+function gevuld(v: unknown): boolean {
+  if (typeof v === "string") return v.trim().length > 0;
+  if (Array.isArray(v)) return v.length > 0;
+  return v !== null && v !== undefined;
+}
+
+// Lijstitems uit Sanity opschonen: lege regels weg, onbekend icoon wordt "boek".
+function schoonLijst(sanity: unknown[], voorbeeld: unknown): unknown[] {
+  if (typeof voorbeeld === "string") return sanity.filter((v) => typeof v === "string" && v.trim());
+  if (!voorbeeld || typeof voorbeeld !== "object") return sanity;
+  const velden = Object.keys(voorbeeld).filter((k) => k !== "_key" && k !== "icoon");
+  return sanity
+    .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
+    .filter((item) => velden.every((k) => k === "tekst" || gevuld(item[k])))
+    .map((item) => ("icoon" in voorbeeld ? { ...item, icoon: iconen.has(String(item.icoon)) ? item.icoon : "boek" } : item));
+}
+
+// Per veld: waarde uit Sanity als die gevuld is, anders de standaardtekst.
+function samenvoegen<T extends Record<string, unknown>>(standaard: T, sanity: Record<string, unknown> | null): T {
+  if (!sanity) return standaard;
+  const uit: Record<string, unknown> = { ...standaard };
+  for (const [k, std] of Object.entries(standaard)) {
+    let v = sanity[k];
+    if (Array.isArray(v) && Array.isArray(std)) v = schoonLijst(v, std[0]);
+    if (gevuld(v) && typeof v === typeof std) uit[k] = v;
+  }
+  return uit as T;
+}
+
+async function haalPaginaOp(type: PaginaType): Promise<Record<string, unknown> | null> {
+  "use cache";
+  // Wijzigingen in de Studio staan binnen enkele minuten op de site.
+  cacheLife("minutes");
+  cacheTag("sanity");
+  try {
+    return await client.fetch<Record<string, unknown> | null>(PAGINA_QUERY, { type });
+  } catch (error) {
+    console.error(`Sanity-pagina ${type} ophalen mislukt:`, error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+export async function getPagina<K extends PaginaType>(type: K): Promise<(typeof paginas)[K]> {
+  const standaard = paginas[type] as Record<string, unknown>;
+  return vulIn(samenvoegen(standaard, await haalPaginaOp(type))) as (typeof paginas)[K];
+}
+
+const PAGINA_QUERY = defineQuery(`*[_type == $type] | order(_updatedAt desc)[0]`);
+
+// ---------- Vragen ----------
+
 const VRAGEN_QUERY = defineQuery(
-  `*[_type == "vraag" && defined(vraag) && defined(antwoord)] | order(coalesce(volgorde, 999) asc, _createdAt asc){_id, vraag, antwoord}`,
+  `*[_type == "vraag" && defined(vraag) && defined(antwoord)] | order(coalesce(volgorde, 999) asc, _createdAt asc){_id, vraag, antwoord, thema, opHomepage}`,
 );
+
+async function haalVragenOp(): Promise<Vraag[] | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("sanity");
+  try {
+    const rows = await client.fetch<Vraag[]>(VRAGEN_QUERY);
+    return rows.length ? rows : null;
+  } catch (error) {
+    console.error("Sanity-vragen ophalen mislukt:", error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+// Alle vragen, voor /vragen. Vragen zonder (geldig) thema komen bij het laatste thema.
+export async function getVragen(): Promise<Vraag[]> {
+  const geldig = new Set<string>(themas.map((t) => t.id));
+  const rows = (await haalVragenOp()) ?? standaardVragen;
+  return vulIn(rows.map((v) => ({ ...v, thema: geldig.has(v.thema) ? v.thema : themas[themas.length - 1].id })));
+}
+
+// ---------- Homepage ----------
+
 const VOORBEELD_QUERY = defineQuery(
   `*[_type == "voorbeeld" && toestemming == true && defined(foto.asset) && defined(kleurplaat.asset)] | order(coalesce(volgorde, 999) asc, _createdAt asc)[0]{_id, foto, kleurplaat}`,
 );
@@ -63,44 +149,34 @@ function imageUrl(image: SanityImage, width: number, height: number) {
   return imageBuilder.image(image).width(width).height(height).fit("crop").auto("format").quality(82).url();
 }
 
-export async function getHomeContent(): Promise<{
-  homepagina: Homepagina;
-  vragen: Vraag[] | null;
-  voorbeeld: Voorbeeld | null;
-}> {
+async function haalVoorbeeldOp(): Promise<Voorbeeld | null> {
   "use cache";
-  // Wijzigingen in de Studio staan binnen enkele minuten op de site.
   cacheLife("minutes");
   cacheTag("sanity");
-
   try {
-    const [home, vragen, voorbeeld] = await Promise.all([
-      client.fetch<Partial<Homepagina> | null>(HOMEPAGINA_QUERY),
-      client.fetch<Vraag[]>(VRAGEN_QUERY),
-      client.fetch<{ _id: string; foto: SanityImage; kleurplaat: SanityImage } | null>(VOORBEELD_QUERY),
-    ]);
-
-    return {
-      homepagina: {
-        heroKop: home?.heroKop || fallbackHomepagina.heroKop,
-        heroIntro: home?.heroIntro || fallbackHomepagina.heroIntro,
-        verhaalVraag: home?.verhaalVraag || fallbackHomepagina.verhaalVraag,
-        verhaalAntwoord: home?.verhaalAntwoord || fallbackHomepagina.verhaalAntwoord,
-        verhaalTekst: home?.verhaalTekst || fallbackHomepagina.verhaalTekst,
-      },
-      vragen: vragen?.length ? vragen : null,
-      voorbeeld: voorbeeld
-        ? {
-            _id: voorbeeld._id,
-            foto: { url: imageUrl(voorbeeld.foto, 800, 1000), alt: voorbeeld.foto.alt || "Originele foto" },
-            kleurplaat: { url: imageUrl(voorbeeld.kleurplaat, 800, 1000), alt: voorbeeld.kleurplaat.alt || "Kleurplaat" },
-          }
-        : null,
-    };
+    const v = await client.fetch<{ _id: string; foto: SanityImage; kleurplaat: SanityImage } | null>(VOORBEELD_QUERY);
+    return v
+      ? {
+          _id: v._id,
+          foto: { url: imageUrl(v.foto, 800, 1000), alt: v.foto.alt || "Originele foto" },
+          kleurplaat: { url: imageUrl(v.kleurplaat, 800, 1000), alt: v.kleurplaat.alt || "Kleurplaat" },
+        }
+      : null;
   } catch (error) {
-    console.error("Sanity-content ophalen mislukt:", error instanceof Error ? error.message : error);
-    return { homepagina: fallbackHomepagina, vragen: null, voorbeeld: null };
+    console.error("Sanity-voorbeeld ophalen mislukt:", error instanceof Error ? error.message : error);
+    return null;
   }
+}
+
+export async function getHomeContent() {
+  const [homepagina, vragen, voorbeeld] = await Promise.all([getPagina("homepagina"), getVragen(), haalVoorbeeldOp()]);
+  const opHomepage = vragen.filter((v) => v.opHomepage);
+  return {
+    homepagina,
+    // Geen vragen aangevinkt voor de homepage? Dan de eerste vier.
+    vragen: opHomepage.length ? opHomepage : vragen.slice(0, 4),
+    voorbeeld,
+  };
 }
 
 const VOORBEELDEN_QUERY = defineQuery(

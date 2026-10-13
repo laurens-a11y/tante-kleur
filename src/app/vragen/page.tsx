@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/config";
-import { vragenPerThema } from "@/content/vragen";
+import { themas } from "@/content/vragen";
+import { getVragen } from "@/sanity/content";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -13,7 +14,12 @@ export const metadata: Metadata = {
   description: "Antwoorden over het boek, je foto's, privacy, bestellen, levertijd en retour.",
 };
 
-export default function VragenPage() {
+export default async function VragenPage() {
+  // Vragen komen uit Sanity, gegroepeerd per thema in een vaste volgorde.
+  const vragen = await getVragen();
+  const groepen = themas
+    .map((t) => ({ thema: t.titel, vragen: vragen.filter((v) => v.thema === t.id) }))
+    .filter((g) => g.vragen.length);
   return (
     <>
       <SiteHeader current="/vragen" />
@@ -30,14 +36,14 @@ export default function VragenPage() {
 
         <section className={s.section}>
           <div className={`${s.narrow} ${x.faqGroups}`}>
-            {vragenPerThema.map((groep) => (
+            {groepen.map((groep) => (
               <div key={groep.thema} className={s.stack} style={{ gap: 16 }}>
                 <h2 className={`${s.display} ${s.h3}`}>{groep.thema}</h2>
                 <div>
                   {groep.vragen.map((v) => (
-                    <details key={v.q} className={x.faqDetails}>
-                      <summary><span>{v.q}</span><Icon name="toevoegen" size={20} className={x.faqPlus} /></summary>
-                      <p className={s.body}>{v.a}</p>
+                    <details key={v._id} className={x.faqDetails}>
+                      <summary><span>{v.vraag}</span><Icon name="toevoegen" size={20} className={x.faqPlus} /></summary>
+                      <p className={s.body}>{v.antwoord}</p>
                     </details>
                   ))}
                 </div>

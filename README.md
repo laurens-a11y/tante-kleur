@@ -16,7 +16,7 @@ Open http://localhost:3000.
 | Onderdeel | Keuze |
 |---|---|
 | Voorkant + API-routes | Next.js (App Router) op Vercel, functies in `fra1` |
-| Content | Sanity, beheer via https://tantekleur.sanity.studio (homepagina-teksten, veelgestelde vragen, voorbeelden) |
+| Content | Sanity, beheer via https://tantekleur.sanity.studio (teksten van home, zo werkt het, prijs, zakelijk, Sinterklaas & kerst en over ons; alle veelgestelde vragen; voorbeelden) |
 | Betaling | Stripe Checkout (hosted) via `/api/checkout`, webhook op `/api/stripe/webhook` |
 | Drukwerk | PrintAPI (MVP: handmatig bestellen) |
 | Later | Supabase (EU) voor orders en privé foto-opslag, jobrunner voor AI-generatie |
@@ -36,6 +36,12 @@ Open http://localhost:3000.
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Vercel | Contactadres |
 
 Lokaal: `vercel env pull .env.local`.
+
+## Content in Sanity
+
+Teksten staan in Sanity; de standaardteksten in `src/content/paginas.ts` en `src/content/vragen.ts` gelden alleen als een veld leeg is of Sanity onbereikbaar is. In teksten kun je `{prijs}`, `{normalePrijs}`, `{verzendkosten}`, `{kleurplaten}`, `{levertijd}`, `{deadlines}` en `{email}` gebruiken; die worden ingevuld vanuit `src/config.ts`. Prijzen, deadlines, juridische teksten, upload- en bedankpagina blijven bewust in de code.
+
+Het schema is MCP-beheerd (geen lokale Studio in deze repo). Wijzigingen worden binnen enkele minuten zichtbaar.
 
 ## Instellingen
 

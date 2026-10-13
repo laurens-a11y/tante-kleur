@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/config";
-import { getHomeContent } from "@/sanity/content";
+import { getPagina } from "@/sanity/content";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -14,14 +14,10 @@ export const metadata: Metadata = {
   description: "Wie Tante Kleur is, waar ze voor staat en hoe je contact opneemt.",
 };
 
-const waarden = [
-  { icon: "boek" as const, titel: "Een boek om te bewaren", tekst: "Stevige hardcover, eigen titel, rustige lijnen. Geen printje, maar iets voor in de kast.", kleur: "var(--roze)" },
-  { icon: "uitgelicht" as const, titel: "Eerlijk over AI", tekst: "Tante tekent met hulp van AI en kijkt elke plaat na. Jij ziet altijd eerst een proef.", kleur: "var(--lichtblauw)" },
-  { icon: "hartje" as const, titel: "Zorgvuldig met je foto's", tekst: "Alleen voor jouw boek, en direct verwijderd zodra het naar de drukker gaat.", kleur: "var(--geel)" },
-];
+const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
 
 export default async function OverOnsPage() {
-  const { homepagina } = await getHomeContent();
+  const [homepagina, p] = await Promise.all([getPagina("homepagina"), getPagina("overOnsPagina")]);
   const { company, email } = site;
 
   return (
@@ -43,11 +39,11 @@ export default async function OverOnsPage() {
 
         <section className={s.section}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
-            <h2 className={`${s.display} ${s.h2}`}>Waar Tante voor staat</h2>
+            <h2 className={`${s.display} ${s.h2}`}>{p.waardenKop}</h2>
             <div className={x.cards}>
-              {waarden.map((w) => (
-                <div key={w.titel} className={x.card} style={{ background: w.kleur }}>
-                  <Icon name={w.icon} size={44} />
+              {p.waarden.map((w, i) => (
+                <div key={w._key ?? w.titel} className={x.card} style={{ background: kleuren[i % kleuren.length] }}>
+                  <Icon name={w.icoon} size={44} />
                   <h3 className={x.cardTitle}>{w.titel}</h3>
                   <p className={s.body}>{w.tekst}</p>
                 </div>
@@ -60,7 +56,7 @@ export default async function OverOnsPage() {
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 24 }}>
             <p className={s.tag} style={{ color: "var(--roze)" }}>Contact</p>
             <Icon name="chat" size={56} />
-            <h2 className={`${s.display} ${s.h2}`}>Vraagje voor Tante?</h2>
+            <h2 className={`${s.display} ${s.h2}`}>{p.contactKop}</h2>
             <p className={s.lead}>
               Mail naar <a href={`mailto:${email}`}>{email}</a>. Heb je al besteld? Zet dan je ordernummer of de naam op je
               bestelling in de mail.

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { site } from "@/config";
+import { getPagina } from "@/sanity/content";
 import { CheckoutButton } from "../CheckoutButton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -18,8 +20,9 @@ function formatEuro(cents: number) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
-export default function PrijzenPage() {
+export default async function PrijzenPage() {
   const { price } = site;
+  const p = await getPagina("prijzenPagina");
   return (
     <>
       <SiteHeader current="/prijzen" />
@@ -27,8 +30,8 @@ export default function PrijzenPage() {
         <section className={x.pageHero}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
             <p className={s.tag}>Prijs</p>
-            <h1 className={`${s.display} ${s.h1}`}>Eén boek, helemaal van jou.</h1>
-            <p className={s.lead}>Alle prijzen zijn inclusief btw.</p>
+            <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
+            <p className={s.lead}>{p.intro}</p>
           </div>
         </section>
 
@@ -47,14 +50,12 @@ export default function PrijzenPage() {
                 Introductieprijs, daarna €{price.regular}. Verzending NL en BE: {formatEuro(site.shippingCents)}.
               </p>
               <dl className={x.specs}>
-                <dt>Kleurplaten</dt>
-                <dd>{site.plates}, van jouw eigen foto&apos;s</dd>
-                <dt>Formaat</dt>
-                <dd>A4, staand</dd>
-                <dt>Kaft</dt>
-                <dd>Stevige hardcover met je eigen titel en kleur</dd>
-                <dt>Proef</dt>
-                <dd>Eerst digitaal bekijken, pas daarna drukken</dd>
+                {p.kenmerken.map((k) => (
+                  <Fragment key={k._key ?? k.label}>
+                    <dt>{k.label}</dt>
+                    <dd>{k.waarde}</dd>
+                  </Fragment>
+                ))}
               </dl>
               <CheckoutButton className={s.btn} />
             </div>
@@ -64,10 +65,11 @@ export default function PrijzenPage() {
         <section id="verzending" className={s.section}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
             <Icon name="verzending" size={64} />
-            <h2 className={`${s.display} ${s.h2}`}>Verzending en levertijd</h2>
+            <h2 className={`${s.display} ${s.h2}`}>{p.verzendingKop}</h2>
             <ul className={s.checks}>
-              <li><Icon name="akkoord" size={22} /><span>We bezorgen in Nederland en België voor {formatEuro(site.shippingCents)} per boek.</span></li>
-              <li><Icon name="akkoord" size={22} /><span>Na je akkoord op de proef ligt je boek binnen {site.leadTimeDays} werkdagen bij je thuis.</span></li>
+              {p.verzendingPunten.map((t) => (
+                <li key={t}><Icon name="akkoord" size={22} /><span>{t}</span></li>
+              ))}
               {site.deadlines.map((d) => (
                 <li key={d.feest}><Icon name="cadeau" size={22} /><span>Voor {d.feest}: bestel uiterlijk {d.datum}.</span></li>
               ))}
@@ -78,8 +80,8 @@ export default function PrijzenPage() {
         <section className={s.b2b}>
           <div className={s.wrap} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
             <div className={s.stack} style={{ flex: "1 1 520px", minWidth: 0, gap: 12 }}>
-              <h2 className={`${s.display} ${s.h2}`}>Meer dan tien boeken?</h2>
-              <p className={s.body} style={{ fontSize: 18 }}>Voor je team, een jubileum of als relatiegeschenk maken we graag een voorstel.</p>
+              <h2 className={`${s.display} ${s.h2}`}>{p.zakelijkKop}</h2>
+              <p className={s.body} style={{ fontSize: 18 }}>{p.zakelijkTekst}</p>
             </div>
             <Link href="/zakelijk" className={s.btn}>Bekijk zakelijk</Link>
           </div>
@@ -87,16 +89,14 @@ export default function PrijzenPage() {
 
         <section className={s.section}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 32 }}>
-            <h2 className={`${s.display} ${s.h2}`}>Goed om te weten</h2>
+            <h2 className={`${s.display} ${s.h2}`}>{p.weetjesKop}</h2>
             <div className={s.faq}>
-              <div className={s.faqItem}>
-                <h3>Hoe kan ik betalen?</h3>
-                <p className={s.body}>Via Stripe, met de betaalmethoden die je bij het afrekenen ziet. Je betaalgegevens komen niet bij ons terecht.</p>
-              </div>
-              <div className={s.faqItem}>
-                <h3>Kan ik mijn boek retourneren?</h3>
-                <p className={s.body}>Omdat elk boek speciaal voor jou wordt gemaakt, geldt het herroepingsrecht niet. Gaat er iets mis bij het drukken of de bezorging, dan lossen we het op.</p>
-              </div>
+              {p.weetjes.map((w) => (
+                <div key={w._key ?? w.titel} className={s.faqItem}>
+                  <h3>{w.titel}</h3>
+                  <p className={s.body}>{w.tekst}</p>
+                </div>
+              ))}
             </div>
             <Link href="/vragen" className={s.btnGhost} style={{ alignSelf: "flex-start" }}>Alle vragen</Link>
           </div>
