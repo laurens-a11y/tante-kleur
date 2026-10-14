@@ -48,7 +48,7 @@ De Studio draait in deze site op `/studio` (`sanity.config.ts`, schema in `src/s
 - CORS in Sanity: `https://tantekleur.nl`, `https://tante-kleur.vercel.app`, `https://*-getflipd.vercel.app`, localhost 3000/3333.
 - Knoppen: elk knopveld (type `knop`) heeft tekst, merkkleur en stijl (primair = gevuld, secundair = omrand). De link staat in de code; tekst- en hoverkleur volgen uit de merkkleur (`src/content/knoppen.ts`, `src/components/merkkleur.ts`). De bestelknop in header en footer staat bij Instellingen.
 - Kaarten en stappen hebben een optionele achtergrondkleur; leeg = de vaste afwisseling van de pagina. Tijdlijnen hebben een icoon per stap.
-- Het schema bestaat twee keer: in code (voor de Studio) en als MCP-schema in Sanity (voor AI-tools en de oude Studio op tantekleur.sanity.studio). Pas bij een schemawijziging beide aan.
+- Er is één Studio: `/studio` op de site. Het schema staat alleen in de code; Sanity neemt het automatisch over zodra de Studio na een deploy wordt geopend. De losse Studio op tantekleur.sanity.studio is opgeheven (oktober 2026). In Sanity staat nog een oud MCP-schema voor de workspace `default`; dat is niet leidend, lees het actuele schema via de Studio-deployment (`list_workspace_schemas`, applicatie `pieh7bfn30zaqthfbbkixinb`).
 
 ## SEO en GEO
 
@@ -83,7 +83,7 @@ Lokaal webhooks testen: `stripe listen --forward-to localhost:3000/api/stripe/we
 
 ## Content beheren (Sanity)
 
-- Studio: https://tantekleur.sanity.studio (schema beheerd via de Sanity MCP, geen lokale Studio-code).
-- Typen: `homepagina` (kop, intro, merkverhaal), `vraag` (vraag, antwoord, volgorde), `voorbeeld` (foto, kleurplaat, toestemming, volgorde).
+- Studio: https://tantekleur.nl/studio (schema in `src/sanity/schema`).
+- Typen: één document per pagina (`homepagina`, `hoeHetWerktPagina`, `prijzenPagina` enz.), `instellingen`, `vraag` (vraag, antwoord, thema, volgorde) en `voorbeeld` (foto, kleurplaat, toestemming, volgorde).
 - De homepage haalt content op via `src/sanity/content.ts` (`use cache`, ververst elke minuut). Zonder Sanity-content valt de site terug op de standaardteksten.
 - Alleen voorbeelden met `toestemming = true` verschijnen op de site.

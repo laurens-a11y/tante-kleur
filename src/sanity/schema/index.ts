@@ -11,8 +11,8 @@ import { BasketIcon } from "@sanity/icons/Basket";
 import { RocketIcon } from "@sanity/icons/Rocket";
 import { knopStijlen, merkkleuren } from "@/content/knoppen";
 
-// Contentmodel van de Studio op /studio. Houd dit gelijk aan het schema dat via
-// de Sanity MCP is gedeployd (AI-tools lezen dat); zie README > Content in Sanity.
+// Contentmodel van de Studio op /studio. Dit is de enige bron van het schema;
+// zie README > Content in Sanity.
 
 const placeholderHulp = "{prijs}, {normalePrijs}, {verzendkosten}, {kleurplaten} en {levertijd} worden automatisch ingevuld.";
 
