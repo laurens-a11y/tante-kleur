@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   // Als vangnet ververst de cache uiterlijk na 10 minuten.
   cacheLife: { default: { stale: 60, revalidate: 600, expire: 31_536_000 } },
   partialPrefetching: true,
+  // De stijlreferentie voor tekenplaten meeleveren met de genereer-route.
+  outputFileTracingIncludes: {
+    "/api/beheer/**": ["./assets/stijlreferentie.png"],
+  },
   images: {
     // Afbeeldingen uit Sanity (alleen dit project). Geen `search` opgeven: Sanity-URL's
     // hebben altijd een querystring (?rect=…&w=…); new URL(...) zou die blokkeren.
