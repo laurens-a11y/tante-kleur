@@ -69,11 +69,15 @@ async function OrderStatus({ searchParams }: { searchParams: PageProps<"/bedankt
         elke foto een verhaaltje als je wilt. Daarna krijg je binnen een paar dagen een digitale proef van je boek.
       </p>
       {boekLink ? (
-        <a href={boekLink} {...knopStijl(knop("Vul mijn boek"), { style: { alignSelf: "flex-start" } })}>Vul mijn boek</a>
+        <>
+          <a href={boekLink} {...knopStijl(knop("Vul mijn boek"), { style: { alignSelf: "flex-start" } })}>Vul mijn boek</a>
+          <p className={s.body}>We hebben de link ook gemaild, zodat je later verder kunt.</p>
+        </>
       ) : (
-        <p className={s.body}>Je ontvangt per mail een link naar je boek.</p>
+        <p className={s.body}>
+          Je ontvangt binnen een paar minuten een mail met de link naar je boek. Niets ontvangen? Mail Tante via {site.email}.
+        </p>
       )}
-      <p className={s.body}>We hebben de link ook gemaild, zodat je later verder kunt.</p>
     </>
   );
 }
