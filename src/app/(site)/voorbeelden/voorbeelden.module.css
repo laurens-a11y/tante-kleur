@@ -122,7 +122,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 44px 24px 22px;
+  padding: 62px 24px 18px;
 }
 
 .breed .papier {
@@ -147,7 +147,7 @@
 
 .breed .pijl {
   display: flex;
-  top: 4px;
+  top: 2px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -242,7 +242,7 @@
   }
 
   .breed .collage {
-    padding: 34px 12px 12px;
+    padding: 46px 12px 10px;
   }
 
   .breed .polaroid {
