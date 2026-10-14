@@ -488,21 +488,6 @@ const voorbeeld = defineType({
     }),
     defineField({ name: "toestemming", title: "Toestemming van de mensen op de foto", type: "boolean", description: "Alleen voorbeelden met toestemming verschijnen op de site.", initialValue: false }),
     defineField({ name: "volgorde", title: "Volgorde", type: "number", description: "Het voorbeeld met het laagste getal staat op de homepage.", initialValue: 10 }),
-    defineField({
-      name: "grootte",
-      title: "Formaat op de pagina Voorbeelden",
-      type: "string",
-      options: {
-        list: [
-          { title: "Normaal", value: "normaal" },
-          { title: "Breed", value: "breed" },
-          { title: "Groot", value: "groot" },
-        ],
-        layout: "radio",
-        direction: "horizontal",
-      },
-      description: "Leeg laten: de site wisselt de formaten zelf af. Met de hotspot op de kleurplaat kies je wat er in beeld blijft.",
-    }),
   ],
   orderings: [{ title: "Volgorde", name: "volgorde", by: [{ field: "volgorde", direction: "asc" }] }],
   preview: { select: { title: "titel", media: "kleurplaat", toestemming: "toestemming" }, prepare: ({ title, media, toestemming }) => ({ title, media, subtitle: toestemming ? "Op de site" : "Geen toestemming: niet zichtbaar" }) },

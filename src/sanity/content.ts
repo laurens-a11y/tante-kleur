@@ -31,8 +31,6 @@ async function haal<T>(naam: string, query: string, params: Record<string, unkno
 
 type SanityImage = { asset?: { _ref: string }; alt?: string; hotspot?: { x?: number; y?: number }; crop?: unknown };
 
-// Formaat van een tegel in de bento grid op /voorbeelden.
-export type TegelGrootte = "normaal" | "breed" | "groot";
 // Grote, niet bijgesneden versie van een foto; positie volgt de hotspot (CSS object-position).
 export type GrootBeeld = { url: string; positie: string };
 
@@ -42,7 +40,6 @@ export type Voorbeeld = {
   kleurplaat: { url: string; alt: string };
   fotoGroot: GrootBeeld;
   kleurplaatGroot: GrootBeeld;
-  grootte?: TegelGrootte;
 };
 
 // ---------- Placeholders ----------
@@ -164,9 +161,7 @@ function imageUrl(image: SanityImage, width: number, height: number) {
   return imageBuilder.image(image).width(width).height(height).fit("crop").auto("format").quality(82).url();
 }
 
-type RuwVoorbeeld = { _id: string; foto: SanityImage; kleurplaat: SanityImage; grootte?: string };
-
-const grootten = new Set<string>(["normaal", "breed", "groot"]);
+type RuwVoorbeeld = { _id: string; foto: SanityImage; kleurplaat: SanityImage };
 
 function grootBeeld(image: SanityImage): GrootBeeld {
   const x = image.hotspot?.x ?? 0.5;
@@ -184,7 +179,6 @@ function naarVoorbeeld(v: RuwVoorbeeld): Voorbeeld {
     kleurplaat: { url: imageUrl(v.kleurplaat, 800, 1000), alt: v.kleurplaat.alt || "Kleurplaat" },
     fotoGroot: grootBeeld(v.foto),
     kleurplaatGroot: grootBeeld(v.kleurplaat),
-    grootte: grootten.has(stegaClean(v.grootte ?? "")) ? (stegaClean(v.grootte) as TegelGrootte) : undefined,
   };
 }
 
@@ -205,7 +199,7 @@ export async function getHomeContent(opties: FetchOpties) {
 }
 
 const VOORBEELDEN_QUERY = defineQuery(
-  `*[_type == "voorbeeld" && toestemming == true && defined(foto.asset) && defined(kleurplaat.asset)] | order(coalesce(volgorde, 999) asc, _createdAt asc){_id, foto, kleurplaat, grootte}`,
+  `*[_type == "voorbeeld" && toestemming == true && defined(foto.asset) && defined(kleurplaat.asset)] | order(coalesce(volgorde, 999) asc, _createdAt asc){_id, foto, kleurplaat}`,
 );
 
 // Alle voorbeelden met toestemming, voor /voorbeelden.
