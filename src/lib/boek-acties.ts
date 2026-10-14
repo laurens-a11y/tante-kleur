@@ -24,6 +24,13 @@ export async function bewerkbareOrder(code: string): Promise<Order> {
   return order;
 }
 
+async function verrijkbareOrder(code: string): Promise<Order> {
+  const order = await haalOrderOpCode(code);
+  if (!order) throw new Weigering("Dit boek bestaat niet.", 404);
+  if (order.status !== "betaald" && order.status !== "proef_klaar") throw new Weigering("Je boek kan nu niet worden aangepast.", 409);
+  return order;
+}
+
 async function eigenPagina(order: Order, pageId: unknown): Promise<Pagina> {
   if (typeof pageId !== "string") throw new Weigering("Onbekende pagina.");
   const { data } = await getSupabase().from("pages").select().eq("id", pageId).eq("order_id", order.id).maybeSingle<Pagina>();
@@ -61,7 +68,8 @@ const proefActies = new Set(["opmerking", "proefVerhaal", "proefTekst", "akkoord
 
 export async function voerUit(code: string, invoer: Invoer, origin: string): Promise<Record<string, unknown>> {
   if (typeof invoer.actie === "string" && proefActies.has(invoer.actie)) return voerProefActieUit(code, invoer);
-  const order = await bewerkbareOrder(code);
+  // AI-voorstellen mogen ook tijdens de proef (de klant kan dan nog teksten aanpassen).
+  const order = invoer.actie === "verrijk" ? await verrijkbareOrder(code) : await bewerkbareOrder(code);
 
   switch (invoer.actie) {
     case "cover": {
@@ -193,7 +201,9 @@ async function voerProefActieUit(code: string, invoer: Invoer): Promise<Record<s
     // Bij de proef mag de klant zijn teksten nog zelf aanpassen.
     case "proefVerhaal": {
       const pagina = await eigenPagina(order, invoer.pageId);
-      await update("pages", pagina.id, { verhaal: tekst(invoer.tekst, boek.maxVerhaal, "verhaal") });
+      const velden: Record<string, unknown> = { verhaal: tekst(invoer.tekst, boek.maxVerhaal, "verhaal") };
+      if ("eigen" in invoer) velden.verhaal_eigen = tekst(invoer.eigen, 4000, "verhaal");
+      await update("pages", pagina.id, velden);
       return {};
     }
 
@@ -201,7 +211,9 @@ async function voerProefActieUit(code: string, invoer: Invoer): Promise<Record<s
       const soort = invoer.soort;
       if (soort !== "inleiding" && soort !== "nawoord") throw new Weigering("Onbekend tekstveld.");
       const max = soort === "inleiding" ? boek.maxInleiding : boek.maxNawoord;
-      await update("orders", order.id, { [soort]: tekst(invoer.tekst, max, soort) });
+      const velden: Record<string, unknown> = { [soort]: tekst(invoer.tekst, max, soort) };
+      if ("eigen" in invoer) velden[`${soort}_eigen`] = tekst(invoer.eigen, 4000, soort);
+      await update("orders", order.id, velden);
       return {};
     }
 
