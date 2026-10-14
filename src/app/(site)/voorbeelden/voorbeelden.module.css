@@ -1,0 +1,136 @@
+/* Bento grid met voorbeelden: kleurplaat groot, originele foto als polaroid. */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 170px;
+  grid-auto-flow: dense;
+  gap: 16px;
+}
+
+.tegel {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.normaal {
+  grid-row: span 2;
+}
+
+.breed {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.groot {
+  grid-column: span 2;
+  grid-row: span 4;
+}
+
+.hoofd {
+  position: absolute;
+  inset: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--wit);
+  animation: verschijn 0.35s ease;
+}
+
+/* Originele foto als scheef geplakte polaroid in de hoek. */
+.polaroid {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: clamp(72px, 34%, 150px);
+  padding: 6px 6px 20px;
+  background: var(--wit);
+  border-radius: 2px;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--blauw) 25%, transparent);
+  transform: rotate(-6deg);
+  transition: transform 0.25s ease;
+  animation: verschijn 0.35s ease;
+}
+
+.polaroidBeeld {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.tegel:hover .polaroid,
+.tegel:focus-visible .polaroid {
+  transform: rotate(-2deg) scale(1.04);
+}
+
+.wissel {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--wit);
+  color: var(--blauw);
+  font-size: 20px;
+  font-weight: 700;
+  transition: transform 0.25s ease;
+}
+
+.tegel:hover .wissel {
+  transform: rotate(-180deg);
+}
+
+@keyframes verschijn {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoofd,
+  .polaroid,
+  .wissel {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 120px;
+    gap: 12px;
+  }
+
+  .groot {
+    grid-row: span 3;
+  }
+
+  .hoofd {
+    inset: 8px;
+  }
+
+  .polaroid {
+    top: 14px;
+    left: 14px;
+    padding: 4px 4px 14px;
+  }
+
+  .wissel {
+    right: 14px;
+    bottom: 14px;
+    width: 30px;
+    height: 30px;
+    font-size: 17px;
+  }
+}

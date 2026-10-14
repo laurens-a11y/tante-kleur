@@ -245,6 +245,7 @@ export const voorbeeldenPagina = {
   kop: "Van camerarol naar kleurplaat.",
   intro: "Alles hieronder is gemaakt van gewone foto's, zoals ze op je telefoon staan.",
   galerijKop: "De foto en de kleurplaat",
+  galerijHint: "Tik op een voorbeeld om foto en kleurplaat te wisselen.",
   coverLabel: "Het boek",
   coverKop: "Jouw titel, jouw kleur.",
   coverTekst: "Henk & Ingrid, Spanje 2025, Weekend Berlijn: elk boek krijgt een eigen titel op een stevige hardcover.",
