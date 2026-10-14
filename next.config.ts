@@ -8,8 +8,9 @@ const nextConfig: NextConfig = {
   cacheLife: { default: { stale: 60, revalidate: 600, expire: 31_536_000 } },
   partialPrefetching: true,
   images: {
-    // Afbeeldingen uit Sanity (alleen dit project).
-    remotePatterns: [new URL("https://cdn.sanity.io/images/hera4nnf/**")],
+    // Afbeeldingen uit Sanity (alleen dit project). Geen `search` opgeven: Sanity-URL's
+    // hebben altijd een querystring (?rect=…&w=…); new URL(...) zou die blokkeren.
+    remotePatterns: [{ protocol: "https", hostname: "cdn.sanity.io", port: "", pathname: "/images/hera4nnf/**" }],
   },
 };
 
