@@ -46,6 +46,8 @@ De Studio draait in deze site op `/studio` (`sanity.config.ts`, schema in `src/s
 - Pagina's ophalen gaat via `MetOpties` (`src/sanity/MetOpties.tsx`): gewoon bezoek krijgt gepubliceerde, statisch gecachete content; in draft mode concepten met stega.
 - Draft mode: `/api/draft-mode/enable` (aangeroepen door de Studio) en `/api/draft-mode/disable`. Vereist `SANITY_API_READ_TOKEN` met Viewer-rechten.
 - CORS in Sanity: `https://tantekleur.nl`, `https://tante-kleur.vercel.app`, `https://*-getflipd.vercel.app`, localhost 3000/3333.
+- Knoppen: elk knopveld (type `knop`) heeft tekst, merkkleur en stijl (primair = gevuld, secundair = omrand). De link staat in de code; tekst- en hoverkleur volgen uit de merkkleur (`src/content/knoppen.ts`, `src/components/merkkleur.ts`). De bestelknop in header en footer staat bij Instellingen.
+- Kaarten en stappen hebben een optionele achtergrondkleur; leeg = de vaste afwisseling van de pagina. Tijdlijnen hebben een icoon per stap.
 - Het schema bestaat twee keer: in code (voor de Studio) en als MCP-schema in Sanity (voor AI-tools en de oude Studio op tantekleur.sanity.studio). Pas bij een schemawijziging beide aan.
 
 ## SEO en GEO
