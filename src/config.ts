@@ -7,10 +7,6 @@ export const site = {
   price: { intro: 59, regular: 69 },
   // Verzendkosten per boek, incl. btw, in centen (NL en BE).
   shippingCents: 695,
-  // Tally-uploadformulier, ingebed op /upload. Krijgt ?order=<checkout session id>
-  // mee als verborgen veld "order".
-  tallyFormId: "vG7pM4",
-  uploadUrl: "/upload",
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "tante@tantekleur.nl",
   // TODO: levertijd bevestigen na eerste proefdruk bij PrintAPI
   leadTimeDays: "10",
@@ -29,6 +25,30 @@ export const site = {
     { feest: "Sinterklaas", datum: "14 november" },
     { feest: "Kerst", datum: "4 december" },
   ],
-  // Aantal kleurplaten per boek.
-  plates: "20 tot 25",
+  // Aantal kleurplaten per boek (tekst op de site).
+  plates: "18 tot 22",
 } as const;
+
+// Instellingen van het boek zelf: hoeveel pagina's en welke covers.
+export const boek = {
+  // Minimaal en maximaal aantal foto's (= kleurplaten = spreads).
+  minFotos: 18,
+  maxFotos: 22,
+  // Maximale lengtes in tekens.
+  maxTitel: 40,
+  maxVerhaal: 400,
+  maxInleiding: 1200,
+  maxNawoord: 1200,
+  // Maximaal aantal AI-voorstellen per boek (tegen misbruik en kosten).
+  maxAiAanroepen: 100,
+  // Coverkleuren. `kleur` verwijst naar een merkkleur in globals.css.
+  coverKleuren: [
+    { value: "blauw", label: "Blauw", kleur: "blauw", tekst: "wit" },
+    { value: "lichtblauw", label: "Lichtblauw", kleur: "lichtblauw", tekst: "blauw" },
+    { value: "roze", label: "Roze", kleur: "roze", tekst: "blauw" },
+    { value: "oranje", label: "Oranje", kleur: "rood", tekst: "wit" },
+    { value: "geel", label: "Geel", kleur: "geel", tekst: "blauw" },
+  ],
+} as const;
+
+export type CoverKleur = (typeof boek.coverKleuren)[number]["value"];

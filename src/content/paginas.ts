@@ -119,8 +119,8 @@ export const hoeHetWerktPagina = {
   tijdlijnKop: "Wanneer heb je je boek?",
   tijdlijnAchtergrond: "geel" as Merkkleur,
   tijdlijn: [
-    { icoon: "kopen", titel: "Bestellen", tekst: "Afrekenen en covertitel kiezen" },
-    { icoon: "uploaden", titel: "Uploaden", tekst: "Jij stuurt je foto's" },
+    { icoon: "kopen", titel: "Bestellen", tekst: "Afrekenen" },
+    { icoon: "uploaden", titel: "Uploaden", tekst: "Cover kiezen en foto's sturen" },
     { icoon: "boek", titel: "Proef", tekst: "Binnen een paar dagen in je mail" },
     { icoon: "verzending", titel: "Drukken en bezorgen", tekst: "Binnen {levertijd} werkdagen na je akkoord" },
   ] as Mijlpaal[],

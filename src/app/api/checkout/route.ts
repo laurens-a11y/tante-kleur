@@ -41,14 +41,7 @@ export async function POST(request: Request) {
           },
         },
       ],
-      custom_fields: [
-        {
-          key: "cover_titel",
-          label: { type: "custom", custom: "Titel op de cover" },
-          type: "text",
-          text: { minimum_length: 1, maximum_length: 40 },
-        },
-      ],
+      // Titel en kleur van de cover kiest de klant na het betalen, in het boekformulier.
       // Wettelijk verplicht: vóór betaling melden dat herroepingsrecht niet geldt bij maatwerk.
       custom_text: {
         submit: {

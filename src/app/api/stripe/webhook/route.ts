@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
+import { zorgVoorOrder } from "@/lib/orders";
 
 // Stripe-webhook. Hier gebeurt de orderverwerking, niet op de bedankpagina:
 // een klant kan betalen en de pagina nooit zien.
@@ -31,7 +32,16 @@ export async function POST(request: Request) {
       // Bij uitgestelde betaalmethoden komt 'completed' binnen terwijl er nog
       // niet betaald is; dan wachten we op async_payment_succeeded.
       if (session.payment_status !== "unpaid") {
-        await fulfillOrder(session);
+        try {
+          // Maakt de order in Supabase aan en mailt de klant de link naar het boek.
+          // Idempotent: dubbele events of de bedankpagina maken geen tweede order.
+          const order = await zorgVoorOrder(session, new URL(request.url).origin);
+          console.info(`Order klaar voor ${session.id}: ${order?.id ?? "-"}`);
+        } catch (error) {
+          console.error(`Order aanmaken mislukt voor ${session.id}:`, error instanceof Error ? error.message : error);
+          // 500 zodat Stripe het later opnieuw probeert.
+          return new Response("Order aanmaken mislukt", { status: 500 });
+        }
       }
       break;
     }
@@ -45,16 +55,4 @@ export async function POST(request: Request) {
   }
 
   return Response.json({ received: true });
-}
-
-async function fulfillOrder(session: Stripe.Checkout.Session) {
-  const coverTitel = session.custom_fields?.find((f) => f.key === "cover_titel")?.text?.value;
-
-  // TODO (fase 2): order opslaan in de database (idempotent op session.id),
-  // bevestigingsmail met uploadlink sturen en de order klaarzetten voor productie.
-  // Concierge-MVP: de order staat in het Stripe Dashboard; dit logregel helpt bij controle.
-  console.info(
-    `Nieuwe order ${session.id}: ${session.amount_total} ${session.currency}, ` +
-      `titel "${coverTitel ?? "-"}", land ${session.collected_information?.shipping_details?.address?.country ?? "-"}`,
-  );
 }

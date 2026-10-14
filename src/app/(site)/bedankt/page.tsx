@@ -4,6 +4,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { getStripe } from "@/lib/stripe";
 import { site } from "@/config";
+import { zorgVoorOrder } from "@/lib/orders";
+import { headers } from "next/headers";
 import s from "../page.module.css";
 import { Icon } from "@/components/Icon";
 import { knopStijl } from "@/components/merkkleur";
@@ -35,17 +37,24 @@ async function OrderStatus({ searchParams }: { searchParams: PageProps<"/bedankt
 
   let name: string | null = null;
   let paid = false;
+  let boekLink: string | null = null;
   if (sessionId?.startsWith("cs_")) {
     try {
       const session = await getStripe().checkout.sessions.retrieve(sessionId);
       name = session.customer_details?.name?.split(" ")[0] ?? null;
       paid = session.payment_status !== "unpaid";
-    } catch {
-      // Onbekende sessie: toon de algemene tekst.
+      if (paid) {
+        // Meestal heeft de webhook de order al aangemaakt; zo niet, dan doen we het hier.
+        const host = (await headers()).get("host");
+        const origin = host ? `${host.startsWith("localhost") ? "http" : "https"}://${host}` : "https://tantekleur.nl";
+        const order = await zorgVoorOrder(session, origin);
+        if (order) boekLink = `/boek/${order.code}`;
+      }
+    } catch (error) {
+      // Onbekende sessie of tijdelijke storing: toon de algemene tekst. De klant krijgt de link ook per mail.
+      console.error("Bedankpagina: order ophalen mislukt:", error instanceof Error ? error.message : error);
     }
   }
-
-  const uploadUrl = site.uploadUrl && sessionId ? `${site.uploadUrl}?order=${encodeURIComponent(sessionId)}` : null;
 
   return (
     <>
@@ -56,13 +65,18 @@ async function OrderStatus({ searchParams }: { searchParams: PageProps<"/bedankt
           : "We wachten nog op de bevestiging van je betaling. Je krijgt een mail zodra die binnen is."}
       </p>
       <p className={s.lead}>
-        Volgende stap: stuur Tante je 20 tot 25 mooiste foto&apos;s. Daarna krijg je binnen een paar dagen een
-        digitale proef van je boek.
+        Volgende stap: kies de titel en kleur van je cover en stuur Tante je {site.plates} mooiste foto&apos;s, met bij
+        elke foto een verhaaltje als je wilt. Daarna krijg je binnen een paar dagen een digitale proef van je boek.
       </p>
-      {uploadUrl ? (
-        <a href={uploadUrl} {...knopStijl(knop("Upload je foto's"), { style: { alignSelf: "flex-start" } })}>Upload je foto&apos;s</a>
+      {boekLink ? (
+        <>
+          <a href={boekLink} {...knopStijl(knop("Vul mijn boek"), { style: { alignSelf: "flex-start" } })}>Vul mijn boek</a>
+          <p className={s.body}>We hebben de link ook gemaild, zodat je later verder kunt.</p>
+        </>
       ) : (
-        <p className={s.body}>Je ontvangt per mail een link om je foto&apos;s te uploaden.</p>
+        <p className={s.body}>
+          Je ontvangt binnen een paar minuten een mail met de link naar je boek. Niets ontvangen? Mail Tante via {site.email}.
+        </p>
       )}
     </>
   );
