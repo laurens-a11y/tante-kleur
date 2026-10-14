@@ -85,7 +85,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         {/* Merkverhaal */}
         <section className={`${s.section} ${s.story}`}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 28 }}>
-            <p className={`${s.display} ${s.storyLine}`} style={{ color: "var(--roze)" }}>
+            <p className={s.storyVraag} style={{ color: "var(--roze)" }}>
               {homepagina.verhaalVraag}
             </p>
             <p className={`${s.display} ${s.storyLine}`}>{homepagina.verhaalAntwoord}</p>
