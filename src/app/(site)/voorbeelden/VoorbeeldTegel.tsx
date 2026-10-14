@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { GrootBeeld, TegelGrootte } from "@/sanity/content";
 import x from "./voorbeelden.module.css";
 
@@ -27,6 +27,7 @@ const sizes: Record<TegelGrootte, string> = {
 // wisselt foto en kleurplaat om.
 export function VoorbeeldTegel({ foto, kleurplaat, fotoGroot, kleurplaatGroot, grootte, achtergrond }: TegelProps) {
   const [omgedraaid, setOmgedraaid] = useState(false);
+  const filterId = `hand-${useId().replace(/:/g, "")}`;
   const groot = omgedraaid ? { ...foto, ...fotoGroot } : { ...kleurplaat, ...kleurplaatGroot };
   const klein = omgedraaid ? kleurplaat : foto;
   // Pijl leesbaar op de tegelkleur: wit op rood, blauw op geel, anders rood.
@@ -54,9 +55,19 @@ export function VoorbeeldTegel({ foto, kleurplaat, fotoGroot, kleurplaatGroot, g
         </span>
         <span className={`${x.pijl} ${omgedraaid ? x.pijlTerug : ""}`} style={{ color: pijlKleur }} aria-hidden="true">
           <span className={x.pijlLabel}>Tante tekent</span>
-          <svg viewBox="0 0 120 50" width="96" height="40">
-            <path d="M8 40 C 30 6, 80 2, 108 30" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-            <path d="M96 30 L 109 32 L 106 18" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Handgetekende pijl: lusje halverwege, scheve punt, licht trillende lijn. */}
+          <svg viewBox="0 0 140 60" width="104" height="44">
+            <defs>
+              <filter id={filterId} x="-10%" y="-20%" width="120%" height="140%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="7" />
+                <feDisplacementMap in="SourceGraphic" scale="2.5" />
+              </filter>
+            </defs>
+            <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" filter={`url(#${filterId})`}>
+              <path d="M8 50 C 16 34, 30 22, 48 21 C 66 20, 71 38, 59 41 C 47 44, 50 22, 70 15 C 92 8, 116 18, 129 37" strokeWidth="3.6" />
+              <path d="M113 36 C 119 37, 124 38, 130 39" strokeWidth="3.4" />
+              <path d="M130 39 C 129 32, 127 26, 124 21" strokeWidth="3.2" />
+            </g>
           </svg>
         </span>
       </span>
