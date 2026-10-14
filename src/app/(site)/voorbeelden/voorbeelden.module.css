@@ -59,12 +59,14 @@
   overflow: hidden;
 }
 
+/* Polaroid linksonder, half over de rand van het papier: gezichten zitten bijna
+   altijd bovenin de foto, onderin staan tafel, handen of grond. */
 .polaroid {
   position: absolute;
-  top: 24px;
-  left: 24px;
+  bottom: 22px;
+  left: 8px;
   z-index: 1;
-  width: clamp(72px, 34%, 150px);
+  width: clamp(64px, 30%, 140px);
   padding: 6px 6px 20px;
   background: var(--wit);
   border-radius: 2px;
@@ -137,6 +139,7 @@
 .breed .polaroid {
   position: relative;
   top: auto;
+  bottom: auto;
   left: auto;
   order: 1;
   flex: none;
@@ -152,13 +155,13 @@
   transform: translateX(-50%);
 }
 
-/* Grote tegel: wit labeltje onder de polaroid, met een klein pijltje de tekening in. */
+/* Grote tegel: wit labeltje naast de polaroid, met een pijltje schuin de tekening in. */
 .groot .pijl {
   display: flex;
   flex-direction: row;
   gap: 4px;
-  top: calc(24px + clamp(72px, 34%, 150px) * 1.25 + 40px);
-  left: 30px;
+  bottom: 40px;
+  left: calc(clamp(64px, 30%, 140px) + 30px);
   padding: 4px 4px 4px 12px;
   border-radius: 999px;
   background: var(--wit);
@@ -167,13 +170,13 @@
 }
 
 .groot .pijl svg {
-  width: 40px;
-  height: 18px;
-  transform: rotate(20deg);
+  width: 44px;
+  height: 20px;
+  transform: rotate(-25deg);
 }
 
 .groot .pijlTerug svg {
-  transform: rotate(20deg) scaleX(-1);
+  transform: rotate(-25deg) scaleX(-1);
 }
 
 /* Wisselknop in de hoek van de tegel, niet op de tekening. */
@@ -232,8 +235,8 @@
   }
 
   .polaroid {
-    top: 16px;
-    left: 16px;
+    bottom: 14px;
+    left: 4px;
     padding: 4px 4px 14px;
   }
 
