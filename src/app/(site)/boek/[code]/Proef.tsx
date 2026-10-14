@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { boek } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
 
@@ -24,6 +25,8 @@ export function Proef({
 }) {
   const router = useRouter();
   const [paginas, setPaginas] = useState(begin);
+  const [inl, setInl] = useState(inleiding);
+  const [naw, setNaw] = useState(nawoord);
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -39,15 +42,22 @@ export function Proef({
     return data;
   }
 
-  function bewaarOpmerking(id: string, tekst: string, direct = false) {
-    clearTimeout(timers.current[id]);
-    const doe = () =>
-      stuur({ actie: "opmerking", pageId: id, tekst })
+  // Bewaart 900 ms na de laatste wijziging, of direct bij het verlaten van het veld.
+  function bewaar(sleutel: string, body: Record<string, unknown>, direct = false) {
+    clearTimeout(timers.current[sleutel]);
+    const doe = () => {
+      delete timers.current[sleutel];
+      return stuur(body)
         .then(() => setFout(null))
-        .catch((e) => setFout(e instanceof Error ? e.message : "Opmerking niet bewaard."));
+        .catch((e) => setFout(e instanceof Error ? e.message : "Niet bewaard."));
+    };
     if (direct) return doe();
-    timers.current[id] = setTimeout(doe, 900);
+    timers.current[sleutel] = setTimeout(doe, 900);
   }
+
+  const bewaarOpmerking = (id: string, tekst: string, direct = false) => bewaar(`opm-${id}`, { actie: "opmerking", pageId: id, tekst }, direct);
+  const bewaarVerhaal = (id: string, tekst: string, direct = false) => bewaar(`verhaal-${id}`, { actie: "proefVerhaal", pageId: id, tekst }, direct);
+  const bewaarTekst = (soort: "inleiding" | "nawoord", tekst: string, direct = false) => bewaar(soort, { actie: "proefTekst", soort, tekst }, direct);
 
   const aantalOpmerkingen = paginas.filter((p) => p.opmerking.trim()).length;
 
@@ -60,8 +70,15 @@ export function Proef({
     setBezig(true);
     setFout(null);
     try {
-      // Openstaande opmerkingen eerst bewaren.
-      await Promise.all(paginas.map((p) => (timers.current[p.id] ? bewaarOpmerking(p.id, p.opmerking, true) : null)));
+      // Openstaande wijzigingen eerst bewaren.
+      await Promise.all([
+        ...paginas.flatMap((p) => [
+          timers.current[`opm-${p.id}`] ? bewaarOpmerking(p.id, p.opmerking, true) : null,
+          timers.current[`verhaal-${p.id}`] ? bewaarVerhaal(p.id, p.verhaal, true) : null,
+        ]),
+        timers.current.inleiding ? bewaarTekst("inleiding", inl, true) : null,
+        timers.current.nawoord ? bewaarTekst("nawoord", naw, true) : null,
+      ]);
       await stuur({ actie });
       router.refresh();
     } catch (e) {
@@ -77,8 +94,8 @@ export function Proef({
         <p className={s.tag}>Jouw proef</p>
         <h1 className={`${s.display} ${s.h2}`}>Kijk eens wat Tante heeft getekend!</h1>
         <p className={s.lead}>
-          Zo komt je boek eruit te zien. Klopt alles? Geef dan akkoord. Wil je iets anders, zet dan een opmerking bij de
-          pagina en stuur je opmerkingen naar Tante.
+          Zo komt je boek eruit te zien. Je teksten kun je hier zelf nog aanpassen. Wil je iets anders aan een
+          kleurplaat, zet dan een opmerking bij die pagina en stuur je opmerkingen naar Tante. Klopt alles? Geef dan akkoord.
         </p>
       </header>
 
@@ -86,7 +103,22 @@ export function Proef({
         <div className={b.coverRij}>
           <div className={b.coverVelden}>
             <h2 className={`${s.display} ${s.h3}`}>Cover en inleiding</h2>
-            <p className={`${s.body} ${b.voorstelTekst}`}>{inleiding || "Geen inleiding."}</p>
+            <label htmlFor="proef-inleiding" className={b.label}>
+              Inleiding
+            </label>
+            <textarea
+              id="proef-inleiding"
+              className={b.invoer}
+              rows={5}
+              maxLength={boek.maxInleiding}
+              value={inl}
+              placeholder="Geen inleiding (mag leeg blijven)."
+              onChange={(e) => {
+                setInl(e.target.value);
+                bewaarTekst("inleiding", e.target.value);
+              }}
+              onBlur={(e) => bewaarTekst("inleiding", e.target.value, true)}
+            />
           </div>
           <div className={b.coverVoorbeeld} style={{ background: `var(--${kleur.achtergrond})`, color: `var(--${kleur.tekst})` }}>
             <span className={s.display}>{titel}</span>
@@ -100,7 +132,23 @@ export function Proef({
             <span className={b.paginaNr}>Pagina {i + 1}</span>
             <div className={b.spreadInhoud}>
               <div className={b.links}>
-                <p className={`${s.body} ${b.voorstelTekst}`}>{p.verhaal || <em>Geen verhaaltje</em>}</p>
+                <label htmlFor={`verhaal-${p.id}`} className={b.label}>
+                  Verhaaltje (links)
+                </label>
+                <textarea
+                  id={`verhaal-${p.id}`}
+                  className={b.invoer}
+                  rows={5}
+                  maxLength={boek.maxVerhaal}
+                  value={p.verhaal}
+                  placeholder="Geen verhaaltje (mag leeg blijven)."
+                  onChange={(e) => {
+                    const t = e.target.value;
+                    setPaginas((ps) => ps.map((x) => (x.id === p.id ? { ...x, verhaal: t } : x)));
+                    bewaarVerhaal(p.id, t);
+                  }}
+                  onBlur={(e) => bewaarVerhaal(p.id, e.target.value, true)}
+                />
               </div>
               <div className={b.rechts}>
                 <div className={b.plaatVak}>
@@ -115,14 +163,14 @@ export function Proef({
             </div>
             <div className={b.veld}>
               <label htmlFor={`opm-${p.id}`} className={b.label}>
-                Opmerking bij deze pagina (optioneel)
+                Opmerking over de kleurplaat (optioneel)
               </label>
               <textarea
                 id={`opm-${p.id}`}
                 className={b.invoer}
                 rows={2}
                 maxLength={1000}
-                placeholder="Bijvoorbeeld: opa's bril mag erbij, of de tekst moet ‘Zeeland’ zijn."
+                placeholder="Bijvoorbeeld: opa's bril mag erbij, of de hond lijkt niet goed."
                 value={p.opmerking}
                 onChange={(e) => {
                   const t = e.target.value;
@@ -138,7 +186,19 @@ export function Proef({
 
       <section className={b.blok}>
         <h2 className={`${s.display} ${s.h3}`}>Nawoord</h2>
-        <p className={`${s.body} ${b.voorstelTekst}`}>{nawoord || "Geen nawoord."}</p>
+        <textarea
+          aria-label="Nawoord"
+          className={b.invoer}
+          rows={4}
+          maxLength={boek.maxNawoord}
+          value={naw}
+          placeholder="Geen nawoord (mag leeg blijven)."
+          onChange={(e) => {
+            setNaw(e.target.value);
+            bewaarTekst("nawoord", e.target.value);
+          }}
+          onBlur={(e) => bewaarTekst("nawoord", e.target.value, true)}
+        />
       </section>
 
       <section className={b.blok}>
@@ -157,7 +217,7 @@ export function Proef({
           </button>
         </div>
         {aantalOpmerkingen > 0 && (
-          <p className={b.hulp}>Je hebt opmerkingen gezet. Stuur ze naar Tante, of haal ze weg als je toch akkoord wilt geven.</p>
+          <p className={b.hulp}>Je hebt opmerkingen over de kleurplaten gezet. Stuur ze naar Tante, of haal ze weg als je toch akkoord wilt geven. Je tekstwijzigingen zijn al bewaard.</p>
         )}
       </section>
     </div>

@@ -57,7 +57,7 @@ export function vanDezeSite(request: Request) {
 
 type Invoer = Record<string, unknown>;
 
-const proefActies = new Set(["opmerking", "akkoord", "opmerkingenSturen"]);
+const proefActies = new Set(["opmerking", "proefVerhaal", "proefTekst", "akkoord", "opmerkingenSturen"]);
 
 export async function voerUit(code: string, invoer: Invoer, origin: string): Promise<Record<string, unknown>> {
   if (typeof invoer.actie === "string" && proefActies.has(invoer.actie)) return voerProefActieUit(code, invoer);
@@ -187,6 +187,21 @@ async function voerProefActieUit(code: string, invoer: Invoer): Promise<Record<s
     case "opmerking": {
       const pagina = await eigenPagina(order, invoer.pageId);
       await update("pages", pagina.id, { opmerking: tekst(invoer.tekst, 1000, "opmerking") });
+      return {};
+    }
+
+    // Bij de proef mag de klant zijn teksten nog zelf aanpassen.
+    case "proefVerhaal": {
+      const pagina = await eigenPagina(order, invoer.pageId);
+      await update("pages", pagina.id, { verhaal: tekst(invoer.tekst, boek.maxVerhaal, "verhaal") });
+      return {};
+    }
+
+    case "proefTekst": {
+      const soort = invoer.soort;
+      if (soort !== "inleiding" && soort !== "nawoord") throw new Weigering("Onbekend tekstveld.");
+      const max = soort === "inleiding" ? boek.maxInleiding : boek.maxNawoord;
+      await update("orders", order.id, { [soort]: tekst(invoer.tekst, max, soort) });
       return {};
     }
 
