@@ -1,4 +1,5 @@
-/* Bento grid met voorbeelden: kleurplaat groot, originele foto als polaroid. */
+/* Bento grid met voorbeelden: kleurplaat op wit papier, originele foto als
+   polaroid erop geplakt, getekende pijl van voor naar na. */
 .bento {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -34,20 +35,35 @@
   grid-row: span 4;
 }
 
-.hoofd {
+/* Normale en grote tegel: het papier vult de tegel, de polaroid in de hoek. */
+.collage {
   position: absolute;
-  inset: 12px;
-  border-radius: 4px;
-  overflow: hidden;
+  inset: 0;
+}
+
+.papier {
+  position: absolute;
+  inset: 16px;
+  padding: 6px;
   background: var(--wit);
+  border-radius: 3px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--blauw) 18%, transparent);
   animation: verschijn 0.35s ease;
 }
 
-/* Originele foto als scheef geplakte polaroid in de hoek. */
+.beeld {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .polaroid {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 24px;
+  left: 24px;
+  z-index: 1;
   width: clamp(72px, 34%, 150px);
   padding: 6px 6px 20px;
   background: var(--wit);
@@ -70,39 +86,112 @@
   transform: rotate(-2deg) scale(1.04);
 }
 
-/* Brede tegel als collage: een staand beeld rechts in zijn geheel, de polaroid
-   groter links op de gekleurde achtergrond. Zo wordt een staande kleurplaat
-   niet in de breedte bijgesneden. */
-.breed .hoofd {
-  inset: 12px 12px 12px auto;
+/* Getekende pijl van foto naar kleurplaat; alleen waar er ruimte voor is. */
+.pijl {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  flex-direction: column;
+  align-items: center;
+  color: var(--rood);
+  pointer-events: none;
+}
+
+.pijlLabel {
+  font-size: 12px;
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pijl svg {
+  transition: transform 0.3s ease;
+}
+
+/* Na het wisselen wijst de pijl de andere kant op. */
+.pijlTerug svg {
+  transform: scaleX(-1);
+}
+
+/* Brede tegel als collage: polaroid en staand papier als groep in het midden,
+   de polaroid half over het papier. Een staande kleurplaat wordt zo niet in de
+   breedte bijgesneden. */
+.breed .collage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 24px 22px;
+}
+
+.breed .papier {
+  position: relative;
+  inset: auto;
+  order: 2;
+  height: 100%;
   aspect-ratio: 3 / 4;
+  transform: rotate(2deg);
 }
 
 .breed .polaroid {
-  top: 50%;
-  left: 7%;
-  width: clamp(96px, 30%, 200px);
-  transform: translateY(-50%) rotate(-6deg);
+  position: relative;
+  top: auto;
+  left: auto;
+  order: 1;
+  flex: none;
+  width: clamp(96px, 30%, 190px);
+  margin-right: -32px;
+  transform: rotate(-6deg);
 }
 
-.breed:hover .polaroid,
-.breed:focus-visible .polaroid {
-  transform: translateY(-50%) rotate(-2deg) scale(1.04);
+.breed .pijl {
+  display: flex;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
+/* Grote tegel: wit labeltje onder de polaroid, met een klein pijltje de tekening in. */
+.groot .pijl {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  top: calc(24px + clamp(72px, 34%, 150px) * 1.25 + 40px);
+  left: 30px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 999px;
+  background: var(--wit);
+  color: var(--rood) !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--blauw) 20%, transparent);
+}
+
+.groot .pijl svg {
+  width: 40px;
+  height: 18px;
+  transform: rotate(20deg);
+}
+
+.groot .pijlTerug svg {
+  transform: rotate(20deg) scaleX(-1);
+}
+
+/* Wisselknop in de hoek van de tegel, niet op de tekening. */
 .wissel {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 6px;
+  bottom: 6px;
+  z-index: 3;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--wit);
   color: var(--blauw);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--blauw) 20%, transparent);
   transition: transform 0.25s ease;
 }
 
@@ -117,9 +206,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hoofd,
+  .papier,
   .polaroid,
-  .wissel {
+  .wissel,
+  .pijl svg {
     animation: none;
     transition: none;
   }
@@ -136,30 +226,43 @@
     grid-row: span 3;
   }
 
-  .hoofd {
-    inset: 8px;
-  }
-
-  .breed .hoofd {
-    inset: 8px 8px 8px auto;
+  .papier {
+    inset: 10px;
+    padding: 4px;
   }
 
   .polaroid {
-    top: 14px;
-    left: 14px;
+    top: 16px;
+    left: 16px;
     padding: 4px 4px 14px;
   }
 
+  .groot .pijl {
+    display: none;
+  }
+
+  .breed .collage {
+    padding: 34px 12px 12px;
+  }
+
   .breed .polaroid {
-    top: 50%;
-    left: 6%;
+    margin-right: -20px;
+  }
+
+  .pijlLabel {
+    font-size: 10px;
+  }
+
+  .pijl svg {
+    width: 72px;
+    height: 30px;
   }
 
   .wissel {
-    right: 14px;
-    bottom: 14px;
-    width: 30px;
-    height: 30px;
-    font-size: 17px;
+    right: 4px;
+    bottom: 4px;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
   }
 }
