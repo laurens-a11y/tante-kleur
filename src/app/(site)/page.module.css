@@ -113,6 +113,17 @@
   background: var(--rood);
 }
 
+/* Gele variant van de primaire knop (hero homepage) */
+.btnGeel {
+  background: var(--geel);
+  color: var(--blauw);
+}
+
+.btnGeel:hover {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
 .btnGhost {
   border: 2px solid var(--blauw);
   padding: 16px 28px;

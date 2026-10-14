@@ -58,7 +58,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
               <h1 className={`${s.display} ${s.h1}`}>{homepagina.heroKop}</h1>
               <p className={s.lead} style={{ maxWidth: 480 }}>{homepagina.heroIntro}</p>
               <div className={s.buttons}>
-                <CheckoutButton className={s.btn} />
+                <CheckoutButton className={`${s.btn} ${s.btnGeel}`} />
                 <Link href="/voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</Link>
               </div>
               <p className={s.heroPerks}>
