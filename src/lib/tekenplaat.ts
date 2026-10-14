@@ -39,8 +39,16 @@ async function referentie(): Promise<string> {
     const type = res.headers.get("content-type") || "image/jpeg";
     referentieCache = `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
   } else {
-    const bestand = await readFile(path.join(process.cwd(), "assets", "stijlreferentie.png"));
-    referentieCache = `data:image/png;base64,${bestand.toString("base64")}`;
+    try {
+      const bestand = await readFile(path.join(process.cwd(), "assets", "stijlreferentie.png"));
+      referentieCache = `data:image/png;base64,${bestand.toString("base64")}`;
+    } catch (e) {
+      // Vangnet: de kleinere versie van de voorbeeldenpagina.
+      console.error("Stijlreferentie niet gevonden, val terug op de websiteversie:", e instanceof Error ? e.message : e);
+      const res = await fetch("https://cdn.sanity.io/images/hera4nnf/production/8508016daaadccd4acb3bbddec8a276bdec92c5a-584x911.jpg");
+      if (!res.ok) throw new Error(`Stijlreferentie ophalen mislukt (${res.status})`);
+      return `data:image/jpeg;base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+    }
   }
   return referentieCache;
 }
