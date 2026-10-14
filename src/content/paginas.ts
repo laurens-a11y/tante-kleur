@@ -1,5 +1,5 @@
 // Standaardteksten per pagina. De echte teksten komen uit Sanity
-// (https://tantekleur.sanity.studio); deze waarden gelden alleen als een veld
+// (Studio op /studio); deze waarden gelden alleen als een veld
 // daar leeg is of Sanity even niet bereikbaar is.
 //
 // Placeholders als {prijs} en {levertijd} worden ingevuld vanuit src/config.ts,
