@@ -102,7 +102,7 @@ function useAutoBewaar(bewaar: (waarde: string) => Promise<unknown>, startwaarde
 
 // ---------- Tekstveld met AI-voorstel ----------
 
-function TekstVeld({
+export function TekstVeld({
   id,
   label,
   hulp,

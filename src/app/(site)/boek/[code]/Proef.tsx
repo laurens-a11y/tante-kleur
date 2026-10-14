@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { boek } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
+import { TekstVeld } from "./Boekbouwer";
 
 type Pagina = { id: string; verhaal: string; opmerking: string; tekenplaat: string | null };
 
@@ -56,8 +57,31 @@ export function Proef({
   }
 
   const bewaarOpmerking = (id: string, tekst: string, direct = false) => bewaar(`opm-${id}`, { actie: "opmerking", pageId: id, tekst }, direct);
-  const bewaarVerhaal = (id: string, tekst: string, direct = false) => bewaar(`verhaal-${id}`, { actie: "proefVerhaal", pageId: id, tekst }, direct);
-  const bewaarTekst = (soort: "inleiding" | "nawoord", tekst: string, direct = false) => bewaar(soort, { actie: "proefTekst", soort, tekst }, direct);
+  // Teksten: TekstVeld bewaart zelf (na typen en bij verlaten van het veld).
+  const bewaarTekst = (soort: "inleiding" | "nawoord") => (tekst: string, eigen?: string) =>
+    stuur({ actie: "proefTekst", soort, tekst, ...(eigen !== undefined ? { eigen } : {}) }).catch((e) => {
+      setFout(e instanceof Error ? e.message : "Niet bewaard.");
+      throw e;
+    });
+  const bewaarVerhaal = (id: string) => (tekst: string, eigen?: string) =>
+    stuur({ actie: "proefVerhaal", pageId: id, tekst, ...(eigen !== undefined ? { eigen } : {}) }).catch((e) => {
+      setFout(e instanceof Error ? e.message : "Niet bewaard.");
+      throw e;
+    });
+
+  const verrijk = useCallback(
+    async (soort: "verhaal" | "inleiding" | "nawoord", tekst: string) => {
+      const res = await fetch(`/api/boek/${code}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ actie: "verrijk", soort, tekst }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { voorstel?: string; fout?: string };
+      if (!res.ok || typeof data.voorstel !== "string") throw new Error(data.fout ?? "Tante kon nu even geen voorstel maken.");
+      return data.voorstel;
+    },
+    [code],
+  );
 
   const aantalOpmerkingen = paginas.filter((p) => p.opmerking.trim()).length;
 
@@ -71,14 +95,8 @@ export function Proef({
     setFout(null);
     try {
       // Openstaande wijzigingen eerst bewaren.
-      await Promise.all([
-        ...paginas.flatMap((p) => [
-          timers.current[`opm-${p.id}`] ? bewaarOpmerking(p.id, p.opmerking, true) : null,
-          timers.current[`verhaal-${p.id}`] ? bewaarVerhaal(p.id, p.verhaal, true) : null,
-        ]),
-        timers.current.inleiding ? bewaarTekst("inleiding", inl, true) : null,
-        timers.current.nawoord ? bewaarTekst("nawoord", naw, true) : null,
-      ]);
+      // (Teksten zijn al bewaard bij het verlaten van het veld.)
+      await Promise.all(paginas.map((p) => (timers.current[`opm-${p.id}`] ? bewaarOpmerking(p.id, p.opmerking, true) : null)));
       await stuur({ actie });
       router.refresh();
     } catch (e) {
@@ -103,21 +121,17 @@ export function Proef({
         <div className={b.coverRij}>
           <div className={b.coverVelden}>
             <h2 className={`${s.display} ${s.h3}`}>Cover en inleiding</h2>
-            <label htmlFor="proef-inleiding" className={b.label}>
-              Inleiding
-            </label>
-            <textarea
+            <TekstVeld
               id="proef-inleiding"
-              className={b.invoer}
-              rows={5}
-              maxLength={boek.maxInleiding}
-              value={inl}
+              label="Inleiding"
               placeholder="Geen inleiding (mag leeg blijven)."
-              onChange={(e) => {
-                setInl(e.target.value);
-                bewaarTekst("inleiding", e.target.value);
-              }}
-              onBlur={(e) => bewaarTekst("inleiding", e.target.value, true)}
+              waarde={inl}
+              max={boek.maxInleiding}
+              rijen={5}
+              soort="inleiding"
+              onWijzig={setInl}
+              bewaar={bewaarTekst("inleiding")}
+              verrijk={verrijk}
             />
           </div>
           <div className={b.coverVoorbeeld} style={{ background: `var(--${kleur.achtergrond})`, color: `var(--${kleur.tekst})` }}>
@@ -132,22 +146,17 @@ export function Proef({
             <span className={b.paginaNr}>Pagina {i + 1}</span>
             <div className={b.spreadInhoud}>
               <div className={b.links}>
-                <label htmlFor={`verhaal-${p.id}`} className={b.label}>
-                  Verhaaltje (links)
-                </label>
-                <textarea
+                <TekstVeld
                   id={`verhaal-${p.id}`}
-                  className={b.invoer}
-                  rows={5}
-                  maxLength={boek.maxVerhaal}
-                  value={p.verhaal}
+                  label="Verhaaltje (links)"
                   placeholder="Geen verhaaltje (mag leeg blijven)."
-                  onChange={(e) => {
-                    const t = e.target.value;
-                    setPaginas((ps) => ps.map((x) => (x.id === p.id ? { ...x, verhaal: t } : x)));
-                    bewaarVerhaal(p.id, t);
-                  }}
-                  onBlur={(e) => bewaarVerhaal(p.id, e.target.value, true)}
+                  waarde={p.verhaal}
+                  max={boek.maxVerhaal}
+                  rijen={5}
+                  soort="verhaal"
+                  onWijzig={(t) => setPaginas((ps) => ps.map((x) => (x.id === p.id ? { ...x, verhaal: t } : x)))}
+                  bewaar={bewaarVerhaal(p.id)}
+                  verrijk={verrijk}
                 />
               </div>
               <div className={b.rechts}>
@@ -186,18 +195,17 @@ export function Proef({
 
       <section className={b.blok}>
         <h2 className={`${s.display} ${s.h3}`}>Nawoord</h2>
-        <textarea
-          aria-label="Nawoord"
-          className={b.invoer}
-          rows={4}
-          maxLength={boek.maxNawoord}
-          value={naw}
+        <TekstVeld
+          id="proef-nawoord"
+          label="Nawoord"
           placeholder="Geen nawoord (mag leeg blijven)."
-          onChange={(e) => {
-            setNaw(e.target.value);
-            bewaarTekst("nawoord", e.target.value);
-          }}
-          onBlur={(e) => bewaarTekst("nawoord", e.target.value, true)}
+          waarde={naw}
+          max={boek.maxNawoord}
+          rijen={4}
+          soort="nawoord"
+          onWijzig={setNaw}
+          bewaar={bewaarTekst("nawoord")}
+          verrijk={verrijk}
         />
       </section>
 
