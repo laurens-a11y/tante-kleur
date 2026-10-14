@@ -4,6 +4,8 @@ import { site } from "@/config";
 import { CheckoutButton } from "@/app/(site)/CheckoutButton";
 import s from "@/app/(site)/page.module.css";
 import x from "./site.module.css";
+import { getInstellingen } from "@/sanity/content";
+import { SocialIcon, socialPlatform, type SocialPlatform } from "./SocialIcon";
 
 const columns = [
   {
@@ -33,8 +35,16 @@ const columns = [
   },
 ];
 
-export function SiteFooter() {
+// Volgorde van de social-iconen in de footer. Links komen uit Sanity (Instellingen > Sociale media).
+const socialVolgorde: SocialPlatform[] = ["pinterest", "instagram", "tiktok"];
+
+export async function SiteFooter() {
   const { company, email } = site;
+  const { socialeMedia } = await getInstellingen();
+  const socials = socialVolgorde.flatMap((platform) => {
+    const url = socialeMedia.find((u) => socialPlatform(u)?.id === platform);
+    return url ? [{ platform, url }] : [];
+  });
   return (
     <footer className={s.footer}>
       <div className={`${s.wrap} ${s.stack}`} style={{ gap: 72 }}>
@@ -68,6 +78,17 @@ export function SiteFooter() {
               </li>
               <li>Veilig betalen via Stripe</li>
             </ul>
+            {socials.length > 0 && (
+              <ul className={x.footerSocials}>
+                {socials.map(({ platform, url }) => (
+                  <li key={platform}>
+                    <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Tante Kleur op ${socialPlatform(url)!.naam}`}>
+                      <SocialIcon platform={platform} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
         <div className={s.footerBottom}>
