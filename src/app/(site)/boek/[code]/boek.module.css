@@ -489,3 +489,15 @@
   color: var(--geel);
   font-weight: 600;
 }
+
+/* Proef: kleurplaat in A4-verhouding */
+.plaatVak {
+  aspect-ratio: 210 / 297;
+  background: var(--wit);
+  border: 1px solid var(--lichtblauw);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
