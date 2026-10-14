@@ -10,12 +10,13 @@ import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
+import { blokStijl } from "@/components/merkkleur";
 
 export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("overOnsPagina");
 }
 
-const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
+const kleuren = ["roze", "lichtblauw", "geel"] as const;
 
 export default function OverOnsPage() {
   return <MetOpties>{(opties) => <OverOnsInhoud opties={opties} />}</MetOpties>;
@@ -47,7 +48,7 @@ async function OverOnsInhoud({ opties }: { opties: FetchOpties }) {
             <h2 className={`${s.display} ${s.h2}`}>{p.waardenKop}</h2>
             <div className={x.cards}>
               {p.waarden.map((w, i) => (
-                <div key={w._key ?? w.titel} className={x.card} style={{ background: kleuren[i % kleuren.length] }}>
+                <div key={w._key ?? w.titel} className={x.card} {...blokStijl(w.achtergrond, kleuren[i % kleuren.length])}>
                   <Icon name={w.icoon} size={44} />
                   <h3 className={x.cardTitle}>{w.titel}</h3>
                   <p className={s.body}>{w.tekst}</p>

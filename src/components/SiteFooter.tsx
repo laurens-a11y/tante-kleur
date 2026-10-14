@@ -5,6 +5,7 @@ import { CheckoutButton } from "@/app/(site)/CheckoutButton";
 import s from "@/app/(site)/page.module.css";
 import x from "./site.module.css";
 import { getInstellingen } from "@/sanity/content";
+import { knopStijl } from "./merkkleur";
 import { SocialIcon, socialPlatform, type SocialPlatform } from "./SocialIcon";
 
 const columns = [
@@ -40,7 +41,7 @@ const socialVolgorde: SocialPlatform[] = ["pinterest", "instagram", "tiktok"];
 
 export async function SiteFooter() {
   const { company, email } = site;
-  const { socialeMedia } = await getInstellingen();
+  const { socialeMedia, footerKnop } = await getInstellingen();
   const socials = socialVolgorde.flatMap((platform) => {
     const url = socialeMedia.find((u) => socialPlatform(u)?.id === platform);
     return url ? [{ platform, url }] : [];
@@ -53,7 +54,7 @@ export async function SiteFooter() {
             <p className={s.display} style={{ fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 1, color: "var(--roze)" }}>
               Kleur met Tante Kleur.
             </p>
-            <CheckoutButton className={s.btnPink} />
+            <CheckoutButton {...knopStijl(footerKnop, { style: { alignSelf: "flex-start" } })}>{footerKnop.tekst}</CheckoutButton>
           </div>
           <Image src="/brand/logo-onblue.png" alt="Tante Kleur, gepersonaliseerde kleurboeken" width={280} height={190} />
         </div>

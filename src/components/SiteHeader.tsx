@@ -5,6 +5,8 @@ import { CheckoutButton } from "@/app/(site)/CheckoutButton";
 import s from "@/app/(site)/page.module.css";
 import x from "./site.module.css";
 import { Icon } from "@/components/Icon";
+import { knopStijl } from "@/components/merkkleur";
+import { getInstellingen } from "@/sanity/content";
 
 export const navItems = [
   { href: "/voorbeelden", label: "Voorbeelden" },
@@ -14,8 +16,10 @@ export const navItems = [
   { href: "/vragen", label: "Vragen" },
 ];
 
-export function SiteHeader({ current }: { current?: string }) {
+export async function SiteHeader({ current }: { current?: string }) {
   const first = site.deadlines[0];
+  const { headerKnop } = await getInstellingen();
+  const knop = <CheckoutButton {...knopStijl(headerKnop, { className: s.btnSmall })}>{headerKnop.tekst}</CheckoutButton>;
   return (
     <>
       <div className={s.announce}>
@@ -41,9 +45,7 @@ export function SiteHeader({ current }: { current?: string }) {
               </Link>
             ))}
           </div>
-          <div className={x.desktopCta}>
-            <CheckoutButton className={`${s.btn} ${s.btnSmall}`} />
-          </div>
+          <div className={x.desktopCta}>{knop}</div>
           <details className={x.mobileMenu}>
             <summary aria-label="Menu"><Icon name="menu" size={26} /></summary>
             <div className={x.mobilePanel}>
@@ -54,9 +56,7 @@ export function SiteHeader({ current }: { current?: string }) {
               ))}
               <Link href="/sinterklaas-en-kerst">Sinterklaas &amp; kerst</Link>
               <Link href="/over-ons">Over ons &amp; contact</Link>
-              <div style={{ padding: "12px 20px 4px" }}>
-                <CheckoutButton className={`${s.btn} ${s.btnSmall}`} />
-              </div>
+              <div style={{ padding: "12px 20px 4px" }}>{knop}</div>
             </div>
           </details>
         </nav>

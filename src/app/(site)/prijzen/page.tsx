@@ -9,6 +9,7 @@ import type { FetchOpties } from "@/sanity/live";
 import { JsonLd } from "@/components/JsonLd";
 import { product } from "@/lib/gestructureerde-data";
 import { CheckoutButton } from "../CheckoutButton";
+import { knopStijl } from "@/components/merkkleur";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -65,7 +66,7 @@ async function PrijzenInhoud({ opties }: { opties: FetchOpties }) {
                   </Fragment>
                 ))}
               </dl>
-              <CheckoutButton className={s.btn} />
+              <CheckoutButton {...knopStijl(p.knop)}>{p.knop.tekst}</CheckoutButton>
             </div>
           </div>
         </section>
@@ -91,7 +92,7 @@ async function PrijzenInhoud({ opties }: { opties: FetchOpties }) {
               <h2 className={`${s.display} ${s.h2}`}>{p.zakelijkKop}</h2>
               <p className={s.body} style={{ fontSize: 18 }}>{p.zakelijkTekst}</p>
             </div>
-            <Link href="/zakelijk" className={s.btn}>Bekijk zakelijk</Link>
+            <Link href="/zakelijk" {...knopStijl(p.zakelijkKnop)}>{p.zakelijkKnop.tekst}</Link>
           </div>
         </section>
 
@@ -106,7 +107,7 @@ async function PrijzenInhoud({ opties }: { opties: FetchOpties }) {
                 </div>
               ))}
             </div>
-            <Link href="/vragen" className={s.btnGhost} style={{ alignSelf: "flex-start" }}>Alle vragen</Link>
+            <Link href="/vragen" {...knopStijl(p.vragenKnop, { style: { alignSelf: "flex-start" } })}>{p.vragenKnop.tekst}</Link>
           </div>
         </section>
       </main>

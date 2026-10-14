@@ -6,6 +6,7 @@ import type { FetchOpties } from "@/sanity/live";
 import { JsonLd } from "@/components/JsonLd";
 import { stappenplan } from "@/lib/gestructureerde-data";
 import { CheckoutButton } from "../CheckoutButton";
+import { blokStijl, knopStijl } from "@/components/merkkleur";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -16,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("hoeHetWerktPagina");
 }
 
-const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
+const kleuren = ["roze", "lichtblauw", "geel"] as const;
 
 export default function HoeHetWerktPage() {
   return <MetOpties>{(opties) => <HoeHetWerktInhoud opties={opties} />}</MetOpties>;
@@ -24,6 +25,7 @@ export default function HoeHetWerktPage() {
 
 async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
   const p = await getPagina("hoeHetWerktPagina", opties);
+  const tijdlijnBlok = blokStijl(p.tijdlijnAchtergrond, "geel");
   return (
     <>
       <JsonLd data={stappenplan(p.stappen)} />
@@ -41,14 +43,17 @@ async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
             <h2 className={`${s.display} ${s.h2}`}>{p.stappenKop}</h2>
             <div className={s.steps}>
-              {p.stappen.map((st, i) => (
-                <div key={st._key ?? st.titel} className={s.step} style={{ background: kleuren[i % kleuren.length] }}>
-                  <Icon name={st.icoon} size={52} />
-                  <p className={s.wide} style={{ color: "var(--rood)", fontSize: 15 }}>Stap {i + 1}</p>
-                  <h3 className={`${s.display} ${s.h3}`}>{st.titel}</h3>
-                  <p className={s.body}>{st.tekst}</p>
-                </div>
-              ))}
+              {p.stappen.map((st, i) => {
+                const blok = blokStijl(st.achtergrond, kleuren[i % kleuren.length]);
+                return (
+                  <div key={st._key ?? st.titel} className={s.step} style={blok.style}>
+                    <Icon name={st.icoon} size={52} />
+                    <p className={s.wide} style={{ color: blok.accent, fontSize: 15 }}>Stap {i + 1}</p>
+                    <h3 className={`${s.display} ${s.h3}`}>{st.titel}</h3>
+                    <p className={s.body}>{st.tekst}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -84,12 +89,16 @@ async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
           </div>
         </section>
 
-        <section className={s.section} style={{ background: "var(--lichtblauw)" }}>
+        <section className={s.section} style={tijdlijnBlok.style}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
             <h2 className={`${s.display} ${s.h2}`}>{p.tijdlijnKop}</h2>
-            <ol className={x.timeline}>
+            <ol className={x.timeline} style={{ "--accent": tijdlijnBlok.accent } as React.CSSProperties}>
               {p.tijdlijn.map((m) => (
-                <li key={m._key ?? m.titel}><strong>{m.titel}</strong><span className={s.body}>{m.tekst}</span></li>
+                <li key={m._key ?? m.titel}>
+                  <Icon name={m.icoon} size={48} />
+                  <strong>{m.titel}</strong>
+                  <span className={s.body}>{m.tekst}</span>
+                </li>
               ))}
             </ol>
           </div>
@@ -106,7 +115,7 @@ async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
             <p className={s.body}>
               Meer lezen? Bekijk de <Link href="/privacy">privacyverklaring</Link>.
             </p>
-            <CheckoutButton className={s.btn} />
+            <CheckoutButton {...knopStijl(p.knop)}>{p.knop.tekst}</CheckoutButton>
           </div>
         </section>
       </main>

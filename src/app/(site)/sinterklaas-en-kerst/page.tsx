@@ -5,6 +5,7 @@ import { getPagina, getMetadata } from "@/sanity/content";
 import { MetOpties } from "@/sanity/MetOpties";
 import type { FetchOpties } from "@/sanity/live";
 import { CheckoutButton } from "../CheckoutButton";
+import { blokStijl, knopStijl } from "@/components/merkkleur";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -15,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("feestdagenPagina");
 }
 
-const kleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
+const kleuren = ["roze", "lichtblauw", "geel"] as const;
 
 export default function FeestdagenPage() {
   return <MetOpties>{(opties) => <FeestdagenInhoud opties={opties} />}</MetOpties>;
@@ -33,7 +34,7 @@ async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
               <p className={s.tag}>Sinterklaas &amp; kerst</p>
               <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
               <p className={s.lead}>{p.intro}</p>
-              <CheckoutButton className={s.btn} />
+              <CheckoutButton {...knopStijl(p.heroKnop)}>{p.heroKnop.tekst}</CheckoutButton>
             </div>
             <div className={s.giftGrid}>
               <Image src="/brand/xmas-duo.jpg" alt="Twee Tante Kleur-boeken in kerstsfeer" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} priority />
@@ -66,7 +67,7 @@ async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
             <h2 className={`${s.display} ${s.h2}`}>{p.ideeenKop}</h2>
             <div className={x.cards}>
               {p.ideeen.map((i, n) => (
-                <div key={i._key ?? i.titel} className={x.card} style={{ background: kleuren[n % kleuren.length] }}>
+                <div key={i._key ?? i.titel} className={x.card} {...blokStijl(i.achtergrond, kleuren[n % kleuren.length])}>
                   <Icon name={i.icoon} size={44} />
                   <h3 className={x.cardTitle}>{i.titel}</h3>
                   <p className={s.body}>{i.tekst}</p>
@@ -88,7 +89,7 @@ async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20, alignItems: "flex-start" }}>
             <h2 className={`${s.display} ${s.h2}`}>€{site.price.intro} per boek</h2>
             <p className={s.body}>{p.prijsTekst}</p>
-            <CheckoutButton className={s.btn} />
+            <CheckoutButton {...knopStijl(p.prijsKnop)}>{p.prijsKnop.tekst}</CheckoutButton>
           </div>
         </section>
       </main>
