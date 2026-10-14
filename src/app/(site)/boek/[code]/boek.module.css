@@ -1,0 +1,491 @@
+/* Boekformulier. Alleen merkkleuren uit globals.css. */
+
+.pagina {
+  min-height: 100vh;
+  background: var(--roze);
+  padding: 24px 16px 120px;
+}
+
+.kop {
+  max-width: 880px;
+  margin: 0 auto 24px;
+}
+
+.midden {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.bouwer {
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.blok {
+  background: var(--wit);
+  border-radius: 8px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .blok {
+    padding: 20px 16px;
+  }
+}
+
+.stap {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rood);
+}
+
+/* Velden */
+
+.veld {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 16px;
+  padding: 0;
+}
+
+.hulp {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+
+.invoer {
+  width: 100%;
+  font: inherit;
+  font-size: 16px; /* voorkomt inzoomen op iPhone */
+  line-height: 1.5;
+  color: var(--blauw);
+  background: var(--wit);
+  border: 2px solid var(--lichtblauw);
+  border-radius: 6px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.invoer:focus {
+  border-color: var(--blauw);
+  outline: none;
+}
+
+.veldVoet {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.teller {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.aiKnop {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blauw);
+  background: var(--geel);
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.aiKnop:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.voorstel {
+  background: var(--lichtblauw);
+  border-radius: 6px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.voorstelKop {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.voorstelTekst {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.melding {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  background: var(--lichtblauw);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.fout {
+  margin: 0;
+  font-size: 14px;
+  color: var(--rood);
+  font-weight: 600;
+}
+
+/* Knoppen */
+
+.knoppenRij {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.knopVol,
+.knopLeeg {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border: 2px solid var(--blauw);
+}
+
+.knopVol {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.knopLeeg {
+  background: var(--wit);
+  color: var(--blauw);
+}
+
+.knopVol:disabled,
+.knopLeeg:disabled,
+.knopLeeg[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.icoonKnop {
+  font: inherit;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 2px solid var(--lichtblauw);
+  background: var(--wit);
+  color: var(--blauw);
+  cursor: pointer;
+}
+
+.icoonKnop:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.verborgen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Cover */
+
+.coverRij {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .coverRij {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coverVelden {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.kleuren {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kleurKeuze {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 2px solid var(--lichtblauw);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.kleurKeuze input {
+  position: absolute;
+  opacity: 0;
+}
+
+.kleurKeuze:has(input:checked) {
+  border-color: var(--blauw);
+  font-weight: 600;
+}
+
+.kleurKeuze:has(input:focus-visible) {
+  outline: 3px solid var(--rood);
+  outline-offset: 2px;
+}
+
+.kleurBol {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--blauw);
+}
+
+.coverVoorbeeld,
+.coverMini {
+  aspect-ratio: 210 / 297;
+  border-radius: 4px 8px 8px 4px;
+  box-shadow: inset 6px 0 0 rgb(0 0 0 / 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-size: 22px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.coverVoorbeeld {
+  width: 100%;
+  max-width: 200px;
+}
+
+.coverMini {
+  width: 140px;
+}
+
+/* Pagina's */
+
+.paginas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spread {
+  border: 2px solid var(--lichtblauw);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.spreadKop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.paginaNr {
+  font-weight: 600;
+}
+
+.acties {
+  display: flex;
+  gap: 6px;
+}
+
+.spreadInhoud {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .spreadInhoud {
+    grid-template-columns: 1fr;
+  }
+  /* Op mobiel eerst de foto, dan het verhaal. */
+  .rechts {
+    order: -1;
+  }
+}
+
+.links,
+.rechts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fotoVak {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--lichtblauw);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.laden {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border: 4px solid var(--wit);
+  border-top-color: var(--blauw);
+  border-radius: 50%;
+  animation: draai 0.9s linear infinite;
+}
+
+@keyframes draai {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .laden {
+    animation-duration: 3s;
+  }
+  .foto {
+    transition: none;
+  }
+}
+
+.uploadVak {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 28px 16px;
+  border: 3px dashed var(--blauw);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--wit);
+}
+
+.uploadVak:hover,
+.uploadVak:has(input:focus-visible) {
+  background: var(--lichtblauw);
+}
+
+.uploadKop {
+  font-size: 24px;
+}
+
+/* Indienen */
+
+.problemen {
+  margin: 0;
+  padding: 12px 12px 12px 32px;
+  background: var(--lichtblauw);
+  border-radius: 6px;
+  color: var(--rood);
+  font-weight: 600;
+}
+
+.indienKnop {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  background: var(--rood);
+  color: var(--wit);
+  border: 0;
+  border-radius: 4px;
+  padding: 16px 28px;
+  cursor: pointer;
+}
+
+.indienKnop:hover:not(:disabled) {
+  background: var(--blauw);
+}
+
+.indienKnop:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* Vaste balk onderin */
+
+.balk {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px max(16px, calc((100vw - 880px) / 2));
+  background: var(--blauw);
+  color: var(--wit);
+  font-size: 15px;
+}
+
+.balkFout {
+  color: var(--geel);
+  font-weight: 600;
+}

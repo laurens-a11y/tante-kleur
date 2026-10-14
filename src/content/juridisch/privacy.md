@@ -104,7 +104,9 @@ We verkopen geen persoonsgegevens. We delen ze alleen met partijen die we nodig 
 | Partij | Waarvoor |
 | --- | --- |
 | Stripe | Betalingen afhandelen |
-| Tally | Uploadformulier voor je foto's |
+| Supabase | Opslag van je bestelling, foto's en teksten (servers in de EU) |
+| OpenAI | Voorstellen om je teksten mooier te maken, als je daarom vraagt (alleen de tekst, niet je foto's) |
+| Resend | Versturen van e-mails over je bestelling |
 | AI-leverancier | Kleurplaten tekenen van je foto's |
 | PrintAPI | Je kleurboek drukken en verzenden |
 | Bezorgdienst | Je pakket bezorgen |

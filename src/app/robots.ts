@@ -3,7 +3,7 @@ import { site } from "@/config";
 
 // Zoekmachines én AI-zoekmachines (ChatGPT, Claude, Perplexity, Gemini) mogen de
 // marketingpagina's lezen; bestel- en uploadpagina's niet.
-const nietIndexeren = ["/api/", "/bedankt", "/upload"];
+const nietIndexeren = ["/api/", "/bedankt", "/boek/"];
 
 const aiCrawlers = [
   "GPTBot",
