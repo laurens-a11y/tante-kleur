@@ -70,6 +70,26 @@
   transform: rotate(-2deg) scale(1.04);
 }
 
+/* Brede tegel als collage: een staand beeld rechts in zijn geheel, de polaroid
+   groter links op de gekleurde achtergrond. Zo wordt een staande kleurplaat
+   niet in de breedte bijgesneden. */
+.breed .hoofd {
+  inset: 12px 12px 12px auto;
+  aspect-ratio: 3 / 4;
+}
+
+.breed .polaroid {
+  top: 50%;
+  left: 7%;
+  width: clamp(96px, 30%, 200px);
+  transform: translateY(-50%) rotate(-6deg);
+}
+
+.breed:hover .polaroid,
+.breed:focus-visible .polaroid {
+  transform: translateY(-50%) rotate(-2deg) scale(1.04);
+}
+
 .wissel {
   position: absolute;
   right: 20px;
@@ -120,10 +140,19 @@
     inset: 8px;
   }
 
+  .breed .hoofd {
+    inset: 8px 8px 8px auto;
+  }
+
   .polaroid {
     top: 14px;
     left: 14px;
     padding: 4px 4px 14px;
+  }
+
+  .breed .polaroid {
+    top: 50%;
+    left: 6%;
   }
 
   .wissel {

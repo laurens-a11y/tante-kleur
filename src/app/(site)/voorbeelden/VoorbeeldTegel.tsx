@@ -43,7 +43,7 @@ export function VoorbeeldTegel({ foto, kleurplaat, fotoGroot, kleurplaatGroot, g
       </span>
       <span className={x.polaroid} key={`p-${klein.url}`}>
         <span className={x.polaroidBeeld}>
-          <Image src={klein.url} alt={klein.alt} fill sizes="160px" style={{ objectFit: "cover" }} />
+          <Image src={klein.url} alt={klein.alt} fill sizes="(max-width: 700px) 130px, 220px" style={{ objectFit: "cover" }} />
         </span>
       </span>
       <span className={x.wissel} aria-hidden="true">↺</span>
