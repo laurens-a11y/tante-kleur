@@ -1,4 +1,6 @@
 import "server-only";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import OpenAI from "openai";
 import sharp from "sharp";
 import { tekenplaatPrompt } from "@/content/tekenplaat-prompt";
@@ -15,9 +17,8 @@ const beeldModel = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
 const formaat = process.env.OPENAI_IMAGE_SIZE || "1440x2032";
 const kwaliteit = (process.env.OPENAI_IMAGE_QUALITY || "high") as "low" | "medium" | "high";
 // Stijlreferentie ("image 2" in de prompt): de goedgekeurde kleurplaat van de selfie op het treinperron.
-const referentieUrl =
-  process.env.STIJL_REFERENTIE_URL ||
-  "https://cdn.sanity.io/images/hera4nnf/production/8508016daaadccd4acb3bbddec8a276bdec92c5a-584x911.jpg";
+// Standaard het bestand assets/stijlreferentie.png; via STIJL_REFERENTIE_URL te vervangen.
+const referentieUrl = process.env.STIJL_REFERENTIE_URL?.trim() || null;
 
 let client: OpenAI | null = null;
 function getOpenAI() {
@@ -32,10 +33,23 @@ function getOpenAI() {
 let referentieCache: string | null = null;
 async function referentie(): Promise<string> {
   if (referentieCache) return referentieCache;
-  const res = await fetch(referentieUrl);
-  if (!res.ok) throw new Error(`Stijlreferentie ophalen mislukt (${res.status})`);
-  const type = res.headers.get("content-type") || "image/jpeg";
-  referentieCache = `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+  if (referentieUrl) {
+    const res = await fetch(referentieUrl);
+    if (!res.ok) throw new Error(`Stijlreferentie ophalen mislukt (${res.status})`);
+    const type = res.headers.get("content-type") || "image/jpeg";
+    referentieCache = `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+  } else {
+    try {
+      const bestand = await readFile(path.join(process.cwd(), "assets", "stijlreferentie.png"));
+      referentieCache = `data:image/png;base64,${bestand.toString("base64")}`;
+    } catch (e) {
+      // Vangnet: de kleinere versie van de voorbeeldenpagina.
+      console.error("Stijlreferentie niet gevonden, val terug op de websiteversie:", e instanceof Error ? e.message : e);
+      const res = await fetch("https://cdn.sanity.io/images/hera4nnf/production/8508016daaadccd4acb3bbddec8a276bdec92c5a-584x911.jpg");
+      if (!res.ok) throw new Error(`Stijlreferentie ophalen mislukt (${res.status})`);
+      return `data:image/jpeg;base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+    }
+  }
   return referentieCache;
 }
 
