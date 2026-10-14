@@ -14,18 +14,6 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "./page.module.css";
 
-const covers = [
-  { src: "/brand/henk-blue.jpg", alt: "Blauw kleurboek met de titel Henk & Ingrid" },
-  { src: "/brand/spanje-desk.jpg", alt: "Lichtblauw kleurboek Spanje 2025 op een houten tafel" },
-  { src: "/brand/berlijn-hold.jpg", alt: "Roze kleurboek Weekend Berlijn met een lijntekening op de cover" },
-  { src: "/brand/henk-orange.jpg", alt: "Oranje kleurboek Henk & Ingrid tussen kleurpotloden" },
-  { src: "/brand/spanje-yellow.jpg", alt: "Geel kleurboek Spanje 2025 onder de arm" },
-];
-
-function formatEuro(cents: number) {
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
-}
-
 function Check() {
   return <Icon name="akkoord" size={22} style={{ marginTop: 2 }} />;
 }
@@ -55,7 +43,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section id="top" className={s.hero}>
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ gap: 28 }}>
-              <p className={s.tag}>Gepersonaliseerde kleurboeken</p>
+              <p className={s.tag}>{homepagina.heroLabel}</p>
               <h1 className={`${s.display} ${s.h1}`}>{homepagina.heroKop}</h1>
               <p className={s.lead} style={{ maxWidth: 480 }}>{homepagina.heroIntro}</p>
               <div className={s.buttons}>
@@ -70,8 +58,8 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
             </div>
             <div className={s.heroMedia}>
               <Image
-                src="/brand/spread.jpg"
-                alt="Opengeslagen Tante Kleur-kleurboek met een tekstpagina 'Weekend Berlijn' en een kleurplaat van twee vriendinnen"
+                src={homepagina.heroAfbeelding.src}
+                alt={homepagina.heroAfbeelding.alt}
                 width={1000}
                 height={1250}
                 priority
@@ -98,7 +86,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section id="hoe" className={s.section}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 56 }}>
             <div className={s.stack} style={{ gap: 12, maxWidth: 640 }}>
-              <p className={s.tag}>Zo werkt het</p>
+              <p className={s.tag}>{homepagina.stappenLabel}</p>
               <h2 className={`${s.display} ${s.h2}`}>{homepagina.stappenKop}</h2>
             </div>
             <div className={s.steps}>
@@ -121,7 +109,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section id="voorbeelden" className={s.section} style={{ background: "var(--roze)" }}>
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ flexBasis: 380 }}>
-              <p className={s.tag}>Van camerarol naar kleurplaat</p>
+              <p className={s.tag}>{homepagina.voorbeeldLabel}</p>
               <h2 className={`${s.display} ${s.h2}`}>{homepagina.voorbeeldKop}</h2>
               <p className={s.body} style={{ fontSize: 18 }}>{homepagina.voorbeeldTekst}</p>
             </div>
@@ -158,13 +146,13 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 48 }}>
             <div className={s.coverHead}>
               <div className={s.stack} style={{ gap: 12, maxWidth: 620 }}>
-                <p className={s.tag}>Jouw titel op de cover</p>
+                <p className={s.tag}>{homepagina.coverLabel}</p>
                 <h2 className={`${s.display} ${s.h2}`}>{homepagina.coverKop}</h2>
               </div>
               <p className={s.body} style={{ maxWidth: 360 }}>{homepagina.coverTekst}</p>
             </div>
             <div className={s.covers}>
-              {covers.map((c) => (
+              {homepagina.covers.map((c) => (
                 <Image key={c.src} src={c.src} alt={c.alt} width={1000} height={1250} sizes="(max-width: 700px) 100vw, 240px" className={s.frame} />
               ))}
             </div>
@@ -175,18 +163,18 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section id="prijs" className={s.section} style={{ background: "var(--lichtblauw)" }}>
           <div className={`${s.wrap} ${s.priceRow}`}>
             <div className={s.priceMedia}>
-              <Image src="/brand/hero.jpg" alt="Drie Tante Kleur-kleurboeken op een zonnige tafel" fill sizes="(max-width: 900px) 100vw, 600px" style={{ objectFit: "cover" }} />
+              <Image src={homepagina.prijsAfbeelding.src} alt={homepagina.prijsAfbeelding.alt} fill sizes="(max-width: 900px) 100vw, 600px" style={{ objectFit: "cover" }} />
             </div>
             <div className={s.priceCard}>
-              <p className={s.tag}>Het boek</p>
-              <h2 className={`${s.display} ${s.h2}`}>Jouw kleurboek</h2>
+              <p className={s.tag}>{homepagina.prijsLabel}</p>
+              <h2 className={`${s.display} ${s.h2}`}>{homepagina.prijsKop}</h2>
               <div className={s.stack} style={{ gap: 6 }}>
                 <p style={{ margin: 0, display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 12 }}>
                   <span className={`${s.display} ${s.price}`}>€{price.intro}</span>
                   <span style={{ fontSize: 15 }}>incl. btw</span>
                 </p>
                 <p style={{ margin: 0, fontSize: 15 }}>
-                  Introductieprijs, daarna €{price.regular}. Verzending NL en BE: {formatEuro(site.shippingCents)}
+                  {homepagina.prijsTekst}
                 </p>
               </div>
               <ul className={s.checks}>
@@ -203,14 +191,15 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section className={`${s.section} ${s.gift}`}>
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ flexBasis: 400 }}>
-              <p className={s.tag} style={{ color: "var(--geel)" }}>Voor jezelf of iemand dierbaars</p>
+              <p className={s.tag} style={{ color: "var(--geel)" }}>{homepagina.cadeauLabel}</p>
               <h2 className={`${s.display} ${s.h2}`} style={{ color: "var(--geel)" }}>{homepagina.cadeauKop}</h2>
               <p className={s.body} style={{ fontSize: 18 }}>{homepagina.cadeauTekst}</p>
               <Link href="/sinterklaas-en-kerst" {...knopStijl(homepagina.cadeauKnop, { style: { alignSelf: "flex-start" } })}>{homepagina.cadeauKnop.tekst}</Link>
             </div>
             <div className={s.giftGrid}>
-              <Image src="/brand/xmas-duo.jpg" alt="Twee Tante Kleur-boeken in kerstsfeer" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
-              <Image src="/brand/wrapped.jpg" alt="Boek ingepakt in Tante Kleur-cadeaupapier" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
+              {homepagina.cadeauAfbeeldingen.map((b) => (
+                <Image key={b.src} src={b.src} alt={b.alt} width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
+              ))}
             </div>
           </div>
         </section>
@@ -219,7 +208,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section id="zakelijk" className={s.b2b}>
           <div className={s.wrap} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
             <div className={s.stack} style={{ flex: "1 1 520px", minWidth: 0, gap: 16 }}>
-              <p className={s.tag} style={{ color: "var(--blauw)" }}>Zakelijk</p>
+              <p className={s.tag} style={{ color: "var(--blauw)" }}>{homepagina.zakelijkLabel}</p>
               <h2 className={`${s.display} ${s.h2}`}>{homepagina.zakelijkKop}</h2>
               <p className={s.body} style={{ fontSize: 18, maxWidth: 620 }}>{homepagina.zakelijkTekst}</p>
             </div>
@@ -231,8 +220,8 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
         <section id="vragen" className={s.section}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 40 }}>
             <div className={s.stack} style={{ gap: 12 }}>
-              <p className={s.tag}>Vragen</p>
-              <h2 className={`${s.display} ${s.h2}`}>Tante legt het even uit.</h2>
+              <p className={s.tag}>{homepagina.vragenLabel}</p>
+              <h2 className={`${s.display} ${s.h2}`}>{homepagina.vragenKop}</h2>
             </div>
             <div className={s.faq}>
               {vragen.map((v) => (

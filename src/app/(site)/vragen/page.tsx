@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/config";
 import { themas } from "@/content/vragen";
 import { getPagina, getVragen, getMetadata } from "@/sanity/content";
 import { MetOpties } from "@/sanity/MetOpties";
@@ -12,6 +11,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
 import { Icon } from "@/components/Icon";
+import { MetMailLink } from "@/components/MetMailLink";
 
 export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("vragenPagina");
@@ -34,10 +34,10 @@ async function VragenInhoud({ opties }: { opties: FetchOpties }) {
       <main>
         <section className={x.pageHero}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
-            <p className={s.tag}>Vragen</p>
+            <p className={s.tag}>{p.label}</p>
             <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
             <p className={s.lead}>
-              Staat je vraag er niet bij? Mail Tante via <a href={`mailto:${site.email}`}>{site.email}</a>.
+              <MetMailLink tekst={p.intro} />
             </p>
           </div>
         </section>

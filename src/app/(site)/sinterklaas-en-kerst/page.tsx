@@ -31,14 +31,15 @@ async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
         <section className={s.hero}>
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ gap: 24 }}>
-              <p className={s.tag}>Sinterklaas &amp; kerst</p>
+              <p className={s.tag}>{p.label}</p>
               <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
               <p className={s.lead}>{p.intro}</p>
               <CheckoutButton {...knopStijl(p.heroKnop)}>{p.heroKnop.tekst}</CheckoutButton>
             </div>
             <div className={s.giftGrid}>
-              <Image src="/brand/xmas-duo.jpg" alt="Twee Tante Kleur-boeken in kerstsfeer" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} priority />
-              <Image src="/brand/wrapped.jpg" alt="Boek ingepakt in Tante Kleur-cadeaupapier" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
+              {p.heroAfbeeldingen.map((b, i) => (
+                <Image key={b.src} src={b.src} alt={b.alt} width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} priority={i === 0} />
+              ))}
             </div>
           </div>
         </section>
@@ -46,7 +47,7 @@ async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
         <section className={s.section} style={{ background: "var(--lichtblauw)" }}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 32 }}>
             <div className={s.stack} style={{ gap: 12, maxWidth: 640 }}>
-              <p className={s.tag}>Op tijd bestellen</p>
+              <p className={s.tag}>{p.deadlineLabel}</p>
               <h2 className={`${s.display} ${s.h2}`}>{p.deadlineKop}</h2>
               <p className={s.body}>{p.deadlineTekst}</p>
             </div>

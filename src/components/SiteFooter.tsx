@@ -41,7 +41,7 @@ const socialVolgorde: SocialPlatform[] = ["pinterest", "instagram", "tiktok"];
 
 export async function SiteFooter() {
   const { company, email } = site;
-  const { socialeMedia, footerKnop } = await getInstellingen();
+  const { socialeMedia, footerKnop, footerSlogan, footerBetalen } = await getInstellingen();
   const socials = socialVolgorde.flatMap((platform) => {
     const url = socialeMedia.find((u) => socialPlatform(u)?.id === platform);
     return url ? [{ platform, url }] : [];
@@ -52,7 +52,7 @@ export async function SiteFooter() {
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 40 }}>
           <div className={s.stack} style={{ flex: "1 1 420px", minWidth: 0, gap: 24 }}>
             <p className={s.display} style={{ fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 1, color: "var(--roze)" }}>
-              Kleur met Tante Kleur.
+              {footerSlogan}
             </p>
             <CheckoutButton {...knopStijl(footerKnop, { style: { alignSelf: "flex-start" } })}>{footerKnop.tekst}</CheckoutButton>
           </div>
@@ -77,7 +77,7 @@ export async function SiteFooter() {
               <li>
                 <a href={`mailto:${email}`}>{email}</a>
               </li>
-              <li>Veilig betalen via Stripe</li>
+              <li>{footerBetalen}</li>
             </ul>
             {socials.length > 0 && (
               <ul className={x.footerSocials}>

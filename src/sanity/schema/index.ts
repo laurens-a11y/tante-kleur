@@ -142,6 +142,23 @@ const seo = defineType({
   ],
 });
 
+// Foto's: leeg laten = de standaardfoto van de site. Altijd staand (4:5) getoond;
+// met de hotspot kies je wat er in beeld blijft.
+const beeldVelden = [defineField({ name: "alt", title: "Beschrijving voor schermlezers en Google", type: "string" })];
+const beeldVeld = (name: string, title: string, group?: string) =>
+  defineField({ name, title, type: "image", group, options: { hotspot: true }, fields: beeldVelden, description: "Leeg laten: de huidige foto blijft staan." });
+const beeldenVeld = (name: string, title: string, group?: string) =>
+  defineField({
+    name,
+    title,
+    type: "array",
+    group,
+    of: [defineArrayMember({ type: "image", options: { hotspot: true }, fields: beeldVelden })],
+    description: "Leeg laten: de huidige foto's blijven staan.",
+  });
+const labelVeld = (name: string, title: string, group?: string) =>
+  defineField({ name, title, type: "string", group, description: "Het kleine label in hoofdletters boven de kop." });
+
 // Knopveld; leeg gelaten onderdelen vallen terug op de standaard in src/content/paginas.ts.
 const knopVeld = (name: string, title: string, group?: string) => defineField({ name, title, type: "knop", group });
 const seoVeld = (group?: string) => defineField({ name: "seo", title: "Zoekmachines en delen", type: "seo", group });
@@ -165,28 +182,43 @@ const homepagina = defineType({
     { name: "seo", title: "SEO" },
   ],
   fields: [
+    labelVeld("heroLabel", "Label bovenaan", "bovenaan"),
     defineField({ name: "heroKop", title: "Kop bovenaan", type: "string", group: "bovenaan", description: "De grote kop in het roze blok bovenaan de pagina.", validation: (r) => r.required().max(80) }),
     defineField({ name: "heroIntro", title: "Introtekst bovenaan", type: "text", rows: 3, group: "bovenaan", validation: (r) => r.required().max(300) }),
     defineField({ name: "heroKenmerken", title: "Kenmerken onder de knoppen", type: "array", group: "bovenaan", of: [defineArrayMember({ type: "string" })], validation: (r) => r.max(4) }),
     knopVeld("heroKnop", "Knop: bestellen (bovenaan)", "bovenaan"),
     knopVeld("heroKnopVoorbeelden", "Knop: voorbeelden (bovenaan)", "bovenaan"),
+    beeldVeld("heroAfbeelding", "Foto bovenaan", "bovenaan"),
     defineField({ name: "verhaalVraag", title: "Merkverhaal: eerste zin (roze)", type: "string", group: "verhaal", validation: (r) => r.required() }),
     defineField({ name: "verhaalAntwoord", title: "Merkverhaal: tweede zin (wit)", type: "string", group: "verhaal", description: "Staat ook als kop op de pagina Over ons.", validation: (r) => r.required() }),
     defineField({ name: "verhaalTekst", title: "Merkverhaal: lopende tekst", type: "text", rows: 5, group: "verhaal", description: "Staat ook op de pagina Over ons.", validation: (r) => r.required() }),
+    labelVeld("stappenLabel", "Label", "stappen"),
     defineField({ name: "stappenKop", title: "Kop", type: "string", group: "stappen" }),
     defineField({ name: "stappen", title: "Stappen", type: "array", group: "stappen", of: [defineArrayMember({ type: "kaart" })], validation: (r) => r.max(4) }),
+    labelVeld("voorbeeldLabel", "Voorbeeld: label", "blokken"),
     defineField({ name: "voorbeeldKop", title: "Voorbeeld: kop", type: "string", group: "blokken" }),
     defineField({ name: "voorbeeldTekst", title: "Voorbeeld: tekst", type: "text", rows: 3, group: "blokken" }),
+    labelVeld("coverLabel", "Covers: label", "blokken"),
     defineField({ name: "coverKop", title: "Covers: kop", type: "string", group: "blokken" }),
     defineField({ name: "coverTekst", title: "Covers: tekst", type: "text", rows: 2, group: "blokken" }),
+    beeldenVeld("covers", "Covers: foto's", "blokken"),
+    labelVeld("prijsLabel", "Prijsblok: label", "blokken"),
+    defineField({ name: "prijsKop", title: "Prijsblok: kop", type: "string", group: "blokken" }),
+    defineField({ name: "prijsTekst", title: "Prijsblok: tekst onder de prijs", type: "string", group: "blokken", description: "{normalePrijs} en {verzendkosten} worden automatisch ingevuld. De prijs zelf staat in de code." }),
+    beeldVeld("prijsAfbeelding", "Prijsblok: foto", "blokken"),
     regels("prijsKenmerken", "Prijsblok: kenmerken met vinkje", { group: "blokken", description: "{kleurplaten} wordt automatisch ingevuld." }),
     knopVeld("prijsKnop", "Prijsblok: knop", "blokken"),
+    labelVeld("cadeauLabel", "Cadeau: label", "blokken"),
     defineField({ name: "cadeauKop", title: "Cadeau: kop", type: "string", group: "blokken" }),
     defineField({ name: "cadeauTekst", title: "Cadeau: tekst", type: "text", rows: 3, group: "blokken" }),
     knopVeld("cadeauKnop", "Cadeau: knop", "blokken"),
+    beeldenVeld("cadeauAfbeeldingen", "Cadeau: foto's", "blokken"),
+    labelVeld("zakelijkLabel", "Zakelijk: label", "blokken"),
     defineField({ name: "zakelijkKop", title: "Zakelijk: kop", type: "string", group: "blokken" }),
     defineField({ name: "zakelijkTekst", title: "Zakelijk: tekst", type: "text", rows: 3, group: "blokken" }),
     knopVeld("zakelijkKnop", "Zakelijk: knop", "blokken"),
+    labelVeld("vragenLabel", "Vragen: label", "blokken"),
+    defineField({ name: "vragenKop", title: "Vragen: kop", type: "string", group: "blokken", description: "Welke vragen er staan, kies je bij Veelgestelde vragen (Ook op de homepage tonen)." }),
     knopVeld("vragenKnop", "Vragen: knop naar alle vragen", "blokken"),
     seoVeld("seo"),
   ],
@@ -200,13 +232,18 @@ const hoeHetWerktPagina = defineType({
   icon: RocketIcon,
   fields: [
     defineField({ name: "kop", title: "Kop bovenaan", type: "string", validation: (r) => r.required().max(80) }),
+    labelVeld("label", "Label bovenaan"),
     defineField({ name: "intro", title: "Introtekst", type: "text", rows: 2 }),
     defineField({ name: "stappenKop", title: "Stappen: kop", type: "string" }),
     defineField({ name: "stappen", title: "Stappen", type: "array", of: [defineArrayMember({ type: "kaart" })], validation: (r) => r.max(4) }),
+    labelVeld("tekenenLabel", "Hoe Tante tekent: label"),
     defineField({ name: "tekenenKop", title: "Hoe Tante tekent: kop", type: "string" }),
     defineField({ name: "tekenenTekst", title: "Hoe Tante tekent: tekst", type: "text", rows: 4 }),
+    labelVeld("fototipsLabel", "Fototips: label"),
     defineField({ name: "fototipsKop", title: "Fototips: kop", type: "string" }),
+    defineField({ name: "werktGoedTitel", title: "Fototips: titel van het blok \"werkt goed\"", type: "string" }),
     regels("werktGoed", "Fototips: werkt goed"),
+    defineField({ name: "werktMinderTitel", title: "Fototips: titel van het blok \"werkt minder goed\"", type: "string" }),
     regels("werktMinder", "Fototips: werkt minder goed"),
     defineField({ name: "tijdlijnKop", title: "Tijdlijn: kop", type: "string" }),
     defineField({
@@ -231,8 +268,12 @@ const prijzenPagina = defineType({
   type: "document",
   icon: BasketIcon,
   fields: [
+    labelVeld("label", "Label bovenaan"),
     defineField({ name: "kop", title: "Kop bovenaan", type: "string", description: "De prijs zelf staat in de code (src/config.ts), omdat die aan Stripe gekoppeld is.", validation: (r) => r.required().max(80) }),
     defineField({ name: "intro", title: "Introtekst", type: "text", rows: 2 }),
+    labelVeld("prijsLabel", "Prijsblok: label"),
+    defineField({ name: "prijsTekst", title: "Prijsblok: tekst onder de prijs", type: "string", description: "{normalePrijs} en {verzendkosten} worden automatisch ingevuld." }),
+    beeldVeld("afbeelding", "Prijsblok: foto"),
     defineField({ name: "kenmerken", title: "Wat zit erin", type: "array", of: [defineArrayMember({ type: "kenmerk" })] }),
     knopVeld("knop", "Knop bij de prijs"),
     defineField({ name: "verzendingKop", title: "Verzending: kop", type: "string" }),
@@ -254,9 +295,11 @@ const zakelijkPagina = defineType({
   type: "document",
   icon: CaseIcon,
   fields: [
+    labelVeld("label", "Label bovenaan"),
     defineField({ name: "kop", title: "Kop bovenaan", type: "string", validation: (r) => r.required().max(80) }),
     defineField({ name: "intro", title: "Introtekst", type: "text", rows: 2 }),
     knopVeld("heroKnop", "Knop bovenaan (naar het offerteformulier)"),
+    beeldVeld("heroAfbeelding", "Foto bovenaan"),
     defineField({ name: "gelegenhedenKop", title: "Gelegenheden: kop", type: "string" }),
     kaarten("gelegenheden", "Gelegenheden"),
     defineField({ name: "mogelijkhedenKop", title: "Mogelijkheden: kop", type: "string" }),
@@ -271,6 +314,7 @@ const zakelijkPagina = defineType({
       description: "Eén icoon per stap, in dezelfde volgorde als de stappen. Leeg laten: de standaardiconen.",
     }),
     defineField({ name: "kerstTekst", title: "Werkwijze: tip voor kerst", type: "text", rows: 2 }),
+    labelVeld("offerteLabel", "Offerte: label"),
     defineField({ name: "offerteKop", title: "Offerte: kop", type: "string" }),
     defineField({ name: "offerteTekst", title: "Offerte: tekst", type: "text", rows: 2 }),
     knopVeld("offerteKnop", "Offerte: verzendknop"),
@@ -285,9 +329,12 @@ const feestdagenPagina = defineType({
   type: "document",
   icon: CalendarIcon,
   fields: [
+    labelVeld("label", "Label bovenaan"),
     defineField({ name: "kop", title: "Kop bovenaan", type: "string", validation: (r) => r.required().max(100) }),
     defineField({ name: "intro", title: "Introtekst", type: "text", rows: 2 }),
     knopVeld("heroKnop", "Knop bovenaan"),
+    beeldenVeld("heroAfbeeldingen", "Foto's bovenaan"),
+    labelVeld("deadlineLabel", "Deadlines: label"),
     defineField({ name: "deadlineKop", title: "Deadlines: kop", type: "string", description: "De data zelf staan in de code (src/config.ts)." }),
     defineField({ name: "deadlineTekst", title: "Deadlines: tekst", type: "text", rows: 2 }),
     defineField({ name: "ideeenKop", title: "Voor wie: kop", type: "string" }),
@@ -308,9 +355,13 @@ const overOnsPagina = defineType({
   type: "document",
   icon: HeartIcon,
   fields: [
+    labelVeld("label", "Label bovenaan"),
+    beeldVeld("afbeelding", "Foto bovenaan"),
     defineField({ name: "waardenKop", title: "Waarden: kop", type: "string", description: "Kop en tekst bovenaan komen uit het merkverhaal op de Homepagina." }),
     kaarten("waarden", "Waarden"),
+    labelVeld("contactLabel", "Contact: label"),
     defineField({ name: "contactKop", title: "Contact: kop", type: "string" }),
+    defineField({ name: "contactTekst", title: "Contact: tekst", type: "text", rows: 3, description: "{email} wordt automatisch ingevuld en klikbaar gemaakt. De bedrijfsgegevens eronder staan in de code." }),
     seoVeld(),
   ],
   preview: { prepare: () => ({ title: "Over ons" }) },
@@ -322,7 +373,9 @@ const vragenPagina = defineType({
   type: "document",
   icon: HelpCircleIcon,
   fields: [
+    labelVeld("label", "Label bovenaan"),
     defineField({ name: "kop", title: "Kop bovenaan", type: "string", description: "De vragen zelf beheer je bij Veelgestelde vragen.", validation: (r) => r.required().max(80) }),
+    defineField({ name: "intro", title: "Introtekst", type: "text", rows: 2, description: "{email} wordt automatisch ingevuld en klikbaar gemaakt." }),
     seoVeld(),
   ],
   preview: { prepare: () => ({ title: "Vragen" }) },
@@ -335,7 +388,15 @@ const voorbeeldenPagina = defineType({
   icon: ImagesIcon,
   fields: [
     defineField({ name: "kop", title: "Kop bovenaan", type: "string", description: "De voorbeelden zelf beheer je bij Voorbeelden (foto en kleurplaat).", validation: (r) => r.required().max(80) }),
+    labelVeld("label", "Label bovenaan"),
     defineField({ name: "intro", title: "Introtekst", type: "text", rows: 2 }),
+    defineField({ name: "galerijKop", title: "Voorbeelden: kop", type: "string" }),
+    labelVeld("coverLabel", "Covers: label"),
+    defineField({ name: "coverKop", title: "Covers: kop", type: "string" }),
+    defineField({ name: "coverTekst", title: "Covers: tekst", type: "text", rows: 2 }),
+    beeldenVeld("covers", "Covers: foto's"),
+    defineField({ name: "minderKop", title: "Onderaan: kop", type: "string" }),
+    defineField({ name: "minderTekst", title: "Onderaan: tekst", type: "text", rows: 3 }),
     knopVeld("knop", "Knop onderaan: bestellen"),
     knopVeld("fototipsKnop", "Knop onderaan: fototips"),
     seoVeld(),
@@ -360,7 +421,9 @@ const instellingen = defineType({
     }),
     defineField({ name: "socialeMedia", title: "Sociale media", type: "array", of: [defineArrayMember({ type: "url" })], description: "Volledige links naar Instagram, TikTok, Pinterest enzovoort." }),
     knopVeld("headerKnop", "Bestelknop in de menubalk"),
+    defineField({ name: "footerSlogan", title: "Footer: grote zin", type: "string" }),
     knopVeld("footerKnop", "Bestelknop in de footer"),
+    defineField({ name: "footerBetalen", title: "Footer: regel onder het e-mailadres", type: "string" }),
   ],
   preview: { prepare: () => ({ title: "Instellingen: SEO en merk" }) },
 });

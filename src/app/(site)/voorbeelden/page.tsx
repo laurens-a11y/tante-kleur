@@ -22,13 +22,6 @@ const fallback = {
   kleurplaat: { url: "/brand/kleurplaat-berlijn.jpg", alt: "Kleurplaat van twee vriendinnen op een treinstation in Berlijn" },
 };
 
-const covers = [
-  { src: "/brand/henk-blue.jpg", alt: "Blauw kleurboek met de titel Henk & Ingrid" },
-  { src: "/brand/spanje-desk.jpg", alt: "Lichtblauw kleurboek Spanje 2025 op een houten tafel" },
-  { src: "/brand/berlijn-hold.jpg", alt: "Roze kleurboek Weekend Berlijn met een lijntekening op de cover" },
-  { src: "/brand/henk-orange.jpg", alt: "Oranje kleurboek Henk & Ingrid tussen kleurpotloden" },
-  { src: "/brand/spanje-yellow.jpg", alt: "Geel kleurboek Spanje 2025 onder de arm" },
-];
 
 export default function VoorbeeldenPage() {
   return <MetOpties>{(opties) => <VoorbeeldenInhoud opties={opties} />}</MetOpties>;
@@ -45,7 +38,7 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
       <main>
         <section className={x.pageHero}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
-            <p className={s.tag}>Voorbeelden</p>
+            <p className={s.tag}>{p.label}</p>
             <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
             <p className={s.lead}>{p.intro}</p>
           </div>
@@ -53,7 +46,7 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
 
         <section className={s.section}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
-            <h2 className={`${s.display} ${s.h2}`}>{voorbeelden.length ? "De foto en de kleurplaat" : "Zo ziet een kleurplaat eruit"}</h2>
+            <h2 className={`${s.display} ${s.h2}`}>{voorbeelden.length ? p.galerijKop : "Zo ziet een kleurplaat eruit"}</h2>
             <div className={x.gallery}>
               {items.map((v) => (
                 <div key={v._id} className={x.pair}>
@@ -74,12 +67,12 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
         <section className={s.section} style={{ background: "var(--lichtblauw)" }}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
             <div className={s.stack} style={{ gap: 12, maxWidth: 640 }}>
-              <p className={s.tag}>Het boek</p>
-              <h2 className={`${s.display} ${s.h2}`}>Jouw titel, jouw kleur.</h2>
-              <p className={s.body}>Henk &amp; Ingrid, Spanje 2025, Weekend Berlijn: elk boek krijgt een eigen titel op een stevige hardcover.</p>
+              <p className={s.tag}>{p.coverLabel}</p>
+              <h2 className={`${s.display} ${s.h2}`}>{p.coverKop}</h2>
+              <p className={s.body}>{p.coverTekst}</p>
             </div>
             <div className={s.covers}>
-              {covers.map((c) => (
+              {p.covers.map((c) => (
                 <Image key={c.src} src={c.src} alt={c.alt} width={1000} height={1250} sizes="(max-width: 700px) 100vw, 240px" className={s.frame} />
               ))}
             </div>
@@ -88,11 +81,8 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
 
         <section className={s.section}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
-            <h2 className={`${s.display} ${s.h2}`}>Wat minder goed werkt</h2>
-            <p className={s.body}>
-              Grote groepsfoto&apos;s, donkere foto&apos;s en tekst die in beeld staat (op een shirt of bord) maken het
-              lastiger. Tante legt uit welke foto&apos;s het mooist uitpakken.
-            </p>
+            <h2 className={`${s.display} ${s.h2}`}>{p.minderKop}</h2>
+            <p className={s.body}>{p.minderTekst}</p>
             <div className={s.buttons}>
               <CheckoutButton {...knopStijl(p.knop)}>{p.knop.tekst}</CheckoutButton>
               <Link href="/hoe-het-werkt#fototips" {...knopStijl(p.fototipsKnop)}>{p.fototipsKnop.tekst}</Link>
