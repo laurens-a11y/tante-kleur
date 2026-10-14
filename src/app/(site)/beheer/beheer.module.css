@@ -1,0 +1,276 @@
+/* Beheer: functioneel, in de merkkleuren. */
+
+.pagina {
+  min-height: 100vh;
+  background: var(--lichtblauw);
+  padding: 24px 16px 64px;
+}
+
+.breed {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.kopRij {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kaart {
+  background: var(--wit);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.inlog {
+  max-width: 380px;
+  margin: 15vh auto 0;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.invoer,
+.select {
+  font: inherit;
+  font-size: 16px;
+  color: var(--blauw);
+  border: 2px solid var(--lichtblauw);
+  border-radius: 6px;
+  padding: 9px 12px;
+  background: var(--wit);
+}
+
+.fout {
+  margin: 0;
+  color: var(--rood);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.melding {
+  margin: 0;
+  font-size: 14px;
+  background: var(--lichtblauw);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.knopVol,
+.knopLeeg {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 9px 16px;
+  cursor: pointer;
+  border: 2px solid var(--blauw);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.knopVol {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.knopLeeg {
+  background: var(--wit);
+  color: var(--blauw);
+}
+
+.knopVol:disabled,
+.knopLeeg:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.knoppen {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Filters */
+
+.filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--wit);
+  color: var(--blauw);
+  text-decoration: none;
+  border: 2px solid var(--wit);
+}
+
+.filterActief {
+  border-color: var(--blauw);
+  font-weight: 600;
+}
+
+/* Tabel */
+
+.tabel {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.tabel th,
+.tabel td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--lichtblauw);
+  vertical-align: top;
+}
+
+.tabel th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tabelScroll {
+  overflow-x: auto;
+}
+
+.status {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--geel);
+  white-space: nowrap;
+}
+
+.status[data-status="betaald"] {
+  background: var(--lichtblauw);
+}
+
+.status[data-status="ingediend"],
+.status[data-status="akkoord"] {
+  background: var(--rood);
+  color: var(--wit);
+}
+
+.status[data-status="verzonden"],
+.status[data-status="gedrukt"] {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.klein {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+/* Order */
+
+.gegevens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.tekstBlok {
+  white-space: pre-wrap;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.paginaRij {
+  display: grid;
+  grid-template-columns: 40px 1fr 160px 160px;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px solid var(--lichtblauw);
+}
+
+@media (max-width: 760px) {
+  .paginaRij {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nr {
+    grid-column: 1 / -1;
+  }
+  .verhaal {
+    grid-column: 1 / -1;
+  }
+}
+
+.nr {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.verhaal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.opmerking {
+  margin: 0;
+  background: var(--geel);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.beeldVak {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.beeld {
+  aspect-ratio: 210 / 297;
+  background: var(--lichtblauw);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.beeld img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.uploadKnop {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.uploadKnop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}

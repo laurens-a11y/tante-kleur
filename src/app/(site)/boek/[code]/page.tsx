@@ -9,6 +9,8 @@ import { haalOrderOpCode, haalPaginas, kleineFotoLinks, type Order } from "@/lib
 import s from "../../page.module.css";
 import b from "./boek.module.css";
 import { Boekbouwer } from "./Boekbouwer";
+import { Proef } from "./Proef";
+import { linksVoorPaginas } from "@/lib/beheer-orders";
 
 export const metadata: Metadata = {
   title: "Jouw kleurboek – Tante Kleur",
@@ -38,6 +40,21 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
   const order = await haalOrderOpCode(code);
   if (!order) notFound();
 
+  if (order.status === "proef_klaar") {
+    const paginas = await haalPaginas(order.id);
+    const links = await linksVoorPaginas(paginas, false);
+    const kleur = boek.coverKleuren.find((k) => k.value === order.cover_kleur);
+    return (
+      <Proef
+        code={order.code}
+        titel={order.cover_titel ?? ""}
+        kleur={{ achtergrond: kleur?.kleur ?? "blauw", tekst: kleur?.tekst ?? "wit" }}
+        inleiding={order.inleiding ?? ""}
+        nawoord={order.nawoord ?? ""}
+        paginas={paginas.map((p) => ({ id: p.id, verhaal: p.verhaal ?? "", opmerking: p.opmerking ?? "", tekenplaat: links[p.id]?.tekenplaat ?? null }))}
+      />
+    );
+  }
   if (order.status !== "betaald") return <BoekStatus order={order} />;
 
   const paginas = await haalPaginas(order.id);
@@ -70,11 +87,11 @@ const statusTekst: Record<Exclude<Order["status"], "betaald">, { kop: string; te
   },
   in_productie: {
     kop: "Tante is aan het tekenen",
-    tekst: "Je kleurplaten worden gemaakt. Zodra de proef klaar is, krijg je een mail.",
+    tekst: "Je kleurplaten worden gemaakt (of aangepast als je opmerkingen had). Zodra de proef klaar is, krijg je een mail.",
   },
   proef_klaar: {
     kop: "Je proef is klaar",
-    tekst: "Bekijk de mail die we je stuurden om je proef te bekijken en goed te keuren.",
+    tekst: "Je kunt je proef hier bekijken en goedkeuren.",
   },
   akkoord: {
     kop: "Bedankt voor je akkoord!",

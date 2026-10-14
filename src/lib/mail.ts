@@ -84,3 +84,43 @@ export async function stuurIngediend({ aan, naam, url, titel }: { aan: string | 
     opmaak({ titel: "Nieuw boek ingediend", alineas: [`Titel: ${titel}`, `Klant: ${naam ?? "-"} (${aan ?? "-"})`] }),
   );
 }
+
+export async function stuurProef({ aan, naam, url, titel }: { aan: string | null; naam: string | null; url: string; titel: string }) {
+  if (!aan) return;
+  const voornaam = naam?.split(" ")[0];
+  await verstuur(
+    aan,
+    "Je proef is klaar!",
+    opmaak({
+      titel: voornaam ? `Kijk eens, ${voornaam}!` : "Kijk eens!",
+      alineas: [
+        `Tante heeft de kleurplaten voor "${titel}" getekend. Je kunt de proef nu bekijken.`,
+        "Klopt alles? Geef dan akkoord, dan gaat je boek naar de drukker. Wil je iets anders? Zet een opmerking bij de pagina en stuur je opmerkingen naar Tante.",
+      ],
+      knop: { tekst: "Bekijk mijn proef", url },
+    }),
+  );
+}
+
+export async function stuurAkkoord({ aan, naam, titel }: { aan: string | null; naam: string | null; titel: string }) {
+  if (aan) {
+    const voornaam = naam?.split(" ")[0];
+    await verstuur(
+      aan,
+      "Je boek gaat naar de drukker",
+      opmaak({
+        titel: voornaam ? `Dankjewel, ${voornaam}!` : "Dankjewel!",
+        alineas: [`Je hebt akkoord gegeven op "${titel}". Je boek gaat nu naar de drukker en we laten het weten zodra het onderweg is.`],
+      }),
+    );
+  }
+  await verstuur(beheer, `Akkoord op proef: ${titel}`, opmaak({ titel: "Akkoord op proef", alineas: [`Titel: ${titel}`, `Klant: ${naam ?? "-"} (${aan ?? "-"})`, "Het boek kan naar de drukker."] }));
+}
+
+export async function stuurOpmerkingen({ naam, aan, titel, opmerkingen }: { naam: string | null; aan: string | null; titel: string; opmerkingen: string[] }) {
+  await verstuur(
+    beheer,
+    `Opmerkingen op proef: ${titel}`,
+    opmaak({ titel: "Opmerkingen op de proef", alineas: [`Titel: ${titel}`, `Klant: ${naam ?? "-"} (${aan ?? "-"})`, ...opmerkingen] }),
+  );
+}

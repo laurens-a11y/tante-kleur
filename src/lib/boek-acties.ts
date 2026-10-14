@@ -3,7 +3,7 @@ import { boek } from "@/config";
 import { getSupabase, buckets } from "@/lib/supabase";
 import { haalOrderOpCode, haalPaginas, hernummer, verwijderBestanden, boekUrl, type Order, type Pagina } from "@/lib/orders";
 import { verrijkTekst } from "@/lib/ai";
-import { stuurIngediend } from "@/lib/mail";
+import { stuurAkkoord, stuurIngediend, stuurOpmerkingen } from "@/lib/mail";
 
 // Alle wijzigingen die een klant in het boekformulier kan doen. Elke actie
 // controleert eerst de code én of het boek nog bewerkt mag worden.
@@ -57,7 +57,10 @@ export function vanDezeSite(request: Request) {
 
 type Invoer = Record<string, unknown>;
 
+const proefActies = new Set(["opmerking", "akkoord", "opmerkingenSturen"]);
+
 export async function voerUit(code: string, invoer: Invoer, origin: string): Promise<Record<string, unknown>> {
+  if (typeof invoer.actie === "string" && proefActies.has(invoer.actie)) return voerProefActieUit(code, invoer);
   const order = await bewerkbareOrder(code);
 
   switch (invoer.actie) {
@@ -167,6 +170,63 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
         }
       }
       return { ingediend: true };
+    }
+
+    default:
+      throw new Weigering("Onbekende actie.");
+  }
+}
+
+// Acties op de proef: alleen als de proef bij de klant ligt.
+async function voerProefActieUit(code: string, invoer: Invoer): Promise<Record<string, unknown>> {
+  const order = await haalOrderOpCode(code);
+  if (!order) throw new Weigering("Dit boek bestaat niet.", 404);
+  if (order.status !== "proef_klaar") throw new Weigering("Deze proef is al afgerond.", 409);
+
+  switch (invoer.actie) {
+    case "opmerking": {
+      const pagina = await eigenPagina(order, invoer.pageId);
+      await update("pages", pagina.id, { opmerking: tekst(invoer.tekst, 1000, "opmerking") });
+      return {};
+    }
+
+    case "akkoord": {
+      const { data, error } = await getSupabase()
+        .from("orders")
+        .update({ status: "akkoord" })
+        .eq("id", order.id)
+        .eq("status", "proef_klaar")
+        .select("id");
+      if (error) throw new Error(`Akkoord opslaan mislukt: ${error.message}`);
+      if (data?.length) {
+        try {
+          await stuurAkkoord({ aan: order.email, naam: order.naam, titel: order.cover_titel ?? "je boek" });
+        } catch (e) {
+          console.error(`Akkoordmail mislukt voor order ${order.id}:`, e instanceof Error ? e.message : e);
+        }
+      }
+      return { klaar: true };
+    }
+
+    case "opmerkingenSturen": {
+      const paginas = await haalPaginas(order.id);
+      const opmerkingen = paginas.filter((p) => p.opmerking).map((p) => `Pagina ${p.positie}: ${p.opmerking}`);
+      if (opmerkingen.length === 0) throw new Weigering("Zet eerst bij een of meer pagina's wat je anders wilt.");
+      const { data, error } = await getSupabase()
+        .from("orders")
+        .update({ status: "in_productie" })
+        .eq("id", order.id)
+        .eq("status", "proef_klaar")
+        .select("id");
+      if (error) throw new Error(`Opmerkingen opslaan mislukt: ${error.message}`);
+      if (data?.length) {
+        try {
+          await stuurOpmerkingen({ naam: order.naam, aan: order.email, titel: order.cover_titel ?? "boek", opmerkingen });
+        } catch (e) {
+          console.error(`Opmerkingenmail mislukt voor order ${order.id}:`, e instanceof Error ? e.message : e);
+        }
+      }
+      return { klaar: true };
     }
 
     default:
