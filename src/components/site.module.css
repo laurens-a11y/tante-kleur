@@ -317,6 +317,22 @@
   text-decoration: underline;
 }
 
+.footerCols ul.footerSocials {
+  flex-direction: row;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.footerSocials a {
+  display: block;
+  color: var(--wit);
+  transition: color 0.15s;
+}
+
+.footerSocials a:hover {
+  color: var(--roze);
+}
+
 .footerHead {
   margin: 0 0 14px;
   font-size: 13px;
