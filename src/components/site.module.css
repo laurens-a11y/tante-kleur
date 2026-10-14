@@ -116,7 +116,7 @@
 }
 
 .timeline li {
-  border-top: 4px solid var(--blauw);
+  border-top: 4px solid currentColor;
   padding: 20px 20px 0 0;
   display: flex;
   flex-direction: column;
@@ -124,11 +124,26 @@
   counter-increment: stap;
 }
 
+/* Nummer na het icoon; accent (rood waar leesbaar) via --accent vanaf de pagina */
 .timeline li::before {
   content: counter(stap);
+  order: 1;
   font-weight: 800;
-  color: var(--rood);
+  color: var(--accent, var(--rood));
   font-size: 15px;
+}
+
+.timeline li > img {
+  order: 0;
+  margin-bottom: 4px;
+}
+
+.timeline li > strong {
+  order: 2;
+}
+
+.timeline li > span {
+  order: 3;
 }
 
 /* Deadlines */

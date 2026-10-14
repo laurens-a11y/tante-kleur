@@ -6,6 +6,8 @@ import { getStripe } from "@/lib/stripe";
 import { site } from "@/config";
 import s from "../page.module.css";
 import { Icon } from "@/components/Icon";
+import { knopStijl } from "@/components/merkkleur";
+import { knop } from "@/content/knoppen";
 
 export const metadata: Metadata = {
   title: "Bedankt voor je bestelling – Tante Kleur",
@@ -58,7 +60,7 @@ async function OrderStatus({ searchParams }: { searchParams: PageProps<"/bedankt
         digitale proef van je boek.
       </p>
       {uploadUrl ? (
-        <a href={uploadUrl} className={s.btn} style={{ alignSelf: "flex-start" }}>Upload je foto&apos;s</a>
+        <a href={uploadUrl} {...knopStijl(knop("Upload je foto's"), { style: { alignSelf: "flex-start" } })}>Upload je foto&apos;s</a>
       ) : (
         <p className={s.body}>Je ontvangt per mail een link om je foto&apos;s te uploaden.</p>
       )}

@@ -5,6 +5,7 @@ import { getPagina, getVoorbeelden, getMetadata } from "@/sanity/content";
 import { MetOpties } from "@/sanity/MetOpties";
 import type { FetchOpties } from "@/sanity/live";
 import { CheckoutButton } from "../CheckoutButton";
+import { knopStijl } from "@/components/merkkleur";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "../page.module.css";
@@ -93,8 +94,8 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
               lastiger. Tante legt uit welke foto&apos;s het mooist uitpakken.
             </p>
             <div className={s.buttons}>
-              <CheckoutButton className={s.btn} />
-              <Link href="/hoe-het-werkt#fototips" className={s.btnGhost}>Bekijk de fototips</Link>
+              <CheckoutButton {...knopStijl(p.knop)}>{p.knop.tekst}</CheckoutButton>
+              <Link href="/hoe-het-werkt#fototips" {...knopStijl(p.fototipsKnop)}>{p.fototipsKnop.tekst}</Link>
             </div>
           </div>
         </section>

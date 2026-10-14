@@ -9,6 +9,7 @@ import { product, stappenplan } from "@/lib/gestructureerde-data";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { CheckoutButton } from "./CheckoutButton";
+import { blokStijl, knopStijl } from "@/components/merkkleur";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "./page.module.css";
@@ -41,7 +42,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
   const { price } = site;
   // Teksten, vragen en voorbeeld komen uit Sanity; lege velden vallen terug op src/content/paginas.ts.
   const [{ homepagina, vragen, voorbeeld }, instellingen] = await Promise.all([getHomeContent(opties), getInstellingen()]);
-  const stapKleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
+  const stapKleuren = ["roze", "lichtblauw", "geel"] as const;
 
   return (
     <>
@@ -58,8 +59,8 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
               <h1 className={`${s.display} ${s.h1}`}>{homepagina.heroKop}</h1>
               <p className={s.lead} style={{ maxWidth: 480 }}>{homepagina.heroIntro}</p>
               <div className={s.buttons}>
-                <CheckoutButton className={`${s.btn} ${s.btnGeel}`} />
-                <Link href="/voorbeelden" className={s.btnGhost}>Bekijk voorbeelden</Link>
+                <CheckoutButton {...knopStijl(homepagina.heroKnop)}>{homepagina.heroKnop.tekst}</CheckoutButton>
+                <Link href="/voorbeelden" {...knopStijl(homepagina.heroKnopVoorbeelden)}>{homepagina.heroKnopVoorbeelden.tekst}</Link>
               </div>
               <p className={s.heroPerks}>
                 {homepagina.heroKenmerken.map((k) => (
@@ -101,14 +102,17 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
               <h2 className={`${s.display} ${s.h2}`}>{homepagina.stappenKop}</h2>
             </div>
             <div className={s.steps}>
-              {homepagina.stappen.map((st, i) => (
-                <div key={st._key ?? st.titel} className={s.step} style={{ background: stapKleuren[i % stapKleuren.length] }}>
+              {homepagina.stappen.map((st, i) => {
+                const blok = blokStijl(st.achtergrond, stapKleuren[i % stapKleuren.length]);
+                return (
+                <div key={st._key ?? st.titel} className={s.step} style={blok.style}>
                   <Icon name={st.icoon} size={52} />
-                  <p className={s.wide} style={{ color: i % stapKleuren.length === 2 ? undefined : "var(--rood)", fontSize: 15 }}>Stap {i + 1}</p>
+                  <p className={s.wide} style={{ color: blok.accent, fontSize: 15 }}>Stap {i + 1}</p>
                   <h3 className={`${s.display} ${s.h3}`}>{st.titel}</h3>
                   <p className={s.body}>{st.tekst}</p>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -190,7 +194,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
                   <li key={p}><Check /><span>{p}</span></li>
                 ))}
               </ul>
-              <CheckoutButton className={s.btn} />
+              <CheckoutButton {...knopStijl(homepagina.prijsKnop)}>{homepagina.prijsKnop.tekst}</CheckoutButton>
             </div>
           </div>
         </section>
@@ -202,7 +206,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
               <p className={s.tag} style={{ color: "var(--geel)" }}>Voor jezelf of iemand dierbaars</p>
               <h2 className={`${s.display} ${s.h2}`} style={{ color: "var(--geel)" }}>{homepagina.cadeauKop}</h2>
               <p className={s.body} style={{ fontSize: 18 }}>{homepagina.cadeauTekst}</p>
-              <Link href="/sinterklaas-en-kerst" className={s.btnPink}>Op tijd voor Sinterklaas en kerst</Link>
+              <Link href="/sinterklaas-en-kerst" {...knopStijl(homepagina.cadeauKnop, { style: { alignSelf: "flex-start" } })}>{homepagina.cadeauKnop.tekst}</Link>
             </div>
             <div className={s.giftGrid}>
               <Image src="/brand/xmas-duo.jpg" alt="Twee Tante Kleur-boeken in kerstsfeer" width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} />
@@ -219,7 +223,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
               <h2 className={`${s.display} ${s.h2}`}>{homepagina.zakelijkKop}</h2>
               <p className={s.body} style={{ fontSize: 18, maxWidth: 620 }}>{homepagina.zakelijkTekst}</p>
             </div>
-            <Link href="/zakelijk" className={s.btn}>Bekijk zakelijke mogelijkheden</Link>
+            <Link href="/zakelijk" {...knopStijl(homepagina.zakelijkKnop)}>{homepagina.zakelijkKnop.tekst}</Link>
           </div>
         </section>
 
@@ -238,7 +242,7 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
                 </div>
               ))}
             </div>
-            <Link href="/vragen" className={s.btnGhost} style={{ alignSelf: "flex-start" }}>Alle vragen</Link>
+            <Link href="/vragen" {...knopStijl(homepagina.vragenKnop, { style: { alignSelf: "flex-start" } })}>{homepagina.vragenKnop.tekst}</Link>
           </div>
         </section>
       </main>

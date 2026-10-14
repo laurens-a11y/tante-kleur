@@ -91,62 +91,48 @@
 }
 
 /* Knoppen */
-.btn,
-.btnGhost,
-.btnPink {
+.knop {
   display: inline-block;
-  padding: 18px 30px;
+  /* Met de rand van 2px even groot als voorheen (18px 30px) */
+  padding: 16px 28px;
+  border: 2px solid var(--knop-kleur);
   border-radius: 4px;
+  font-family: inherit;
   font-weight: 700;
   font-size: 17px;
+  line-height: normal;
   text-decoration: none;
   text-align: center;
-  transition: transform 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.btn {
-  background: var(--blauw);
-  color: var(--wit);
+/* Kleur per knop in Sanity: --knop-kleur is de merkkleur, --knop-contrast de
+   leesbare tekstkleur daarop, --knop-hover(-contrast) idem bij hover
+   (zie src/content/knoppen.ts en src/components/knopStijl.ts). */
+.knopPrimair {
+  background: var(--knop-kleur);
+  color: var(--knop-contrast);
 }
 
-.btn:hover {
-  background: var(--rood);
+.knopPrimair:hover {
+  background: var(--knop-hover);
+  border-color: var(--knop-hover);
+  color: var(--knop-hover-contrast);
 }
 
-/* Gele variant van de primaire knop (hero homepage) */
-.btnGeel {
-  background: var(--geel);
-  color: var(--blauw);
+.knopSecundair {
+  background: transparent;
+  color: var(--knop-kleur);
 }
 
-.btnGeel:hover {
-  background: var(--blauw);
-  color: var(--wit);
-}
-
-.btnGhost {
-  border: 2px solid var(--blauw);
-  padding: 16px 28px;
-  color: var(--blauw);
-}
-
-.btnGhost:hover {
-  background: var(--blauw);
-  color: var(--wit);
-}
-
-.btnPink {
-  background: var(--roze);
-  color: var(--blauw);
-  align-self: flex-start;
-}
-
-.btnPink:hover {
-  background: var(--wit);
+.knopSecundair:hover {
+  background: var(--knop-kleur);
+  color: var(--knop-contrast);
 }
 
 .btnSmall {
-  padding: 14px 24px;
+  padding: 12px 22px;
   font-size: 15px;
 }
 
@@ -454,10 +440,3 @@
   gap: 8px 24px;
 }
 
-button.btn,
-button.btnGhost,
-button.btnPink {
-  border: 0;
-  cursor: pointer;
-  font-family: inherit;
-}

@@ -6,9 +6,10 @@
 // zie vulIn() in src/sanity/content.ts.
 
 import type { IconName } from "@/components/Icon";
+import { knop, type Merkkleur } from "./knoppen";
 
-export type Kaart = { _key?: string; icoon: IconName; titel: string; tekst: string };
-export type Mijlpaal = { _key?: string; titel: string; tekst: string };
+export type Kaart = { _key?: string; icoon: IconName; titel: string; tekst: string; achtergrond?: Merkkleur };
+export type Mijlpaal = { _key?: string; icoon: IconName; titel: string; tekst: string };
 export type Kenmerk = { _key?: string; label: string; waarde: string };
 
 export const homepagina = {
@@ -16,6 +17,8 @@ export const homepagina = {
   heroIntro:
     "Jij en je lief in Spanje, je jaarlijkse vriendenweekend of het eerste jaar van je kleintje. Tante Kleur tovert jouw foto's om tot kleurplaten, in een boek dat net zo bijzonder is als wat erin staat.",
   heroKenmerken: ["Hardcover A4", "Jouw foto's, jouw titel", "Eerst een proef, dan pas drukken"],
+  heroKnop: knop("Maak mijn boek", "geel"),
+  heroKnopVoorbeelden: knop("Bekijk voorbeelden", "blauw", "secundair"),
   verhaalVraag: "Ze staan allemaal ergens in je camerarol. En daar blijven ze ook, toch?",
   verhaalAntwoord: "Niet als het aan Tante Kleur ligt.",
   verhaalTekst:
@@ -37,11 +40,15 @@ export const homepagina = {
     "Je eigen titel en kleur op de cover",
     "Eerst een digitale proef, pas daarna drukken",
   ],
+  prijsKnop: knop("Maak mijn boek"),
   cadeauKop: "Het liefste cadeau dat je zelf hebt gemaakt.",
   cadeauTekst:
     "Voor je moeder, je beste vriendin of opa en oma met al hun kleinkinderen. Een herinnering die je samen kleurt, en die daarna gewoon in de kast blijft staan.",
+  cadeauKnop: knop("Op tijd voor Sinterklaas en kerst", "roze"),
   zakelijkKop: "Een relatiegeschenk dat niemand weggeeft.",
   zakelijkTekst: "Voor teamuitjes, jubilea, onboarding of de kerstattentie. Iedere medewerker krijgt een eigen, persoonlijk boek.",
+  zakelijkKnop: knop("Bekijk zakelijke mogelijkheden"),
+  vragenKnop: knop("Alle vragen", "blauw", "secundair"),
 };
 
 export const hoeHetWerktPagina = {
@@ -71,11 +78,12 @@ export const hoeHetWerktPagina = {
     "Tekst in beeld, zoals op een shirt of bord",
   ],
   tijdlijnKop: "Wanneer heb je je boek?",
+  tijdlijnAchtergrond: "geel" as Merkkleur,
   tijdlijn: [
-    { titel: "Bestellen", tekst: "Afrekenen en covertitel kiezen" },
-    { titel: "Uploaden", tekst: "Jij stuurt je foto's" },
-    { titel: "Proef", tekst: "Binnen een paar dagen in je mail" },
-    { titel: "Drukken en bezorgen", tekst: "Binnen {levertijd} werkdagen na je akkoord" },
+    { icoon: "kopen", titel: "Bestellen", tekst: "Afrekenen en covertitel kiezen" },
+    { icoon: "uploaden", titel: "Uploaden", tekst: "Jij stuurt je foto's" },
+    { icoon: "boek", titel: "Proef", tekst: "Binnen een paar dagen in je mail" },
+    { icoon: "verzending", titel: "Drukken en bezorgen", tekst: "Binnen {levertijd} werkdagen na je akkoord" },
   ] as Mijlpaal[],
   privacyKop: "Je foto's zijn bij Tante veilig",
   privacyPunten: [
@@ -83,6 +91,7 @@ export const hoeHetWerktPagina = {
     "Zodra je boek naar de drukker gaat, verwijderen we ze direct.",
     "Je foto's worden niet gebruikt om AI te trainen.",
   ],
+  knop: knop("Maak mijn boek"),
 };
 
 export const prijzenPagina = {
@@ -94,6 +103,7 @@ export const prijzenPagina = {
     { label: "Kaft", waarde: "Stevige hardcover met je eigen titel en kleur" },
     { label: "Proef", waarde: "Eerst digitaal bekijken, pas daarna drukken" },
   ] as Kenmerk[],
+  knop: knop("Maak mijn boek"),
   verzendingKop: "Verzending en levertijd",
   verzendingPunten: [
     "We bezorgen in Nederland en België voor {verzendkosten} per boek.",
@@ -101,16 +111,19 @@ export const prijzenPagina = {
   ],
   zakelijkKop: "Meer dan tien boeken?",
   zakelijkTekst: "Voor je team, een jubileum of als relatiegeschenk maken we graag een voorstel.",
+  zakelijkKnop: knop("Bekijk zakelijk"),
   weetjesKop: "Goed om te weten",
   weetjes: [
     { icoon: "akkoord", titel: "Hoe kan ik betalen?", tekst: "Via Stripe, met de betaalmethoden die je bij het afrekenen ziet. Je betaalgegevens komen niet bij ons terecht." },
     { icoon: "akkoord", titel: "Kan ik mijn boek retourneren?", tekst: "Omdat elk boek speciaal voor jou wordt gemaakt, geldt het herroepingsrecht niet. Gaat er iets mis bij het drukken of de bezorging, dan lossen we het op." },
   ] as Kaart[],
+  vragenKnop: knop("Alle vragen", "blauw", "secundair"),
 };
 
 export const zakelijkPagina = {
   kop: "Een eindejaarscadeau dat over jullie gaat.",
   intro: "Een relatiegeschenk dat niemand weggeeft: een kleurboek met jullie eigen mensen, plekken en momenten.",
+  heroKnop: knop("Vraag een offerte aan"),
   gelegenhedenKop: "Waarvoor?",
   gelegenheden: [
     { icoon: "cadeau", titel: "Eindejaarsgeschenk", tekst: "Een jaaroverzicht om in te kleuren, in plaats van een kerstpakket dat na twee weken op is." },
@@ -131,14 +144,17 @@ export const zakelijkPagina = {
     "Je krijgt een digitale proef ter goedkeuring",
     "We drukken en leveren op één adres of per medewerker",
   ],
+  stappenIconen: ["chat", "uploaden", "akkoord", "cadeau"] as IconName[],
   kerstTekst: "Voor kerst? Vraag je offerte zo vroeg mogelijk aan; we plannen terug vanaf je leverdatum.",
   offerteKop: "Vertel ons wat je zoekt.",
   offerteTekst: "Je krijgt een voorstel met prijs per boek en planning. Prijzen voor zakelijke klanten zijn exclusief btw.",
+  offerteKnop: knop("Offerte aanvragen"),
 };
 
 export const feestdagenPagina = {
   kop: "Het persoonlijkste cadeau in de schoen of onder de boom.",
   intro: "Geen cadeaubon of sokken, maar een kleurboek vol eigen herinneringen. Met een eigen titel op de cover.",
+  heroKnop: knop("Maak mijn boek"),
   deadlineKop: "Bestel uiterlijk",
   deadlineTekst: "Dan is er tijd voor het uploaden van je foto's, de proef en het drukken.",
   ideeenKop: "Voor wie?",
@@ -153,6 +169,7 @@ export const feestdagenPagina = {
   tipTekst:
     "Een titel als “Opa & zijn kleine kleurders” of “Ons jaar 2026” maakt het gedicht nog leuker. Meerdere boeken bestellen, voor beide opa's en oma's? Dat kan gewoon.",
   prijsTekst: "Introductieprijs, daarna {normalePrijs}. Inclusief btw, exclusief verzending.",
+  prijsKnop: knop("Maak mijn boek"),
 };
 
 export const overOnsPagina = {
@@ -172,6 +189,8 @@ export const vragenPagina = {
 export const voorbeeldenPagina = {
   kop: "Van camerarol naar kleurplaat.",
   intro: "Alles hieronder is gemaakt van gewone foto's, zoals ze op je telefoon staan.",
+  knop: knop("Maak mijn boek"),
+  fototipsKnop: knop("Bekijk de fototips", "blauw", "secundair"),
 };
 
 export const paginas = { homepagina, hoeHetWerktPagina, prijzenPagina, zakelijkPagina, feestdagenPagina, overOnsPagina, vragenPagina, voorbeeldenPagina };
@@ -226,4 +245,6 @@ export const instellingen = {
   merkOmschrijving:
     "Tante Kleur maakt gepersonaliseerde kleurboeken van je eigen foto's. Elke foto wordt met hulp van AI omgezet in een kleurplaat en daarna door een mens gecontroleerd; je krijgt altijd eerst een digitale proef. Het boek is een stevige A4-hardcover met {kleurplaten} kleurplaten en een eigen titel op de cover, voor {prijs} inclusief btw. Tante Kleur bezorgt in Nederland en België.",
   socialeMedia: [] as string[],
+  headerKnop: knop("Maak mijn boek"),
+  footerKnop: knop("Maak mijn boek", "roze"),
 };

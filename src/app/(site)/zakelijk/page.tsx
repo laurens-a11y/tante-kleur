@@ -9,7 +9,14 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { OfferteForm } from "./OfferteForm";
 import s from "../page.module.css";
 import x from "@/components/site.module.css";
-import { Icon } from "@/components/Icon";
+import { Icon, type IconName } from "@/components/Icon";
+import { blokStijl, knopStijl } from "@/components/merkkleur";
+import { stegaClean } from "next-sanity";
+import { zakelijkPagina as standaard } from "@/content/paginas";
+
+// Icoon per werkwijze-stap uit Sanity; ontbreekt het, dan het standaardicoon op die plek.
+const stapIcoon = (icoon: string | undefined, i: number): IconName =>
+  (icoon ? stegaClean(icoon) : standaard.stappenIconen[i] ?? "akkoord") as IconName;
 
 export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("zakelijkPagina");
@@ -33,7 +40,7 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
               <p className={s.tag} style={{ color: "var(--blauw)" }}>Zakelijk</p>
               <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
               <p className={s.lead}>{p.intro}</p>
-              <a href="#offerte" className={s.btn} style={{ alignSelf: "flex-start" }}>Vraag een offerte aan</a>
+              <a href="#offerte" {...knopStijl(p.heroKnop, { style: { alignSelf: "flex-start" } })}>{p.heroKnop.tekst}</a>
             </div>
             <div className={s.heroMedia}>
               <Image src="/brand/hero.jpg" alt="Drie Tante Kleur-kleurboeken op een zonnige tafel" width={1000} height={1250} sizes="(max-width: 900px) 100vw, 560px" className={s.heroPhoto} priority />
@@ -46,7 +53,7 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
             <h2 className={`${s.display} ${s.h2}`}>{p.gelegenhedenKop}</h2>
             <div className={x.cards}>
               {p.gelegenheden.map((g, i) => (
-                <div key={g._key ?? g.titel} className={x.card} style={{ background: ["var(--roze)", "var(--lichtblauw)"][i % 2] }}>
+                <div key={g._key ?? g.titel} className={x.card} {...blokStijl(g.achtergrond, (["roze", "lichtblauw"] as const)[i % 2])}>
                   <Icon name={g.icoon} size={44} />
                   <h3 className={x.cardTitle}>{g.titel}</h3>
                   <p className={s.body}>{g.tekst}</p>
@@ -61,7 +68,7 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
             <h2 className={`${s.display} ${s.h2}`}>{p.mogelijkhedenKop}</h2>
             <div className={x.cards}>
               {p.mogelijkheden.map((m) => (
-                <div key={m._key ?? m.titel} className={x.card} style={{ background: "var(--wit)", color: "var(--blauw)" }}>
+                <div key={m._key ?? m.titel} className={x.card} {...blokStijl(m.achtergrond, "wit")}>
                   <Icon name={m.icoon} size={44} />
                   <h3 className={x.cardTitle}>{m.titel}</h3>
                   <p className={s.body}>{m.tekst}</p>
@@ -75,8 +82,11 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
             <h2 className={`${s.display} ${s.h2}`}>{p.stappenKop}</h2>
             <ol className={x.timeline}>
-              {p.stappen.map((st) => (
-                <li key={st}><span className={s.body}>{st}</span></li>
+              {p.stappen.map((st, i) => (
+                <li key={st}>
+                  <Icon name={stapIcoon(p.stappenIconen[i], i)} size={48} />
+                  <span className={s.body}>{st}</span>
+                </li>
               ))}
             </ol>
             {p.kerstTekst && (
@@ -94,7 +104,7 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
               <h2 className={`${s.display} ${s.h2}`}>{p.offerteKop}</h2>
               <p className={s.body}>{p.offerteTekst}</p>
             </div>
-            <OfferteForm email={site.email} />
+            <OfferteForm email={site.email} knop={{ ...knopStijl(p.offerteKnop), tekst: p.offerteKnop.tekst }} />
           </div>
         </section>
       </main>

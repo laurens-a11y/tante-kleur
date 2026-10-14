@@ -5,7 +5,7 @@ import s from "../page.module.css";
 import x from "@/components/site.module.css";
 
 // Offerteformulier zonder backend: stelt een e-mail op met de ingevulde gegevens.
-export function OfferteForm({ email }: { email: string }) {
+export function OfferteForm({ email, knop }: { email: string; knop: { tekst: string; className: string; style: React.CSSProperties } }) {
   const [sent, setSent] = useState(false);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -70,7 +70,7 @@ export function OfferteForm({ email }: { email: string }) {
         <textarea name="toelichting" />
       </label>
       <div className={x.fieldWide}>
-        <button type="submit" className={s.btn}>Offerte aanvragen</button>
+        <button type="submit" className={knop.className} style={knop.style}>{knop.tekst}</button>
         {sent && (
           <p className={s.body} role="status" style={{ marginTop: 12 }}>
             Je mailprogramma opent met je aanvraag. Opent er niets? Mail dan naar <a href={`mailto:${email}`}>{email}</a>.

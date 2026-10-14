@@ -65,7 +65,7 @@ export function vulIn<T>(waarde: T): T {
 // ---------- Paginateksten ----------
 
 const iconen = new Set<string>([
-  "account", "akkoord", "boek", "cadeau", "chat", "favoriet", "hartje", "home", "label", "uitgelicht", "uploaden", "verzending", "winkelmandje", "zoeken",
+  "account", "akkoord", "boek", "cadeau", "chat", "favoriet", "hartje", "home", "kopen", "label", "uitgelicht", "uploaden", "verzending", "winkelmandje", "zoeken",
 ]);
 
 function gevuld(v: unknown): boolean {
@@ -74,16 +74,24 @@ function gevuld(v: unknown): boolean {
   return v !== null && v !== undefined;
 }
 
-// Lijstitems uit Sanity opschonen: lege regels weg, onbekend icoon wordt "boek".
-function schoonLijst(sanity: unknown[], voorbeeld: unknown): unknown[] {
+// Lijstitems uit Sanity opschonen: lege regels weg. Geen of onbekend icoon: het
+// standaardicoon op dezelfde plek, anders "boek".
+function schoonLijst(sanity: unknown[], standaard: unknown[]): unknown[] {
+  const voorbeeld = standaard[0];
   if (typeof voorbeeld === "string") return sanity.filter((v) => typeof v === "string" && v.trim());
   if (!voorbeeld || typeof voorbeeld !== "object") return sanity;
   const velden = Object.keys(voorbeeld).filter((k) => k !== "_key" && k !== "icoon");
   return sanity
     .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
     .filter((item) => velden.every((k) => k === "tekst" || gevuld(item[k])))
-    .map((item) => ("icoon" in voorbeeld ? { ...item, icoon: iconen.has(stegaClean(String(item.icoon))) ? stegaClean(item.icoon) : "boek" } : item));
+    .map((item, i) => {
+      if (!("icoon" in voorbeeld)) return item;
+      const std = (standaard[i] as { icoon?: string } | undefined)?.icoon ?? "boek";
+      return { ...item, icoon: iconen.has(stegaClean(String(item.icoon))) ? stegaClean(item.icoon) : std };
+    });
 }
+
+const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 
 // Per veld: waarde uit Sanity als die gevuld is, anders de standaardtekst.
 function samenvoegen<T extends Record<string, unknown>>(standaard: T, sanity: Record<string, unknown> | null): T {
@@ -91,7 +99,9 @@ function samenvoegen<T extends Record<string, unknown>>(standaard: T, sanity: Re
   const uit: Record<string, unknown> = { ...standaard };
   for (const [k, std] of Object.entries(standaard)) {
     let v = sanity[k];
-    if (Array.isArray(v) && Array.isArray(std)) v = schoonLijst(v, std[0]);
+    if (Array.isArray(v) && Array.isArray(std)) v = schoonLijst(v, std);
+    // Objecten (zoals een knop) per onderdeel aanvullen: alleen de kleur kiezen kan dus ook.
+    if (isObject(v) && isObject(std)) v = samenvoegen(std, v);
     if (gevuld(v) && typeof v === typeof std) uit[k] = v;
   }
   return uit as T;
@@ -178,11 +188,13 @@ type RuweInstellingen = {
   standaardAfbeelding?: SanityImage;
   merkOmschrijving?: string;
   socialeMedia?: string[];
+  headerKnop?: Record<string, unknown>;
+  footerKnop?: Record<string, unknown>;
 };
 
 const SEO_QUERY = defineQuery(`*[_type == $type] | order(_updatedAt desc)[0].seo`);
 const INSTELLINGEN_QUERY = defineQuery(
-  `*[_type == "instellingen"] | order(_updatedAt desc)[0]{standaardOmschrijving, standaardAfbeelding, merkOmschrijving, socialeMedia}`,
+  `*[_type == "instellingen"] | order(_updatedAt desc)[0]{standaardOmschrijving, standaardAfbeelding, merkOmschrijving, socialeMedia, headerKnop, footerKnop}`,
 );
 const BIJGEWERKT_QUERY = defineQuery(
   `{"paginas": *[_type in $types]{_type, _updatedAt, "verborgen": seo.verbergen == true}, "vragen": *[_type == "vraag"] | order(_updatedAt desc)[0]._updatedAt, "voorbeelden": *[_type == "voorbeeld"] | order(_updatedAt desc)[0]._updatedAt}`,
@@ -201,6 +213,7 @@ export async function getInstellingen() {
     merkOmschrijving: ruw?.merkOmschrijving?.trim() || standaardInstellingen.merkOmschrijving,
     socialeMedia: (ruw?.socialeMedia ?? []).filter((u) => /^https?:\/\//.test(u)),
     standaardAfbeelding: deelafbeelding(ruw?.standaardAfbeelding),
+    ...samenvoegen({ headerKnop: standaardInstellingen.headerKnop, footerKnop: standaardInstellingen.footerKnop }, ruw ?? null),
   });
 }
 
