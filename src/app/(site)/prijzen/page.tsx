@@ -20,10 +20,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return getMetadata("prijzenPagina");
 }
 
-function formatEuro(cents: number) {
-  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
-}
-
 export default function PrijzenPage() {
   return <MetOpties>{(opties) => <PrijzenInhoud opties={opties} />}</MetOpties>;
 }
@@ -38,7 +34,7 @@ async function PrijzenInhoud({ opties }: { opties: FetchOpties }) {
       <main>
         <section className={x.pageHero}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
-            <p className={s.tag}>Prijs</p>
+            <p className={s.tag}>{p.label}</p>
             <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
             <p className={s.lead}>{p.intro}</p>
           </div>
@@ -47,16 +43,16 @@ async function PrijzenInhoud({ opties }: { opties: FetchOpties }) {
         <section className={s.section} style={{ background: "var(--lichtblauw)" }}>
           <div className={`${s.wrap} ${s.priceRow}`}>
             <div className={s.priceMedia}>
-              <Image src="/brand/hero.jpg" alt="Drie Tante Kleur-kleurboeken op een zonnige tafel" fill sizes="(max-width: 900px) 100vw, 600px" style={{ objectFit: "cover" }} />
+              <Image src={p.afbeelding.src} alt={p.afbeelding.alt} fill sizes="(max-width: 900px) 100vw, 600px" style={{ objectFit: "cover" }} />
             </div>
             <div className={s.priceCard}>
-              <p className={s.tag}>Het kleurboek</p>
+              <p className={s.tag}>{p.prijsLabel}</p>
               <p style={{ margin: 0, display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 12 }}>
                 <span className={`${s.display} ${s.price}`}>€{price.intro}</span>
                 <span style={{ fontSize: 15 }}>incl. btw</span>
               </p>
               <p style={{ margin: 0, fontSize: 15 }}>
-                Introductieprijs, daarna €{price.regular}. Verzending NL en BE: {formatEuro(site.shippingCents)}.
+                {p.prijsTekst}
               </p>
               <dl className={x.specs}>
                 {p.kenmerken.map((k) => (

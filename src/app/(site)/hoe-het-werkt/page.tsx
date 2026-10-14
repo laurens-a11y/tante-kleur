@@ -33,7 +33,7 @@ async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
       <main>
         <section className={x.pageHero}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
-            <p className={s.tag}>Zo werkt het</p>
+            <p className={s.tag}>{p.label}</p>
             <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
             <p className={s.lead}>{p.intro}</p>
           </div>
@@ -60,7 +60,7 @@ async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
 
         <section className={`${s.section} ${s.story}`}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 20 }}>
-            <p className={s.tag} style={{ color: "var(--roze)" }}>Hoe Tante tekent</p>
+            <p className={s.tag} style={{ color: "var(--roze)" }}>{p.tekenenLabel}</p>
             <h2 className={`${s.display} ${s.h2}`}>{p.tekenenKop}</h2>
             <p className={s.lead}>{p.tekenenTekst}</p>
           </div>
@@ -69,18 +69,18 @@ async function HoeHetWerktInhoud({ opties }: { opties: FetchOpties }) {
         <section id="fototips" className={s.section}>
           <div className={`${s.wrap} ${s.stack}`} style={{ gap: 40 }}>
             <div className={s.stack} style={{ gap: 12, maxWidth: 640 }}>
-              <p className={s.tag}>Fototips</p>
+              <p className={s.tag}>{p.fototipsLabel}</p>
               <h2 className={`${s.display} ${s.h2}`}>{p.fototipsKop}</h2>
             </div>
             <div className={x.tips}>
               <div className={x.card} style={{ background: "var(--lichtblauw)" }}>
-                <h3 className={x.cardTitle} style={{ display: "flex", gap: 10, alignItems: "center" }}><Icon name="akkoord" size={26} />Werkt goed</h3>
+                <h3 className={x.cardTitle} style={{ display: "flex", gap: 10, alignItems: "center" }}><Icon name="akkoord" size={26} />{p.werktGoedTitel}</h3>
                 <ul>
                   {p.werktGoed.map((t) => <li key={t}>{t}</li>)}
                 </ul>
               </div>
               <div className={x.card} style={{ background: "var(--roze)" }}>
-                <h3 className={x.cardTitle} style={{ display: "flex", gap: 10, alignItems: "center" }}><Icon name="verwijderen" size={24} />Werkt minder goed</h3>
+                <h3 className={x.cardTitle} style={{ display: "flex", gap: 10, alignItems: "center" }}><Icon name="verwijderen" size={24} />{p.werktMinderTitel}</h3>
                 <ul>
                   {p.werktMinder.map((t) => <li key={t}>{t}</li>)}
                 </ul>

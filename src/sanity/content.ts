@@ -107,10 +107,22 @@ function samenvoegen<T extends Record<string, unknown>>(standaard: T, sanity: Re
   return uit as T;
 }
 
+// Foto's uit Sanity omzetten naar { src, alt } zoals de standaardfoto's; zonder
+// bestand weglaten, zodat de standaardfoto blijft staan.
+function naarBeelden(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(naarBeelden).filter((x) => x !== undefined);
+  if (!isObject(v)) return v;
+  if (v._type === "image") {
+    const img = v as SanityImage;
+    return img.asset ? { src: imageUrl(img, 1000, 1250), alt: img.alt?.trim() || "Tante Kleur-kleurboek" } : undefined;
+  }
+  return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, naarBeelden(x)]));
+}
+
 export async function getPagina<K extends PaginaType>(type: K, opties: FetchOpties): Promise<(typeof paginas)[K]> {
   const standaard = paginas[type] as Record<string, unknown>;
   const sanity = await haal<Record<string, unknown>>(`pagina ${type}`, PAGINA_QUERY, { type }, opties);
-  return vulIn(samenvoegen(standaard, sanity)) as (typeof paginas)[K];
+  return vulIn(samenvoegen(standaard, naarBeelden(sanity) as Record<string, unknown> | null)) as (typeof paginas)[K];
 }
 
 const PAGINA_QUERY = defineQuery(`*[_type == $type] | order(_updatedAt desc)[0]`);
@@ -190,11 +202,13 @@ type RuweInstellingen = {
   socialeMedia?: string[];
   headerKnop?: Record<string, unknown>;
   footerKnop?: Record<string, unknown>;
+  footerSlogan?: string;
+  footerBetalen?: string;
 };
 
 const SEO_QUERY = defineQuery(`*[_type == $type] | order(_updatedAt desc)[0].seo`);
 const INSTELLINGEN_QUERY = defineQuery(
-  `*[_type == "instellingen"] | order(_updatedAt desc)[0]{standaardOmschrijving, standaardAfbeelding, merkOmschrijving, socialeMedia, headerKnop, footerKnop}`,
+  `*[_type == "instellingen"] | order(_updatedAt desc)[0]{standaardOmschrijving, standaardAfbeelding, merkOmschrijving, socialeMedia, headerKnop, footerKnop, footerSlogan, footerBetalen}`,
 );
 const BIJGEWERKT_QUERY = defineQuery(
   `{"paginas": *[_type in $types]{_type, _updatedAt, "verborgen": seo.verbergen == true}, "vragen": *[_type == "vraag"] | order(_updatedAt desc)[0]._updatedAt, "voorbeelden": *[_type == "voorbeeld"] | order(_updatedAt desc)[0]._updatedAt}`,
@@ -213,7 +227,15 @@ export async function getInstellingen() {
     merkOmschrijving: ruw?.merkOmschrijving?.trim() || standaardInstellingen.merkOmschrijving,
     socialeMedia: (ruw?.socialeMedia ?? []).filter((u) => /^https?:\/\//.test(u)),
     standaardAfbeelding: deelafbeelding(ruw?.standaardAfbeelding),
-    ...samenvoegen({ headerKnop: standaardInstellingen.headerKnop, footerKnop: standaardInstellingen.footerKnop }, ruw ?? null),
+    ...samenvoegen(
+      {
+        headerKnop: standaardInstellingen.headerKnop,
+        footerKnop: standaardInstellingen.footerKnop,
+        footerSlogan: standaardInstellingen.footerSlogan,
+        footerBetalen: standaardInstellingen.footerBetalen,
+      },
+      ruw ?? null,
+    ),
   });
 }
 

@@ -37,13 +37,13 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
         <section className={s.hero} style={{ background: "var(--geel)" }}>
           <div className={`${s.wrap} ${s.row}`}>
             <div className={`${s.col} ${s.stack}`} style={{ gap: 24 }}>
-              <p className={s.tag} style={{ color: "var(--blauw)" }}>Zakelijk</p>
+              <p className={s.tag} style={{ color: "var(--blauw)" }}>{p.label}</p>
               <h1 className={`${s.display} ${s.h1}`}>{p.kop}</h1>
               <p className={s.lead}>{p.intro}</p>
               <a href="#offerte" {...knopStijl(p.heroKnop, { style: { alignSelf: "flex-start" } })}>{p.heroKnop.tekst}</a>
             </div>
             <div className={s.heroMedia}>
-              <Image src="/brand/hero.jpg" alt="Drie Tante Kleur-kleurboeken op een zonnige tafel" width={1000} height={1250} sizes="(max-width: 900px) 100vw, 560px" className={s.heroPhoto} priority />
+              <Image src={p.heroAfbeelding.src} alt={p.heroAfbeelding.alt} width={1000} height={1250} sizes="(max-width: 900px) 100vw, 560px" className={s.heroPhoto} priority />
             </div>
           </div>
         </section>
@@ -100,7 +100,7 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
         <section id="offerte" className={s.section} style={{ background: "var(--lichtblauw)" }}>
           <div className={`${s.narrow} ${s.stack}`} style={{ gap: 32 }}>
             <div className={s.stack} style={{ gap: 12 }}>
-              <p className={s.tag}>Offerte</p>
+              <p className={s.tag}>{p.offerteLabel}</p>
               <h2 className={`${s.display} ${s.h2}`}>{p.offerteKop}</h2>
               <p className={s.body}>{p.offerteTekst}</p>
             </div>
