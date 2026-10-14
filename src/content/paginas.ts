@@ -78,7 +78,7 @@ export const homepagina = {
   cadeauAfbeeldingen: fotosKerst,
   zakelijkLabel: "Zakelijk",
   zakelijkKop: "Een relatiegeschenk dat niemand weggeeft.",
-  zakelijkTekst: "Voor teamuitjes, jubilea, onboarding of de kerstattentie. Iedere medewerker krijgt een eigen, persoonlijk boek.",
+  zakelijkTekst: "Voor teamuitjes, jubilea, afscheid of de kerstattentie. Iedere medewerker krijgt een eigen, persoonlijk boek.",
   zakelijkKnop: knop("Bekijk zakelijke mogelijkheden"),
   vragenLabel: "Vragen",
   vragenKop: "Tante legt het even uit.",
@@ -279,7 +279,7 @@ export const paginaMeta: Record<PaginaType, { pad: string; titel: string; omschr
   zakelijkPagina: {
     pad: "/zakelijk",
     titel: "Zakelijk: een eindejaarscadeau dat over jullie gaat – Tante Kleur",
-    omschrijving: "Persoonlijke kleurboeken als kerst- of eindejaarsgeschenk, voor jubilea, onboarding of als relatiegeschenk. Vraag een offerte aan.",
+    omschrijving: "Persoonlijke kleurboeken als kerst- of eindejaarsgeschenk, voor jubilea, afscheid of als relatiegeschenk. Vraag een offerte aan.",
   },
   feestdagenPagina: {
     pad: "/sinterklaas-en-kerst",

@@ -59,7 +59,6 @@ export function OfferteForm({ email, knop }: { email: string; knop: { tekst: str
         <select name="gelegenheid" defaultValue="Eindejaarsgeschenk">
           <option>Eindejaarsgeschenk</option>
           <option>Jubileum</option>
-          <option>Onboarding</option>
           <option>Afscheid</option>
           <option>Relatiegeschenk</option>
           <option>Iets anders</option>
