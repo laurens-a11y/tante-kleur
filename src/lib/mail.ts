@@ -6,15 +6,16 @@ let client: Resend | null = null;
 
 function getResend() {
   if (!client) {
-    const key = process.env.RESEND_API_KEY;
+    const key = process.env.RESEND_API_KEY?.trim();
     if (!key) throw new Error("RESEND_API_KEY ontbreekt");
     client = new Resend(key);
   }
   return client;
 }
 
-// Afzender moet op een in Resend geverifieerd domein staan (tantekleur.nl).
-const afzender = process.env.RESEND_FROM || `Tante Kleur <${site.email}>`;
+// Afzender moet op het in Resend geverifieerde domein staan (mail.tantekleur.nl).
+// Antwoorden van klanten gaan naar het gewone adres.
+const afzender = process.env.RESEND_FROM?.trim() || "Tante Kleur <tante@mail.tantekleur.nl>";
 // Wie een melding krijgt als een klant zijn boek indient.
 const beheer = process.env.BEHEER_EMAIL || site.email;
 
@@ -40,7 +41,7 @@ function opmaak({ titel, alineas, knop }: { titel: string; alineas: string[]; kn
 }
 
 async function verstuur(aan: string, onderwerp: string, inhoud: { html: string; text: string }) {
-  const { error } = await getResend().emails.send({ from: afzender, to: aan, subject: onderwerp, ...inhoud });
+  const { error } = await getResend().emails.send({ from: afzender, to: aan, replyTo: site.email, subject: onderwerp, ...inhoud });
   if (error) throw new Error(`Resend: ${error.message}`);
 }
 
