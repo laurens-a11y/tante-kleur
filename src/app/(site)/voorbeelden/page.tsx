@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getPagina, getVoorbeelden, getMetadata, type TegelGrootte, type Voorbeeld } from "@/sanity/content";
+import { getPagina, getVoorbeelden, getMetadata, type Voorbeeld } from "@/sanity/content";
 import { MetOpties } from "@/sanity/MetOpties";
 import type { FetchOpties } from "@/sanity/live";
 import { CheckoutButton } from "../CheckoutButton";
@@ -24,26 +24,11 @@ const fallback: Voorbeeld = {
   kleurplaat: { url: "/brand/kleurplaat-berlijn.jpg", alt: "Kleurplaat van twee vriendinnen op een treinstation in Berlijn" },
   fotoGroot: { url: "/brand/berlijn-hold.jpg", positie: "50% 50%" },
   kleurplaatGroot: { url: "/brand/kleurplaat-berlijn.jpg", positie: "60% 30%" },
-  grootte: "breed",
 };
 
-// Patroon van 7 tegels dat op desktop (4 kolommen) precies een blok vult, met
-// kleuren die nooit naast dezelfde kleur liggen:
-//   G G a b
-//   G G c c
-//   d d e f
-// Een formaat uit Sanity gaat voor; de kleur blijft die van de plek in het patroon.
-const patroon: { grootte: TegelGrootte; kleur: string }[] = [
-  { grootte: "groot", kleur: "var(--roze)" },
-  { grootte: "normaal", kleur: "var(--lichtblauw)" },
-  { grootte: "normaal", kleur: "var(--geel)" },
-  { grootte: "breed", kleur: "var(--rood)" },
-  { grootte: "breed", kleur: "var(--geel)" },
-  { grootte: "normaal", kleur: "var(--lichtblauw)" },
-  { grootte: "normaal", kleur: "var(--roze)" },
-];
-// Met weinig voorbeelden past het patroon niet: dan allemaal breed, naast elkaar.
-const weinigKleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)"];
+// Vier tegelkleuren: in een grid van 3 of 2 kolommen grenst een tegel zo nooit
+// aan dezelfde kleur, naast of onder zich.
+const tegelKleuren = ["var(--roze)", "var(--lichtblauw)", "var(--geel)", "var(--rood)"];
 
 
 export default function VoorbeeldenPage() {
@@ -72,7 +57,7 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
               <h2 className={`${s.display} ${s.h2}`}>{voorbeelden.length ? p.galerijKop : "Zo ziet een kleurplaat eruit"}</h2>
               <p className={s.body}>{p.galerijHint}</p>
             </div>
-            <div className={v.bento}>
+            <div className={v.grid}>
               {items.map((item, i) => (
                 <VoorbeeldTegel
                   key={item._id}
@@ -80,8 +65,8 @@ async function VoorbeeldenInhoud({ opties }: { opties: FetchOpties }) {
                   kleurplaat={item.kleurplaat}
                   fotoGroot={item.fotoGroot}
                   kleurplaatGroot={item.kleurplaatGroot}
-                  grootte={item.grootte ?? (items.length < 4 ? "breed" : patroon[i % patroon.length].grootte)}
-                  achtergrond={items.length < 4 ? weinigKleuren[i % weinigKleuren.length] : patroon[i % patroon.length].kleur}
+                  achtergrond={tegelKleuren[i % tegelKleuren.length]}
+                  index={i}
                 />
               ))}
             </div>

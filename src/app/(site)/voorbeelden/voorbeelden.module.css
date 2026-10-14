@@ -1,16 +1,15 @@
-/* Bento grid met voorbeelden: kleurplaat op wit papier, originele foto als
-   polaroid erop geplakt, getekende pijl van voor naar na. */
-.bento {
+/* Voorbeelden als collages in een rustig grid: de originele foto als polaroid,
+   de kleurplaat op wit papier, een handgetekende pijl van voor naar na. */
+.grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: 170px;
-  grid-auto-flow: dense;
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
 }
 
 .tegel {
   position: relative;
   display: block;
+  aspect-ratio: 5 / 4;
   padding: 0;
   border: 0;
   border-radius: 6px;
@@ -21,33 +20,27 @@
   text-align: left;
 }
 
-.normaal {
-  grid-row: span 2;
-}
-
-.breed {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
-.groot {
-  grid-column: span 2;
-  grid-row: span 4;
-}
-
-/* Normale en grote tegel: het papier vult de tegel, de polaroid in de hoek. */
+/* Polaroid en staand papier als groep in het midden, de polaroid half over het
+   papier. Staande beelden worden zo niet bijgesneden en de polaroid valt nooit
+   over de tekening. */
 .collage {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 58px 20px 18px;
 }
 
 .papier {
-  position: absolute;
-  inset: 16px;
+  position: relative;
+  height: 100%;
+  aspect-ratio: 3 / 4;
   padding: 6px;
   background: var(--wit);
   border-radius: 3px;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--blauw) 18%, transparent);
+  transform: rotate(var(--draai-papier, 2deg));
   animation: verschijn 0.35s ease;
 }
 
@@ -59,19 +52,17 @@
   overflow: hidden;
 }
 
-/* Polaroid linksonder, half over de rand van het papier: gezichten zitten bijna
-   altijd bovenin de foto, onderin staan tafel, handen of grond. */
 .polaroid {
-  position: absolute;
-  bottom: 22px;
-  left: 8px;
+  position: relative;
   z-index: 1;
-  width: clamp(64px, 30%, 140px);
+  flex: none;
+  width: 36%;
+  margin-right: -26px;
   padding: 6px 6px 20px;
   background: var(--wit);
   border-radius: 2px;
   box-shadow: 0 6px 16px color-mix(in srgb, var(--blauw) 25%, transparent);
-  transform: rotate(-6deg);
+  transform: rotate(var(--draai-polaroid, -6deg));
   transition: transform 0.25s ease;
   animation: verschijn 0.35s ease;
 }
@@ -88,14 +79,16 @@
   transform: rotate(-2deg) scale(1.04);
 }
 
-/* Getekende pijl van foto naar kleurplaat; alleen waar er ruimte voor is. */
+/* Handgetekende pijl boven de collage. */
 .pijl {
-  display: none;
   position: absolute;
+  top: 2px;
+  left: 50%;
   z-index: 2;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  color: var(--rood);
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
@@ -117,68 +110,6 @@
   transform: scaleX(-1);
 }
 
-/* Brede tegel als collage: polaroid en staand papier als groep in het midden,
-   de polaroid half over het papier. Een staande kleurplaat wordt zo niet in de
-   breedte bijgesneden. */
-.breed .collage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 62px 24px 18px;
-}
-
-.breed .papier {
-  position: relative;
-  inset: auto;
-  order: 2;
-  height: 100%;
-  aspect-ratio: 3 / 4;
-  transform: rotate(2deg);
-}
-
-.breed .polaroid {
-  position: relative;
-  top: auto;
-  bottom: auto;
-  left: auto;
-  order: 1;
-  flex: none;
-  width: clamp(96px, 30%, 190px);
-  margin-right: -32px;
-  transform: rotate(-6deg);
-}
-
-.breed .pijl {
-  display: flex;
-  top: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Grote tegel: wit labeltje naast de polaroid, met een pijltje schuin de tekening in. */
-.groot .pijl {
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  bottom: 40px;
-  left: calc(clamp(64px, 30%, 140px) + 30px);
-  padding: 4px 4px 4px 12px;
-  border-radius: 999px;
-  background: var(--wit);
-  color: var(--rood) !important;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--blauw) 20%, transparent);
-}
-
-.groot .pijl svg {
-  width: 44px;
-  height: 20px;
-  transform: rotate(-25deg);
-}
-
-.groot .pijlTerug svg {
-  transform: rotate(-25deg) scaleX(-1);
-}
-
 /* Wisselknop in de hoek van de tegel, niet op de tekening. */
 .wissel {
   position: absolute;
@@ -187,12 +118,12 @@
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--wit);
   color: var(--blauw);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
   box-shadow: 0 2px 8px color-mix(in srgb, var(--blauw) 20%, transparent);
   transition: transform 0.25s ease;
@@ -218,54 +149,15 @@
   }
 }
 
-@media (max-width: 700px) {
-  .bento {
+@media (max-width: 1000px) {
+  .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: 120px;
-    gap: 12px;
   }
+}
 
-  .groot {
-    grid-row: span 3;
-  }
-
-  .papier {
-    inset: 10px;
-    padding: 4px;
-  }
-
-  .polaroid {
-    bottom: 14px;
-    left: 4px;
-    padding: 4px 4px 14px;
-  }
-
-  .groot .pijl {
-    display: none;
-  }
-
-  .breed .collage {
-    padding: 46px 12px 10px;
-  }
-
-  .breed .polaroid {
-    margin-right: -20px;
-  }
-
-  .pijlLabel {
-    font-size: 10px;
-  }
-
-  .pijl svg {
-    width: 72px;
-    height: 30px;
-  }
-
-  .wissel {
-    right: 4px;
-    bottom: 4px;
-    width: 28px;
-    height: 28px;
-    font-size: 16px;
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 }
