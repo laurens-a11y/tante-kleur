@@ -65,6 +65,8 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
   const [bezig, setBezig] = useState<string | null>(null);
   const [melding, setMelding] = useState<string | null>(null);
   const [fout, setFout] = useState<string | null>(null);
+  const [genereren, setGenereren] = useState<Set<string>>(new Set());
+  const [extra, setExtra] = useState<Record<string, string>>({});
 
   const allePlaten = paginas.length > 0 && paginas.every((p) => p.tekenplaat);
   const kanProef = (status === "ingediend" || status === "in_productie") && allePlaten;
@@ -132,6 +134,52 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
 
   const metFoto = paginas.filter((p) => p.groot).length;
 
+  function zetGenereren(id: string, aan: boolean) {
+    setGenereren((g) => {
+      const n = new Set(g);
+      if (aan) n.add(id);
+      else n.delete(id);
+      return n;
+    });
+  }
+
+  async function genereer(p: Pagina): Promise<boolean> {
+    zetGenereren(p.id, true);
+    try {
+      const res = await fetch(`/api/beheer/orders/${orderId}/genereer`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pageId: p.id, extra: extra[p.id] ?? "" }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; fout?: string };
+      if (!res.ok) throw new Error(data.fout ?? "Genereren mislukt.");
+      setPaginas((ps) => ps.map((x) => (x.id === p.id ? { ...x, tekenplaat: data.url ?? null } : x)));
+      return true;
+    } catch (e) {
+      setFout(`Pagina ${p.positie}: ${e instanceof Error ? e.message : "genereren mislukt"}`);
+      return false;
+    } finally {
+      zetGenereren(p.id, false);
+    }
+  }
+
+  // Alle pagina's zonder tekenplaat, drie tegelijk.
+  async function genereerOntbrekende() {
+    const lijst = paginas.filter((p) => p.groot && !p.tekenplaat && !genereren.has(p.id));
+    if (lijst.length === 0) return;
+    if (!window.confirm(`${lijst.length} tekenplaten genereren? Dit duurt een paar minuten per plaat en kost OpenAI-tegoed. Laat dit tabblad open.`)) return;
+    setFout(null);
+    const wachtrij = [...lijst];
+    await Promise.all(
+      Array.from({ length: Math.min(3, wachtrij.length) }, async () => {
+        for (let p = wachtrij.shift(); p; p = wachtrij.shift()) await genereer(p);
+      }),
+    );
+    router.refresh();
+  }
+
+  const ontbrekend = paginas.filter((p) => p.groot && !p.tekenplaat).length;
+
   return (
     <>
       <section className={b.kaart}>
@@ -139,10 +187,13 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
           <button type="button" className={b.knopLeeg} onClick={downloadZip} disabled={!!bezig || metFoto === 0}>
             {bezig?.startsWith("zip") ? `Downloaden… ${bezig.slice(4)}` : `Download alle foto's (${metFoto}, rechtgezet)`}
           </button>
+          <button type="button" className={b.knopLeeg} onClick={genereerOntbrekende} disabled={ontbrekend === 0 || genereren.size > 0}>
+            {genereren.size > 0 ? `Genereren… (${genereren.size} bezig)` : `Genereer ontbrekende platen (${ontbrekend})`}
+          </button>
           <button
             type="button"
             className={b.knopVol}
-            disabled={!kanProef || !!bezig}
+            disabled={!kanProef || !!bezig || genereren.size > 0}
             onClick={() => {
               if (window.confirm("Proef naar de klant sturen? De klant krijgt een mail.")) doe("proef", () => api(orderId, { actie: "proef" }), "Proef verstuurd.");
             }}
@@ -217,9 +268,19 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
                   // eslint-disable-next-line @next/next/no-img-element -- tijdelijke, privé-link
                   <img src={p.tekenplaat} alt={`Tekenplaat pagina ${p.positie}`} />
                 ) : (
-                  <span className={b.klein}>{bezig === p.id ? "Uploaden…" : "Nog geen tekenplaat"}</span>
+                  <span className={b.klein}>{genereren.has(p.id) ? "Tante tekent… (1–3 min)" : bezig === p.id ? "Uploaden…" : "Nog geen tekenplaat"}</span>
                 )}
               </div>
+              <input
+                className={b.invoer}
+                placeholder="Extra instructie (optioneel)"
+                value={extra[p.id] ?? ""}
+                onChange={(e) => setExtra((x) => ({ ...x, [p.id]: e.target.value }))}
+                aria-label={`Extra instructie voor pagina ${p.positie}`}
+              />
+              <button type="button" className={b.knopVol} onClick={() => genereer(p)} disabled={!p.groot || genereren.has(p.id)}>
+                {genereren.has(p.id) ? "Bezig…" : p.tekenplaat ? "Opnieuw genereren" : "Genereer plaat"}
+              </button>
               <label className={`${b.knopLeeg} ${b.uploadKnop}`}>
                 {p.tekenplaat ? "Vervang plaat" : "Upload plaat"}
                 <input
