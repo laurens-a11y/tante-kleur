@@ -81,6 +81,7 @@ async function Lijst({ searchParams }: { searchParams: PageProps<"/beheer">["sea
                   <tr key={o.id}>
                     <td>
                       <Link href={`/beheer/${o.id}`}>{o.cover_titel || "(nog geen titel)"}</Link>
+                      {!o.livemode && <span className={b.test}>Test</span>}
                       {opmerkingen > 0 && <div className={b.klein}>{opmerkingen} opmerking(en) van klant</div>}
                     </td>
                     <td>

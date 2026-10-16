@@ -501,3 +501,75 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Kleur van de verhaalpagina's */
+.binnenRij {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.spreadVoorbeeld {
+  display: flex;
+  width: 168px;
+  aspect-ratio: 420 / 297;
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.spreadLinks,
+.spreadRechts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+}
+
+.spreadLinks {
+  border-right: 1px solid rgb(0 0 0 / 0.12);
+}
+
+.spreadRechts {
+  background: var(--wit);
+  align-items: center;
+}
+
+.spreadRegel,
+.spreadRegelKort {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.spreadRegelKort {
+  width: 60%;
+}
+
+.spreadPlaat {
+  width: 70%;
+  fill: none;
+  stroke: var(--blauw);
+  stroke-width: 1.5;
+}
+
+/* Verhaalpagina in de gekozen kleur (proef) */
+.linksGekleurd {
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.linksGekleurd .hulp,
+.linksGekleurd .teller {
+  opacity: 0.85;
+}
+
+.linksGekleurd .aiKnop {
+  box-shadow: 0 0 0 2px var(--wit);
+}

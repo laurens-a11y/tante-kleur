@@ -16,6 +16,8 @@ export type Order = {
   status: OrderStatus;
   cover_titel: string | null;
   cover_kleur: string | null;
+  binnen_kleur: string | null;
+  livemode: boolean;
   inleiding: string | null;
   inleiding_eigen: string | null;
   nawoord: string | null;
@@ -79,6 +81,7 @@ export async function zorgVoorOrder(session: Stripe.Checkout.Session, origin: st
       naam: shipping?.name ?? session.customer_details?.name ?? null,
       verzendadres: shipping?.address ?? null,
       cover_titel: coverTitel,
+      livemode: session.livemode,
     })
     .select()
     .single<Order>();

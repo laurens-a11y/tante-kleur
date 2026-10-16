@@ -6,6 +6,7 @@ import { boek } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
 import { bereidFotoVoor } from "./foto";
+import { BinnenKleurKiezer } from "./BinnenKleur";
 
 type Draaiing = 0 | 90 | 180 | 270;
 
@@ -23,6 +24,7 @@ type PaginaState = {
 type Begin = {
   titel: string;
   kleur: string;
+  binnenKleur: string;
   inleiding: string;
   nawoord: string;
   paginas: PaginaState[];
@@ -216,6 +218,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
   const api = useApi(code);
   const [titel, setTitel] = useState(begin.titel);
   const [kleur, setKleur] = useState(begin.kleur);
+  const [binnen, setBinnen] = useState(begin.binnenKleur);
   const [inleiding, setInleiding] = useState(begin.inleiding);
   const [nawoord, setNawoord] = useState(begin.nawoord);
   const [paginas, setPaginas] = useState<PaginaState[]>(begin.paginas);
@@ -389,7 +392,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
       <section className={b.blok} aria-labelledby="kop-cover">
         <p className={b.stap}>Stap 1</p>
         <h2 id="kop-cover" className={`${s.display} ${s.h3}`}>
-          De cover
+          De cover en de kleuren
         </h2>
         <div className={b.coverRij}>
           <div className={b.coverVelden}>
@@ -431,6 +434,13 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                 ))}
               </div>
             </fieldset>
+            <BinnenKleurKiezer
+              waarde={binnen}
+              onKies={(k) => {
+                setBinnen(k);
+                stuur({ actie: "cover", binnenKleur: k }).catch(() => undefined);
+              }}
+            />
           </div>
           <div
             className={b.coverVoorbeeld}
