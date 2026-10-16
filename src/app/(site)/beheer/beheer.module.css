@@ -274,3 +274,17 @@
   opacity: 0;
   cursor: pointer;
 }
+
+/* Testbestelling (betaald in Stripe-testmodus) */
+.test {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 2px dashed var(--rood);
+  color: var(--rood);
+}

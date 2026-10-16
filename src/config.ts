@@ -52,3 +52,21 @@ export const boek = {
 } as const;
 
 export type CoverKleur = (typeof boek.coverKleuren)[number]["value"];
+
+// Kleur van de verhaalpagina's (de linkerpagina's met inleiding, verhaaltjes en
+// nawoord). De kleurplaten zelf blijven altijd wit. Alleen merkkleuren;
+// `tekst` is de leesbare tekstkleur op die achtergrond.
+export const binnenKleuren = [
+  { value: "wit", label: "Wit", tekst: "blauw" },
+  { value: "lichtblauw", label: "Lichtblauw", tekst: "blauw" },
+  { value: "roze", label: "Roze", tekst: "blauw" },
+  { value: "geel", label: "Geel", tekst: "blauw" },
+  { value: "rood", label: "Rood", tekst: "wit" },
+  { value: "blauw", label: "Blauw", tekst: "wit" },
+] as const;
+
+export const standaardBinnenKleur = "wit";
+
+export function binnenKleur(value: string | null | undefined) {
+  return binnenKleuren.find((k) => k.value === value) ?? binnenKleuren[0];
+}

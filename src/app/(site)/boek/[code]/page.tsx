@@ -4,7 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { boek } from "@/config";
+import { boek, standaardBinnenKleur } from "@/config";
 import { haalOrderOpCode, haalPaginas, kleineFotoLinks, type Order } from "@/lib/orders";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
@@ -49,6 +49,7 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
         code={order.code}
         titel={order.cover_titel ?? ""}
         kleur={{ achtergrond: kleur?.kleur ?? "blauw", tekst: kleur?.tekst ?? "wit" }}
+        binnenKleur={order.binnen_kleur ?? standaardBinnenKleur}
         inleiding={order.inleiding ?? ""}
         nawoord={order.nawoord ?? ""}
         paginas={paginas.map((p) => ({ id: p.id, verhaal: p.verhaal ?? "", opmerking: p.opmerking ?? "", tekenplaat: links[p.id]?.tekenplaat ?? null }))}
@@ -67,6 +68,7 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
       begin={{
         titel: order.cover_titel ?? "",
         kleur: order.cover_kleur ?? "",
+        binnenKleur: order.binnen_kleur ?? standaardBinnenKleur,
         inleiding: order.inleiding ?? "",
         nawoord: order.nawoord ?? "",
         paginas: paginas.map((p) => ({

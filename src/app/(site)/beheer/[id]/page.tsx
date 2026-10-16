@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { boek } from "@/config";
+import { binnenKleur, boek } from "@/config";
 import { vereisBeheer } from "@/lib/beheer";
 import { haalOrder, linksVoorPaginas, statusLabel } from "@/lib/beheer-orders";
 import { haalPaginas } from "@/lib/orders";
@@ -44,8 +44,11 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
     <>
       <div className={b.kopRij}>
         <h1 className={`${s.display} ${s.h3}`}>{order.cover_titel || "(nog geen titel)"}</h1>
-        <span className={b.status} data-status={order.status}>
-          {statusLabel(order.status)}
+        <span className={b.knoppen}>
+          {!order.livemode && <span className={b.test}>Test</span>}
+          <span className={b.status} data-status={order.status}>
+            {statusLabel(order.status)}
+          </span>
         </span>
       </div>
 
@@ -69,6 +72,7 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
           <p className={b.tekstBlok}>
             {order.cover_titel ?? "-"}
             {"\n"}Kleur: {kleur?.label ?? "-"}
+            {"\n"}Verhaalpagina&apos;s: {binnenKleur(order.binnen_kleur).label}
           </p>
         </div>
         <div>

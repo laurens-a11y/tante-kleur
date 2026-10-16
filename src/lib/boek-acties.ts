@@ -1,5 +1,5 @@
 import "server-only";
-import { boek } from "@/config";
+import { binnenKleuren, boek, standaardBinnenKleur } from "@/config";
 import { getSupabase, buckets } from "@/lib/supabase";
 import { haalOrderOpCode, haalPaginas, hernummer, verwijderBestanden, boekUrl, type Order, type Pagina } from "@/lib/orders";
 import { verrijkTekst } from "@/lib/ai";
@@ -22,6 +22,11 @@ export async function bewerkbareOrder(code: string): Promise<Order> {
   if (!order) throw new Weigering("Dit boek bestaat niet.", 404);
   if (order.status !== "betaald") throw new Weigering("Je boek is al ingediend en kan niet meer worden aangepast.", 409);
   return order;
+}
+
+function geldigeBinnenKleur(waarde: unknown): string {
+  if (!binnenKleuren.some((k) => k.value === waarde)) throw new Weigering("Onbekende kleur voor de verhaalpagina's.");
+  return waarde as string;
 }
 
 async function verrijkbareOrder(code: string): Promise<Order> {
@@ -64,7 +69,7 @@ export function vanDezeSite(request: Request) {
 
 type Invoer = Record<string, unknown>;
 
-const proefActies = new Set(["opmerking", "proefVerhaal", "proefTekst", "akkoord", "opmerkingenSturen"]);
+const proefActies = new Set(["opmerking", "proefVerhaal", "proefTekst", "proefBinnenKleur", "akkoord", "opmerkingenSturen"]);
 
 export async function voerUit(code: string, invoer: Invoer, origin: string): Promise<Record<string, unknown>> {
   if (typeof invoer.actie === "string" && proefActies.has(invoer.actie)) return voerProefActieUit(code, invoer);
@@ -79,6 +84,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
         if (!boek.coverKleuren.some((k) => k.value === invoer.kleur)) throw new Weigering("Onbekende coverkleur.");
         velden.cover_kleur = invoer.kleur;
       }
+      if ("binnenKleur" in invoer) velden.binnen_kleur = geldigeBinnenKleur(invoer.binnenKleur);
       await update("orders", order.id, velden);
       return {};
     }
@@ -165,7 +171,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       // Alleen van 'betaald' naar 'ingediend', zodat dubbel klikken niets dubbel doet.
       const { data, error } = await getSupabase()
         .from("orders")
-        .update({ status: "ingediend", ingediend_op: new Date().toISOString() })
+        .update({ status: "ingediend", ingediend_op: new Date().toISOString(), binnen_kleur: order.binnen_kleur ?? standaardBinnenKleur })
         .eq("id", order.id)
         .eq("status", "betaald")
         .select("id");
@@ -204,6 +210,11 @@ async function voerProefActieUit(code: string, invoer: Invoer): Promise<Record<s
       const velden: Record<string, unknown> = { verhaal: tekst(invoer.tekst, boek.maxVerhaal, "verhaal") };
       if ("eigen" in invoer) velden.verhaal_eigen = tekst(invoer.eigen, 4000, "verhaal");
       await update("pages", pagina.id, velden);
+      return {};
+    }
+
+    case "proefBinnenKleur": {
+      await update("orders", order.id, { binnen_kleur: geldigeBinnenKleur(invoer.binnenKleur) });
       return {};
     }
 
