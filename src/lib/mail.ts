@@ -55,7 +55,7 @@ export async function stuurBoekLink({ aan, naam, url }: { aan: string | null; na
       titel: voornaam ? `Dankjewel, ${voornaam}!` : "Dankjewel!",
       alineas: [
         "Je betaling is binnen. Nu het leukste deel: jouw boek vullen.",
-        "Via de knop hieronder kies je de titel en kleur van de cover, en upload je je foto's met bij elke foto een verhaaltje. Alles wordt meteen bewaard, dus je kunt rustig stoppen en later verder.",
+        "Via de knop hieronder kies je de titel van de cover, en upload je je foto's met bij elke foto een verhaaltje. Alles wordt meteen bewaard, dus je kunt rustig stoppen en later verder.",
         "Bewaar deze mail goed: met deze link kom je altijd terug bij je boek. Deel hem alleen met mensen die mee mogen helpen.",
       ],
       knop: { tekst: "Vul mijn boek", url },

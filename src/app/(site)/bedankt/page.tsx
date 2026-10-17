@@ -65,7 +65,7 @@ async function OrderStatus({ searchParams }: { searchParams: PageProps<"/bedankt
           : "We wachten nog op de bevestiging van je betaling. Je krijgt een mail zodra die binnen is."}
       </p>
       <p className={s.lead}>
-        Volgende stap: kies de titel en kleur van je cover en stuur Tante je {site.plates} mooiste foto&apos;s, met bij
+        Volgende stap: kies de titel van je cover en stuur Tante je {site.plates} mooiste foto&apos;s, met bij
         elke foto een verhaaltje als je wilt. Daarna krijg je binnen een paar dagen een digitale proef van je boek.
       </p>
       {boekLink ? (

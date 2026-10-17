@@ -66,7 +66,7 @@ export const homepagina = {
   prijsKenmerken: [
     "{kleurplaten} kleurplaten van jouw eigen foto's",
     "Stevige hardcover op A4-formaat",
-    "Je eigen titel en kleur op de cover",
+    "Je eigen titel op de cover",
     "Eerst een digitale proef, pas daarna drukken",
   ],
   prijsKnop: knop("Maak mijn boek"),
@@ -143,7 +143,7 @@ export const prijzenPagina = {
   kenmerken: [
     { label: "Kleurplaten", waarde: "{kleurplaten}, van jouw eigen foto's" },
     { label: "Formaat", waarde: "A4, staand" },
-    { label: "Kaft", waarde: "Stevige hardcover met je eigen titel en kleur" },
+    { label: "Kaft", waarde: "Stevige hardcover met je eigen titel" },
     { label: "Proef", waarde: "Eerst digitaal bekijken, pas daarna drukken" },
   ] as Kenmerk[],
   knop: knop("Maak mijn boek"),

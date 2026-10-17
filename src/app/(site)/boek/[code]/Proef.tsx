@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { binnenKleur as zoekBinnenKleur, boek } from "@/config";
+import { binnenKleur as zoekBinnenKleur, boek, kleurKeuzeAan } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
 import { TekstVeld } from "./Boekbouwer";
@@ -181,13 +181,9 @@ export function Proef({
         <div className={b.coverRij}>
           <div className={b.coverVelden}>
             <h2 className={`${s.display} ${s.h3}`}>
-              Cover, kleuren en inleiding
+              {kleurKeuzeAan ? "Cover, kleuren en inleiding" : "Cover en inleiding"}
             </h2>
-            <BinnenKleurKiezer
-              waarde={binnen}
-              onKies={kiesBinnenKleur}
-              naam="proef-binnenkleur"
-            />
+            {kleurKeuzeAan && <BinnenKleurKiezer waarde={binnen} onKies={kiesBinnenKleur} naam="proef-binnenkleur" />}
             <div className={b.linksGekleurd} style={binnenStijl}>
               <TekstVeld
                 id="proef-inleiding"

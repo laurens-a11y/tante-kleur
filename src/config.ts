@@ -75,6 +75,10 @@ export function binnenKleur(value: string | null | undefined) {
 // Het aantal pagina's is nu vast voor de test; later per boek: 2 × foto's + 4.
 export const drukwerk = {
   paginas: 24,
+  // Vaste kleuren in de drukbestanden. De klant kan in het formulier nog wel
+  // kiezen (en dat wordt bewaard), maar dat wordt nu genegeerd.
+  // Zet op null om de keuze van de klant weer te gebruiken.
+  vasteKleuren: { cover: "roze", binnen: "wit" } as { cover: CoverKleur; binnen: string } | null,
   binnenwerk: { breedte: 216, hoogte: 303, afloop: 3 },
   cover: { breedte: 477, hoogte: 342, afloop: 19, rug: 6 },
 } as const;
@@ -89,3 +93,14 @@ export const merkHex: Record<string, string> = {
   geel: "#f3b500",
   wit: "#ffffff",
 };
+
+// Mag de klant zelf de cover- en binnenkleur kiezen? Nu niet (fase 1): de
+// kiezers zijn verborgen en overal gelden de vaste kleuren van drukwerk.
+// Zet op true (en drukwerk.vasteKleuren op null) om de keuze terug te zetten.
+export const kleurKeuzeAan = false;
+
+/** De kleuren die echt gelden: de keuze van de klant, of de vaste kleuren. */
+export function geldendeKleuren(cover: string | null, binnen: string | null) {
+  if (!kleurKeuzeAan && drukwerk.vasteKleuren) return { cover: drukwerk.vasteKleuren.cover as string, binnen: drukwerk.vasteKleuren.binnen };
+  return { cover, binnen };
+}

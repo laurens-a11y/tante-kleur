@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { boek } from "@/config";
+import { boek, kleurKeuzeAan } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
 import { bereidFotoVoor } from "./foto";
@@ -392,7 +392,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
       <section className={b.blok} aria-labelledby="kop-cover">
         <p className={b.stap}>Stap 1</p>
         <h2 id="kop-cover" className={`${s.display} ${s.h3}`}>
-          De cover en de kleuren
+          {kleurKeuzeAan ? "De cover en de kleuren" : "De cover"}
         </h2>
         <div className={b.coverRij}>
           <div className={b.coverVelden}>
@@ -413,6 +413,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                 onBlur={(e) => titelAuto.nu(e.target.value)}
               />
             </div>
+            {kleurKeuzeAan && (
             <fieldset className={b.veld}>
               <legend className={b.label}>Kleur van de cover</legend>
               <div className={b.kleuren}>
@@ -434,13 +435,16 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                 ))}
               </div>
             </fieldset>
-            <BinnenKleurKiezer
-              waarde={binnen}
-              onKies={(k) => {
-                setBinnen(k);
-                stuur({ actie: "cover", binnenKleur: k }).catch(() => undefined);
-              }}
-            />
+            )}
+            {kleurKeuzeAan && (
+              <BinnenKleurKiezer
+                waarde={binnen}
+                onKies={(k) => {
+                  setBinnen(k);
+                  stuur({ actie: "cover", binnenKleur: k }).catch(() => undefined);
+                }}
+              />
+            )}
           </div>
           <div
             className={b.coverVoorbeeld}

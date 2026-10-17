@@ -1,5 +1,5 @@
 import "server-only";
-import { binnenKleuren, boek, standaardBinnenKleur } from "@/config";
+import { binnenKleuren, boek, kleurKeuzeAan, standaardBinnenKleur } from "@/config";
 import { getSupabase, buckets } from "@/lib/supabase";
 import { haalOrderOpCode, haalPaginas, hernummer, verwijderBestanden, boekUrl, type Order, type Pagina } from "@/lib/orders";
 import { verrijkTekst } from "@/lib/ai";
@@ -163,7 +163,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       const metFoto = paginas.filter((p) => p.foto_pad);
       const problemen: string[] = [];
       if (!order.cover_titel) problemen.push("Kies een titel voor de cover.");
-      if (!order.cover_kleur) problemen.push("Kies een kleur voor de cover.");
+      if (kleurKeuzeAan && !order.cover_kleur) problemen.push("Kies een kleur voor de cover.");
       if (metFoto.length < boek.minFotos) problemen.push(`Voeg minimaal ${boek.minFotos} foto's toe (nu ${metFoto.length}).`);
       if (paginas.length > boek.maxFotos) problemen.push(`Er passen maximaal ${boek.maxFotos} foto's in het boek.`);
       if (problemen.length) return { problemen };
