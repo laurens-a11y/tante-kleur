@@ -10,7 +10,7 @@ export type OrderVolledig = Order & {
   aangemaakt_op: string;
 };
 
-export type OrderRegel = Pick<OrderVolledig, "id" | "code" | "status" | "cover_titel" | "naam" | "email" | "aangemaakt_op" | "ingediend_op" | "livemode"> & {
+export type OrderRegel = Pick<OrderVolledig, "id" | "code" | "status" | "cover_titel" | "naam" | "email" | "aangemaakt_op" | "ingediend_op" | "livemode" | "cover_kleur" | "binnen_kleur"> & {
   pages: { id: string; foto_pad: string | null; tekenplaat_pad: string | null; opmerking: string | null }[];
 };
 
@@ -31,7 +31,7 @@ export function statusLabel(status: OrderStatus) {
 export async function lijstOrders(): Promise<OrderRegel[]> {
   const { data, error } = await getSupabase()
     .from("orders")
-    .select("id, code, status, cover_titel, naam, email, aangemaakt_op, ingediend_op, livemode, pages(id, foto_pad, tekenplaat_pad, opmerking)")
+    .select("id, code, status, cover_titel, naam, email, aangemaakt_op, ingediend_op, livemode, cover_kleur, binnen_kleur, pages(id, foto_pad, tekenplaat_pad, opmerking)")
     .order("aangemaakt_op", { ascending: false })
     .limit(500)
     .returns<OrderRegel[]>();

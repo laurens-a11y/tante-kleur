@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { binnenKleur, boek } from "@/config";
 import { vereisBeheer } from "@/lib/beheer";
 import { haalOrder, linksVoorPaginas, statusLabel } from "@/lib/beheer-orders";
 import { haalPaginas } from "@/lib/orders";
 import s from "../../page.module.css";
 import b from "../beheer.module.css";
 import { BeheerOrder } from "./BeheerOrder";
+import { GekozenKleuren } from "../Kleuren";
 
 export const metadata: Metadata = {
   title: "Bestelling – Beheer – Tante Kleur",
@@ -37,7 +37,6 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
   if (!order) notFound();
   const paginas = await haalPaginas(order.id);
   const links = await linksVoorPaginas(paginas, true);
-  const kleur = boek.coverKleuren.find((k) => k.value === order.cover_kleur);
   const adres = order.verzendadres;
 
   return (
@@ -68,12 +67,14 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
           </p>
         </div>
         <div>
-          <p className={b.label}>Cover</p>
+          <p className={b.label}>Covertitel</p>
           <p className={b.tekstBlok}>
             {order.cover_titel ?? "-"}
-            {"\n"}Kleur: {kleur?.label ?? "-"}
-            {"\n"}Verhaalpagina&apos;s: {binnenKleur(order.binnen_kleur).label}
           </p>
+        </div>
+        <div>
+          <p className={b.label}>Kleuren</p>
+          <GekozenKleuren cover={order.cover_kleur} binnen={order.binnen_kleur} />
         </div>
         <div>
           <p className={b.label}>Link van de klant</p>
