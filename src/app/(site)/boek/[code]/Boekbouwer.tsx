@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { boek, kleurKeuzeAan } from "@/config";
+import { boek, geldigAantalFotos, kleurKeuzeAan, nawoordAan, teLangWoord, toegestaneAantallen } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
 import { bereidFotoVoor } from "./foto";
@@ -12,6 +12,7 @@ type Draaiing = 0 | 90 | 180 | 270;
 
 type PaginaState = {
   id: string;
+  titel: string;
   verhaal: string;
   draaiing: Draaiing;
   kleinUrl: string | null;
@@ -31,6 +32,11 @@ type Begin = {
 };
 
 type Antwoord = Record<string, unknown> & { fout?: string };
+
+export type Soort = "verhaal" | "titel" | "inleiding" | "nawoord";
+
+/** "19 of 21" */
+export const aantallenTekst = toegestaneAantallen.length > 1 ? `${toegestaneAantallen.slice(0, -1).join(", ")} of ${toegestaneAantallen.at(-1)}` : String(toegestaneAantallen[0]);
 
 // ---------- Bewaren ----------
 
@@ -124,10 +130,10 @@ export function TekstVeld({
   waarde: string;
   max: number;
   rijen: number;
-  soort: "verhaal" | "inleiding" | "nawoord";
+  soort: Soort;
   onWijzig: (tekst: string) => void;
   bewaar: (tekst: string, eigen?: string) => Promise<unknown>;
-  verrijk: (soort: "verhaal" | "inleiding" | "nawoord", tekst: string) => Promise<string>;
+  verrijk: (soort: Soort, tekst: string) => Promise<string>;
 }) {
   const auto = useAutoBewaar(useCallback((t: string) => bewaar(t), [bewaar]), waarde);
   const [voorstel, setVoorstel] = useState<string | null>(null);
@@ -211,6 +217,119 @@ export function TekstVeld({
   );
 }
 
+// ---------- Titel per foto, met AI-suggestie ----------
+
+/** Melding als een woord te lang is om groot genoeg in het boek te drukken. */
+export function langWoordMelding(titel: string) {
+  const lang = teLangWoord(titel);
+  return lang ? `“${lang}” is te lang om groot in het boek te zetten. Gebruik woorden van maximaal ${boek.maxWoordInTitel} letters.` : null;
+}
+
+export function TitelVeld({
+  id,
+  waarde,
+  verhaal,
+  onWijzig,
+  bewaar,
+  verrijk,
+}: {
+  id: string;
+  waarde: string;
+  verhaal: string;
+  onWijzig: (tekst: string) => void;
+  bewaar: (tekst: string) => Promise<unknown>;
+  verrijk: (soort: Soort, tekst: string) => Promise<string>;
+}) {
+  // Een titel met een te lang woord wordt niet bewaard (de server weigert die toch).
+  const auto = useAutoBewaar(
+    useCallback((t: string) => (teLangWoord(t) ? Promise.resolve() : bewaar(t)), [bewaar]),
+    waarde,
+  );
+  const [voorstel, setVoorstel] = useState<string | null>(null);
+  const [denkt, setDenkt] = useState(false);
+  const [melding, setMelding] = useState<string | null>(null);
+  const teLang = langWoordMelding(waarde);
+
+  async function vraagVoorstel() {
+    setMelding(null);
+    const bron = verhaal.trim() || waarde.trim();
+    if (bron.length < 3) {
+      setMelding("Schrijf eerst het verhaaltje, dan bedenkt Tante er een titel bij.");
+      return;
+    }
+    setDenkt(true);
+    try {
+      setVoorstel(await verrijk("titel", bron));
+    } catch (e) {
+      setMelding(e instanceof Error ? e.message : "Tante kon nu even geen titel bedenken.");
+    } finally {
+      setDenkt(false);
+    }
+  }
+
+  async function neemOver() {
+    if (!voorstel) return;
+    const nieuw = voorstel.slice(0, boek.maxPaginaTitel);
+    onWijzig(nieuw);
+    auto.markeer(nieuw);
+    setVoorstel(null);
+    await bewaar(nieuw).catch(() => auto.markeer("\u0000"));
+  }
+
+  return (
+    <div className={b.veld}>
+      <label htmlFor={id} className={b.label}>
+        Titel (groot boven het verhaaltje)
+      </label>
+      <input
+        id={id}
+        className={b.invoer}
+        maxLength={boek.maxPaginaTitel}
+        placeholder="Bijv. ‘Opa op de sup’"
+        value={waarde}
+        onChange={(e) => {
+          onWijzig(e.target.value);
+          auto.straks(e.target.value);
+        }}
+        onBlur={(e) => auto.nu(e.target.value)}
+        aria-invalid={!!teLang}
+      />
+      <div className={b.veldVoet}>
+        <button type="button" className={b.aiKnop} onClick={vraagVoorstel} disabled={denkt}>
+          {denkt ? "Tante denkt na…" : voorstel ? "Nog een titel" : "Bedenk een titel"}
+        </button>
+        <span className={b.teller} aria-live="polite">
+          {waarde.length}/{boek.maxPaginaTitel}
+        </span>
+      </div>
+      {teLang && (
+        <p className={b.fout} role="alert">
+          {teLang}
+        </p>
+      )}
+      {melding && (
+        <p className={b.melding} role="status">
+          {melding}
+        </p>
+      )}
+      {voorstel && (
+        <div className={b.voorstel} role="region" aria-label="Titel van Tante">
+          <p className={b.voorstelKop}>Titel van Tante</p>
+          <p className={b.voorstelTekst}>{voorstel}</p>
+          <div className={b.knoppenRij}>
+            <button type="button" className={b.knopVol} onClick={neemOver}>
+              Gebruik deze titel
+            </button>
+            <button type="button" className={b.knopLeeg} onClick={() => setVoorstel(null)}>
+              Houd mijn eigen titel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------- Het formulier ----------
 
 export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: string | null; begin: Begin }) {
@@ -228,7 +347,11 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
   const wachtrij = useRef(Promise.resolve());
 
   const stuur = api.stuur;
-  const titelAuto = useAutoBewaar(useCallback((t: string) => stuur({ actie: "cover", titel: t }), [stuur]), begin.titel);
+  const titelAuto = useAutoBewaar(
+    useCallback((t: string) => (teLangWoord(t) ? Promise.resolve() : stuur({ actie: "cover", titel: t })), [stuur]),
+    begin.titel,
+  );
+  const coverTitelTeLang = langWoordMelding(titel);
 
   const bewaarTekst = useCallback(
     (soort: "inleiding" | "nawoord") => (tekst: string, eigen?: string) =>
@@ -239,7 +362,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
   const bewaarNawoord = useCallback((t: string, e?: string) => bewaarTekst("nawoord")(t, e), [bewaarTekst]);
 
   const verrijk = useCallback(
-    async (soort: "verhaal" | "inleiding" | "nawoord", tekst: string) => {
+    async (soort: Soort, tekst: string) => {
       const res = await fetch(`/api/boek/${code}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -272,7 +395,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
   function upload(bestand: File, bestaandId?: string) {
     const tijdelijkId = bestaandId ?? `nieuw-${crypto.randomUUID()}`;
     if (bestaandId) werkBij(bestaandId, { bezig: true, fout: null, waarschuwing: null });
-    else setPaginas((ps) => [...ps, { id: tijdelijkId, verhaal: "", draaiing: 0, kleinUrl: null, bezig: true }]);
+    else setPaginas((ps) => [...ps, { id: tijdelijkId, titel: "", verhaal: "", draaiing: 0, kleinUrl: null, bezig: true }]);
 
     wachtrij.current = wachtrij.current.then(async () => {
       try {
@@ -359,6 +482,10 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
     if (!window.confirm("Klaar? Na het indienen kun je je boek niet meer aanpassen. Tante gaat dan aan de slag.")) return;
     setIndienen(true);
     try {
+      if (coverTitelTeLang || paginas.some((p) => teLangWoord(p.titel))) {
+        setProblemen(["Een van je titels heeft een woord dat te lang is. Pas het aan (zie de rode melding)."]);
+        return;
+      }
       // Titel zeker bewaren (andere velden zijn bewaard bij het verlaten van het veld).
       titelAuto.markeer(titel);
       await stuur({ actie: "cover", titel });
@@ -383,7 +510,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
         <p className={s.tag}>Jouw kleurboek</p>
         <h1 className={`${s.display} ${s.h2}`}>{voornaam ? `Zo, ${voornaam}, aan de slag!` : "Zo, aan de slag!"}</h1>
         <p className={s.lead}>
-          Vul je boek in vier stappen. Alles wordt meteen bewaard, dus je kunt rustig stoppen en later verder via de link
+          Vul je boek in {nawoordAan ? "vier" : "drie"} stappen. Alles wordt meteen bewaard, dus je kunt rustig stoppen en later verder via de link
           in je mail.
         </p>
       </header>
@@ -411,7 +538,13 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                   titelAuto.straks(e.target.value);
                 }}
                 onBlur={(e) => titelAuto.nu(e.target.value)}
+                aria-invalid={!!coverTitelTeLang}
               />
+              {coverTitelTeLang && (
+                <p className={b.fout} role="alert">
+                  {coverTitelTeLang}
+                </p>
+              )}
             </div>
             {kleurKeuzeAan && (
             <fieldset className={b.veld}>
@@ -484,8 +617,8 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
           Je foto&apos;s en verhaaltjes
         </h2>
         <p className={s.body}>
-          Kies {boek.minFotos} tot {boek.maxFotos} foto&apos;s. In het boek staat elke kleurplaat rechts, met links het verhaaltje.
-          Een verhaaltje mag ook leeg blijven. Het mooist werken scherpe, lichte foto&apos;s met één tot vier personen of dieren.
+          Kies {aantallenTekst} foto&apos;s. De drukker werkt met vellen van 4 pagina&apos;s, daarom kan het net niet met elk
+          aantal. In het boek staat elke kleurplaat rechts, met links een titel en het verhaaltje. Het mooist werken scherpe, lichte foto&apos;s met één tot vier personen of dieren.
         </p>
 
         <ol className={b.paginas}>
@@ -508,8 +641,17 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
               <div className={b.spreadInhoud}>
                 <div className={b.links}>
                   {p.id.startsWith("nieuw-") ? (
-                    <p className={b.hulp}>Het verhaaltje kun je invullen zodra de foto binnen is.</p>
+                    <p className={b.hulp}>De titel en het verhaaltje kun je invullen zodra de foto binnen is.</p>
                   ) : (
+                    <>
+                    <TitelVeld
+                      id={`titel-${p.id}`}
+                      waarde={p.titel}
+                      verhaal={p.verhaal}
+                      onWijzig={(t) => werkBij(p.id, { titel: t })}
+                      bewaar={(t) => stuur({ actie: "titel", pageId: p.id, tekst: t })}
+                      verrijk={verrijk}
+                    />
                     <TekstVeld
                       id={`verhaal-${p.id}`}
                       label="Verhaaltje (links)"
@@ -522,6 +664,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                       bewaar={(t, eigen) => stuur({ actie: "verhaal", pageId: p.id, tekst: t, ...(eigen !== undefined ? { eigen } : {}) })}
                       verrijk={verrijk}
                     />
+                    </>
                   )}
                 </div>
                 <div className={b.rechts}>
@@ -582,9 +725,17 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
           <p className={b.melding}>Je boek is vol: {boek.maxFotos} foto&apos;s. Wil je er een wisselen? Gebruik &ldquo;Andere foto&rdquo;.</p>
         )}
         {uploadFout && <p className={b.melding}>{uploadFout}</p>}
+        {metFoto > 0 && !uploadsBezig && !geldigAantalFotos(metFoto) && (
+          <p className={b.melding}>
+            {metFoto < boek.minFotos
+              ? `Je hebt nu ${metFoto} foto's. Je boek heeft er ${aantallenTekst} nodig.`
+              : `Je hebt nu ${metFoto} foto's. Voeg er nog één toe of haal er één weg: je boek heeft er ${aantallenTekst} nodig.`}
+          </p>
+        )}
       </section>
 
-      {/* 4. Nawoord */}
+      {/* 4. Nawoord (nu uit: staat niet in het ontwerp van het boek) */}
+      {nawoordAan && (
       <section className={b.blok} aria-labelledby="kop-nawoord">
         <p className={b.stap}>Stap 4</p>
         <h2 id="kop-nawoord" className={`${s.display} ${s.h3}`}>
@@ -604,6 +755,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
           verrijk={verrijk}
         />
       </section>
+      )}
 
       {/* Indienen */}
       <section className={b.blok} aria-labelledby="kop-klaar">
@@ -628,7 +780,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
 
       <div className={b.balk} role="status" aria-live="polite">
         <span>
-          <strong>{metFoto}</strong> van {boek.minFotos}–{boek.maxFotos} foto&apos;s
+          <strong>{metFoto}</strong> foto&apos;s (nodig: {aantallenTekst})
         </span>
         <span className={api.fout ? b.balkFout : undefined}>
           {api.fout ?? (api.bezig || uploadsBezig ? "Bewaren…" : "Alles bewaard ✓")}

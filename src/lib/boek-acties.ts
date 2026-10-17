@@ -1,5 +1,5 @@
 import "server-only";
-import { binnenKleuren, boek, kleurKeuzeAan, standaardBinnenKleur } from "@/config";
+import { binnenKleuren, boek, geldigAantalFotos, kleurKeuzeAan, standaardBinnenKleur, teLangWoord, toegestaneAantallen } from "@/config";
 import { getSupabase, buckets } from "@/lib/supabase";
 import { haalOrderOpCode, haalPaginas, hernummer, verwijderBestanden, boekUrl, type Order, type Pagina } from "@/lib/orders";
 import { verrijkTekst } from "@/lib/ai";
@@ -51,6 +51,19 @@ function tekst(waarde: unknown, max: number, veld: string): string | null {
   return schoon === "" ? null : schoon;
 }
 
+/** Titel (cover of pagina): maximale lengte én geen woord dat te lang is om groot genoeg te drukken. */
+function titelTekst(waarde: unknown, max: number, veld: string): string | null {
+  const schoon = tekst(typeof waarde === "string" ? waarde.replace(/\s+/g, " ") : waarde, max, veld);
+  const lang = schoon ? teLangWoord(schoon) : null;
+  if (lang) throw new Weigering(`"${lang}" is te lang voor de ${veld}: gebruik woorden van maximaal ${boek.maxWoordInTitel} letters.`);
+  return schoon;
+}
+
+/** Leesbare opsomming: [19, 21] → "19 of 21". */
+function ofLijst(getallen: readonly number[]) {
+  return getallen.length > 1 ? `${getallen.slice(0, -1).join(", ")} of ${getallen.at(-1)}` : String(getallen[0]);
+}
+
 async function update(tabel: "orders" | "pages", id: string, velden: Record<string, unknown>) {
   const { error } = await getSupabase().from(tabel).update(velden).eq("id", id);
   if (error) throw new Error(`Opslaan mislukt: ${error.message}`);
@@ -69,7 +82,7 @@ export function vanDezeSite(request: Request) {
 
 type Invoer = Record<string, unknown>;
 
-const proefActies = new Set(["opmerking", "proefVerhaal", "proefTekst", "proefBinnenKleur", "akkoord", "opmerkingenSturen"]);
+const proefActies = new Set(["opmerking", "proefVerhaal", "proefTitel", "proefTekst", "proefBinnenKleur", "akkoord", "opmerkingenSturen"]);
 
 export async function voerUit(code: string, invoer: Invoer, origin: string): Promise<Record<string, unknown>> {
   if (typeof invoer.actie === "string" && proefActies.has(invoer.actie)) return voerProefActieUit(code, invoer);
@@ -79,7 +92,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
   switch (invoer.actie) {
     case "cover": {
       const velden: Record<string, unknown> = {};
-      if ("titel" in invoer) velden.cover_titel = tekst(invoer.titel, boek.maxTitel, "titel");
+      if ("titel" in invoer) velden.cover_titel = titelTekst(invoer.titel, boek.maxTitel, "titel");
       if ("kleur" in invoer) {
         if (!boek.coverKleuren.some((k) => k.value === invoer.kleur)) throw new Weigering("Onbekende coverkleur.");
         velden.cover_kleur = invoer.kleur;
@@ -105,6 +118,12 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       const velden: Record<string, unknown> = { verhaal: tekst(invoer.tekst, boek.maxVerhaal, "verhaal") };
       if ("eigen" in invoer) velden.verhaal_eigen = tekst(invoer.eigen, 4000, "verhaal");
       await update("pages", pagina.id, velden);
+      return {};
+    }
+
+    case "titel": {
+      const pagina = await eigenPagina(order, invoer.pageId);
+      await update("pages", pagina.id, { titel: titelTekst(invoer.tekst, boek.maxPaginaTitel, "titel") });
       return {};
     }
 
@@ -140,7 +159,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
 
     case "verrijk": {
       const soort = invoer.soort;
-      if (soort !== "verhaal" && soort !== "inleiding" && soort !== "nawoord") throw new Weigering("Onbekend tekstveld.");
+      if (soort !== "verhaal" && soort !== "titel" && soort !== "inleiding" && soort !== "nawoord") throw new Weigering("Onbekend tekstveld.");
       const bron = tekst(invoer.tekst, 2000, "tekst");
       if (!bron || bron.length < 3) throw new Weigering("Schrijf eerst een paar woorden, dan maakt Tante er iets moois van.");
       if (order.ai_aanroepen >= boek.maxAiAanroepen) {
@@ -151,6 +170,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       try {
         const voorstel = await verrijkTekst({ soort, tekst: bron, titel: order.cover_titel });
         if (!voorstel) throw new Error("Leeg antwoord");
+        if (soort === "titel" && (voorstel.length > boek.maxPaginaTitel || teLangWoord(voorstel))) throw new Error(`Titelvoorstel past niet: ${voorstel}`);
         return { voorstel, over: boek.maxAiAanroepen - order.ai_aanroepen - 1 };
       } catch (e) {
         console.error(`AI-verrijking mislukt voor order ${order.id}:`, e instanceof Error ? e.message : e);
@@ -164,8 +184,9 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       const problemen: string[] = [];
       if (!order.cover_titel) problemen.push("Kies een titel voor de cover.");
       if (kleurKeuzeAan && !order.cover_kleur) problemen.push("Kies een kleur voor de cover.");
-      if (metFoto.length < boek.minFotos) problemen.push(`Voeg minimaal ${boek.minFotos} foto's toe (nu ${metFoto.length}).`);
-      if (paginas.length > boek.maxFotos) problemen.push(`Er passen maximaal ${boek.maxFotos} foto's in het boek.`);
+      if (!geldigAantalFotos(metFoto.length) || paginas.length !== metFoto.length) {
+        problemen.push(`Je boek heeft ${ofLijst(toegestaneAantallen)} foto's nodig (nu ${metFoto.length}). De drukker werkt met vellen van 4 pagina's, daarom kan het net niet met elk aantal.`);
+      }
       if (problemen.length) return { problemen };
 
       // Alleen van 'betaald' naar 'ingediend', zodat dubbel klikken niets dubbel doet.
@@ -210,6 +231,12 @@ async function voerProefActieUit(code: string, invoer: Invoer): Promise<Record<s
       const velden: Record<string, unknown> = { verhaal: tekst(invoer.tekst, boek.maxVerhaal, "verhaal") };
       if ("eigen" in invoer) velden.verhaal_eigen = tekst(invoer.eigen, 4000, "verhaal");
       await update("pages", pagina.id, velden);
+      return {};
+    }
+
+    case "proefTitel": {
+      const pagina = await eigenPagina(order, invoer.pageId);
+      await update("pages", pagina.id, { titel: titelTekst(invoer.tekst, boek.maxPaginaTitel, "titel") });
       return {};
     }
 

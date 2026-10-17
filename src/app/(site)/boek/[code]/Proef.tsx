@@ -2,14 +2,15 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { binnenKleur as zoekBinnenKleur, boek, kleurKeuzeAan } from "@/config";
+import { boek, inleidingThema, kleurKeuzeAan, nawoordAan, themaVoorFoto, type BinnenThema } from "@/config";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
-import { TekstVeld } from "./Boekbouwer";
+import { TekstVeld, TitelVeld, type Soort } from "./Boekbouwer";
 import { BinnenKleurKiezer } from "./BinnenKleur";
 
 type Pagina = {
   id: string;
+  titel: string;
   verhaal: string;
   opmerking: string;
   tekenplaat: string | null;
@@ -37,13 +38,9 @@ export function Proef({
   const [inl, setInl] = useState(inleiding);
   const [naw, setNaw] = useState(nawoord);
   const [binnen, setBinnen] = useState(binnenKleur);
-  const binnenStijl = (() => {
-    const k = zoekBinnenKleur(binnen);
-    return {
-      background: `var(--${k.value})`,
-      color: `var(--${k.tekst})`,
-    } as React.CSSProperties;
-  })();
+  // Preview in de kleuren van het boek (zie binnenThemas in config).
+  const themaStijl = (t: BinnenThema) =>
+    ({ background: `var(--${t.css.achtergrond})`, color: `var(--${t.css.tekst})` }) as React.CSSProperties;
 
   async function kiesBinnenKleur(k: string) {
     const vorige = binnen;
@@ -104,6 +101,11 @@ export function Proef({
         setFout(e instanceof Error ? e.message : "Niet bewaard.");
         throw e;
       });
+  const bewaarTitel = (id: string) => (tekst: string) =>
+    stuur({ actie: "proefTitel", pageId: id, tekst }).catch((e) => {
+      setFout(e instanceof Error ? e.message : "Niet bewaard.");
+      throw e;
+    });
   const bewaarVerhaal = (id: string) => (tekst: string, eigen?: string) =>
     stuur({
       actie: "proefVerhaal",
@@ -116,7 +118,7 @@ export function Proef({
     });
 
   const verrijk = useCallback(
-    async (soort: "verhaal" | "inleiding" | "nawoord", tekst: string) => {
+    async (soort: Soort, tekst: string) => {
       const res = await fetch(`/api/boek/${code}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -184,7 +186,7 @@ export function Proef({
               {kleurKeuzeAan ? "Cover, kleuren en inleiding" : "Cover en inleiding"}
             </h2>
             {kleurKeuzeAan && <BinnenKleurKiezer waarde={binnen} onKies={kiesBinnenKleur} naam="proef-binnenkleur" />}
-            <div className={b.linksGekleurd} style={binnenStijl}>
+            <div className={b.linksGekleurd} style={themaStijl(inleidingThema)}>
               <TekstVeld
                 id="proef-inleiding"
                 label="Inleiding"
@@ -218,8 +220,20 @@ export function Proef({
             <div className={b.spreadInhoud}>
               <div
                 className={`${b.links} ${b.linksGekleurd}`}
-                style={binnenStijl}
+                style={themaStijl(themaVoorFoto(i))}
               >
+                <TitelVeld
+                  id={`titel-${p.id}`}
+                  waarde={p.titel}
+                  verhaal={p.verhaal}
+                  onWijzig={(t) =>
+                    setPaginas((ps) =>
+                      ps.map((x) => (x.id === p.id ? { ...x, titel: t } : x)),
+                    )
+                  }
+                  bewaar={bewaarTitel(p.id)}
+                  verrijk={verrijk}
+                />
                 <TekstVeld
                   id={`verhaal-${p.id}`}
                   label="Verhaaltje (links)"
@@ -277,9 +291,10 @@ export function Proef({
         ))}
       </ol>
 
+      {nawoordAan && (
       <section className={b.blok}>
         <h2 className={`${s.display} ${s.h3}`}>Nawoord</h2>
-        <div className={b.linksGekleurd} style={binnenStijl}>
+        <div className={b.linksGekleurd} style={themaStijl(inleidingThema)}>
           <TekstVeld
             id="proef-nawoord"
             label="Nawoord"
@@ -294,6 +309,7 @@ export function Proef({
           />
         </div>
       </section>
+      )}
 
       <section className={b.blok}>
         <h2 className={`${s.display} ${s.h3}`}>Wat vind je ervan?</h2>
