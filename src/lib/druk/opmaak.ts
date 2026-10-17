@@ -4,27 +4,9 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import {
-  PDFDocument,
-  PDFFont,
-  PDFPage,
-  PDFOperator,
-  PDFOperatorNames,
-  rgb,
-  degrees,
-  pushGraphicsState,
-  popGraphicsState,
-  concatTransformationMatrix,
-  setFillingColor,
-  moveTo,
-  lineTo,
-  appendBezierCurve,
-  closePath,
-  type RGB,
-} from "pdf-lib";
+import { PDFDocument, PDFFont, PDFPage, PDFImage, degrees, rgb, type RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import sharp from "sharp";
-import { leesPad, traceerPlaat, type Vector } from "./vector";
 
 const MM = 72 / 25.4;
 const mm = (waarde: number) => waarde * MM;
@@ -144,27 +126,12 @@ function tekstBlok(
   }
 }
 
-/** Tekent een getraceerde plaat passend (contain) en gecentreerd in een vak. */
-function tekenPlaat(pagina: PDFPage, plaat: Vector, vak: { x: number; y: number; breedte: number; hoogte: number }, kleur: RGB) {
-  const schaal = Math.min(vak.breedte / plaat.breedte, vak.hoogte / plaat.hoogte);
-  const b = plaat.breedte * schaal;
-  const h = plaat.hoogte * schaal;
-  const x = vak.x + (vak.breedte - b) / 2;
-  const top = vak.y + (vak.hoogte + h) / 2;
-  // SVG-coördinaten (y omlaag) vanaf linksboven; vullen met de even-oneven-regel,
-  // zodat de witte vlakken binnen de lijnen open blijven.
-  pagina.pushOperators(
-    pushGraphicsState(),
-    concatTransformationMatrix(schaal, 0, 0, -schaal, x, top),
-    setFillingColor(kleur),
-    ...plaat.paden.flatMap((d) =>
-      leesPad(d).map((st) =>
-        st.op === "M" ? moveTo(st.p[0], st.p[1]) : st.op === "L" ? lineTo(st.p[0], st.p[1]) : st.op === "C" ? appendBezierCurve(st.p[0], st.p[1], st.p[2], st.p[3], st.p[4], st.p[5]) : closePath(),
-      ),
-    ),
-    PDFOperator.of(PDFOperatorNames.FillEvenOdd),
-    popGraphicsState(),
-  );
+/** Tekent een plaat passend (contain) en gecentreerd in een vak. */
+function tekenPlaat(pagina: PDFPage, plaat: PDFImage, vak: { x: number; y: number; breedte: number; hoogte: number }) {
+  const schaal = Math.min(vak.breedte / plaat.width, vak.hoogte / plaat.height);
+  const b = plaat.width * schaal;
+  const h = plaat.height * schaal;
+  pagina.drawImage(plaat, { x: vak.x + (vak.breedte - b) / 2, y: vak.y + (vak.hoogte - h) / 2, width: b, height: h });
 }
 
 function plaatOntbreekt(pagina: PDFPage, vak: { x: number; y: number; breedte: number; hoogte: number }, font: PDFFont) {
@@ -186,9 +153,8 @@ async function logoInKleur(kleur: string): Promise<Buffer> {
   const bron = sharp(await readFile(path.join(assets, "brand", "mark-color.png")));
   const { width, height } = await bron.metadata();
   const alfa = await bron.clone().ensureAlpha().extractChannel("alpha").toBuffer();
-  const h = kleur.replace("#", "");
   return sharp({
-    create: { width: width!, height: height!, channels: 3, background: { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) } },
+    create: { width: width!, height: height!, channels: 3, background: rgbVan(kleur) },
   })
     .joinChannel(alfa)
     .png()
@@ -200,15 +166,45 @@ export function aantalFotos(maten: Maten) {
   return Math.max(0, Math.floor((maten.paginas - 4) / 2));
 }
 
-/** Traceert alle platen één keer (ook gebruikt voor de cover). */
-export async function traceerAlle(boek: DrukBoek, maten: Maten) {
-  const n = aantalFotos(maten);
-  const platen: (Vector | null)[] = [];
-  for (const p of boek.paginas.slice(0, n)) platen.push(p.plaat ? await traceerPlaat(p.plaat) : null);
-  return platen;
+export type Platen = { binnen: (Buffer | null)[]; voorplaat: Buffer | null };
+
+function rgbVan(kleur: string) {
+  const h = kleur.replace("#", "");
+  return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
 }
 
-export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: (Vector | null)[]): Promise<Uint8Array> {
+/**
+ * Bereidt de tekenplaten voor op druk, zonder details te verliezen:
+ * - binnenwerk: grijswaarden, opgeschaald naar ±300 dpi op de pagina;
+ * - cover: lijnen in de tekstkleur van de cover, met transparante achtergrond.
+ */
+export async function bereidPlatenVoor(boek: DrukBoek, maten: Maten): Promise<Platen> {
+  const n = aantalFotos(maten);
+  const binnen: (Buffer | null)[] = [];
+  for (const p of boek.paginas.slice(0, n)) {
+    binnen.push(
+      p.plaat
+        ? // Grijze JPEG: wordt ongewijzigd in de PDF gezet (PNG zou als volle kleur worden opgeslagen).
+          await sharp(p.plaat).rotate().flatten({ background: "#ffffff" }).grayscale().toColourspace("b-w").resize({ height: 3300, kernel: "lanczos3" }).jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer()
+        : null,
+    );
+  }
+  const eerste = boek.paginas.slice(0, n).find((p) => p.plaat)?.plaat ?? null;
+  let voorplaat: Buffer | null = null;
+  if (eerste) {
+    // Donker = lijn: de negatieve grijswaarde wordt de dekking, de kleur is die van de covertekst.
+    const grijs = sharp(eerste).rotate().flatten({ background: "#ffffff" }).grayscale().resize({ height: 2600, kernel: "lanczos3" });
+    const { data, info } = await grijs.negate().raw().toBuffer({ resolveWithObject: true });
+    const alfa = await sharp(data, { raw: { width: info.width, height: info.height, channels: 1 } }).png().toBuffer();
+    voorplaat = await sharp({ create: { width: info.width, height: info.height, channels: 3, background: rgbVan(boek.cover.tekst) } })
+      .joinChannel(alfa)
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+  }
+  return { binnen, voorplaat };
+}
+
+export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: Platen): Promise<Uint8Array> {
   const { breedte, hoogte, afloop } = maten.binnenwerk;
   const doc = await PDFDocument.create();
   doc.setTitle(`${boek.titel} – binnenwerk`);
@@ -239,8 +235,8 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: (Vect
   const isWit = boek.binnen.achtergrond.toLowerCase() === "#ffffff";
   const kleurvlak = isWit ? undefined : binnenAchtergrond;
 
-  // 1 (links): leeg.
-  nieuwePagina("links");
+  // 1 (links): leeg (wit vlak, zodat de pagina inhoud heeft voor de spreads).
+  nieuwePagina("links", rgb(1, 1, 1));
 
   // 2 (rechts): titel en inleiding, samen verticaal gecentreerd.
   {
@@ -281,8 +277,8 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: (Vect
       zetKaders(pagina, breedte, hoogte, afloop);
       // Plaat: ruim op de pagina, 12 mm van de snijlijn, 16 mm aan de rugzijde.
       const vak = { x: mm(afloop + 16), y: mm(afloop + 12), breedte: mm(breedte - 2 * afloop - 16 - 12), hoogte: mm(hoogte - 2 * afloop - 24) };
-      const plaat = platen[i];
-      if (plaat) tekenPlaat(pagina, plaat, vak, rgb(0, 0, 0));
+      const plaat = platen.binnen[i];
+      if (plaat) tekenPlaat(pagina, await doc.embedJpg(plaat), vak);
       else plaatOntbreekt(pagina, vak, fonts.tekst);
     }
   }
@@ -311,7 +307,7 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: (Vect
   return doc.save();
 }
 
-export async function maakCover(boek: DrukBoek, maten: Maten, voorplaat: Vector | null): Promise<Uint8Array> {
+export async function maakCover(boek: DrukBoek, maten: Maten, platen: Platen): Promise<Uint8Array> {
   const { breedte, hoogte, afloop, rug } = maten.cover;
   const doc = await PDFDocument.create();
   doc.setTitle(`${boek.titel} – cover`);
@@ -346,9 +342,9 @@ export async function maakCover(boek: DrukBoek, maten: Maten, voorplaat: Vector 
     pagina.drawText(regel, { x: mm(voor.x) + (mm(paneel) - w) / 2, y, size: grootte, font: fonts.titel, color: tekstKleur });
     y -= grootte * 1.08;
   }
-  if (voorplaat) {
+  if (platen.voorplaat) {
     const vak = { x: mm(voor.x + marge + 6), y: mm(voor.y + marge), breedte: mm(paneel - 2 * marge - 12), hoogte: y - mm(voor.y + marge) - mm(6) };
-    tekenPlaat(pagina, voorplaat, vak, tekstKleur);
+    tekenPlaat(pagina, await doc.embedPng(platen.voorplaat), vak);
   }
 
   // Rug: titel van boven naar beneden.

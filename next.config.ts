@@ -12,8 +12,6 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/beheer/**": ["./assets/stijlreferentie.png", "./assets/fonts/*", "./assets/brand/*"],
   },
-  // potrace gebruikt Jimp; niet bundelen maar als gewone Node-module laden.
-  serverExternalPackages: ["potrace"],
   images: {
     // Afbeeldingen uit Sanity (alleen dit project). Geen `search` opgeven: Sanity-URL's
     // hebben altijd een querystring (?rect=…&w=…); new URL(...) zou die blokkeren.

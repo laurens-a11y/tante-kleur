@@ -72,6 +72,8 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
     fotosGebruikt: number;
     fotosTotaal: number;
     platenOntbreken: number[];
+    spreads: string | null;
+    coverSnijtekens: string | null;
     binnenwerk: string | null;
     cover: string | null;
   } | null>(null);
@@ -258,21 +260,37 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
           <button type="button" className={b.knopLeeg} onClick={maakDruk} disabled={!!bezig || genereren.size > 0}>
             {bezig === "druk" ? "Drukbestanden maken… (± 1 min)" : "Maak drukbestanden (PDF)"}
           </button>
-          {druk && (
-            <>
-              {druk.binnenwerk && (
-                <a className={b.knopVol} href={druk.binnenwerk} target="_blank" rel="noreferrer">
-                  Binnenwerk ({druk.paginas} p.)
-                </a>
-              )}
-              {druk.cover && (
-                <a className={b.knopVol} href={druk.cover} target="_blank" rel="noreferrer">
-                  Cover
-                </a>
-              )}
-            </>
-          )}
         </div>
+        {druk && (
+          <div className={b.knoppen}>
+            <span className={b.klein}>Spreads met snijtekens:</span>
+            {druk.spreads && (
+              <a className={b.knopVol} href={druk.spreads} target="_blank" rel="noreferrer">
+                Binnenwerk (spreads)
+              </a>
+            )}
+            {druk.coverSnijtekens && (
+              <a className={b.knopVol} href={druk.coverSnijtekens} target="_blank" rel="noreferrer">
+                Cover
+              </a>
+            )}
+          </div>
+        )}
+        {druk && (
+          <div className={b.knoppen}>
+            <span className={b.klein}>Volgens specs PrintAPI (losse pagina&apos;s, zonder snijtekens):</span>
+            {druk.binnenwerk && (
+              <a className={b.knopLeeg} href={druk.binnenwerk} target="_blank" rel="noreferrer">
+                Binnenwerk ({druk.paginas} p.)
+              </a>
+            )}
+            {druk.cover && (
+              <a className={b.knopLeeg} href={druk.cover} target="_blank" rel="noreferrer">
+                Cover
+              </a>
+            )}
+          </div>
+        )}
         {druk && druk.fotosTotaal > druk.fotosGebruikt && (
           <p className={b.melding}>
             Let op: het boek telt nu {druk.paginas} pagina&apos;s; alleen de eerste {druk.fotosGebruikt} van {druk.fotosTotaal} foto&apos;s staan erin.

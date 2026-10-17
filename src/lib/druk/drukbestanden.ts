@@ -2,7 +2,8 @@ import "server-only";
 import { binnenKleur, boek as boekConfig, drukwerk, merkHex } from "@/config";
 import { getSupabase, buckets } from "@/lib/supabase";
 import { haalPaginas, type Order } from "@/lib/orders";
-import { aantalFotos, maakBinnenwerk, maakCover, traceerAlle, type DrukBoek } from "./opmaak";
+import { aantalFotos, bereidPlatenVoor, maakBinnenwerk, maakCover, type DrukBoek } from "./opmaak";
+import { binnenwerkInSpreads, coverMetSnijtekens } from "./uitvoer";
 
 // Privé-opslag voor de drukklare PDF's (bevatten kleurplaten van klantfoto's).
 const BUCKET = "drukbestanden";
@@ -26,7 +27,7 @@ export async function maakDrukbestanden(order: Order) {
   const gebruikt = paginas.slice(0, n);
 
   // Tekenplaten ophalen.
-  const platen = await Promise.all(
+  const plaatBestanden = await Promise.all(
     gebruikt.map(async (p) => {
       if (!p.tekenplaat_pad) return null;
       const { data, error } = await db.storage.from(buckets.tekenplaten).download(p.tekenplaat_pad);
@@ -43,20 +44,21 @@ export async function maakDrukbestanden(order: Order) {
     binnen: { achtergrond: merkHex[binnen.value], tekst: merkHex[binnen.tekst] },
     inleiding: order.inleiding ?? "",
     nawoord: order.nawoord ?? "",
-    paginas: gebruikt.map((p, i) => ({ verhaal: p.verhaal ?? "", plaat: platen[i] })),
+    paginas: gebruikt.map((p, i) => ({ verhaal: p.verhaal ?? "", plaat: plaatBestanden[i] })),
   };
 
-  const vectoren = await traceerAlle(boek, drukwerk);
-  const [binnenwerk, coverPdf] = await Promise.all([
-    maakBinnenwerk(boek, drukwerk, vectoren),
-    maakCover(boek, drukwerk, vectoren.find((v) => v) ?? null),
-  ]);
+  const platen = await bereidPlatenVoor(boek, drukwerk);
+  const [binnenwerk, coverPdf] = await Promise.all([maakBinnenwerk(boek, drukwerk, platen), maakCover(boek, drukwerk, platen)]);
+  const [spreads, coverSnij] = await Promise.all([binnenwerkInSpreads(binnenwerk, drukwerk, true), coverMetSnijtekens(coverPdf, drukwerk)]);
 
   await zorgVoorBucket();
   const opslag = db.storage.from(BUCKET);
+  // Twee sets: met spreads en snijtekens, en exact volgens de specs van PrintAPI.
   const bestanden = [
-    { naam: "binnenwerk.pdf", data: binnenwerk },
-    { naam: "cover.pdf", data: coverPdf },
+    { naam: "binnenwerk-spreads-snijtekens.pdf", data: spreads },
+    { naam: "cover-snijtekens.pdf", data: coverSnij },
+    { naam: "binnenwerk-printapi.pdf", data: binnenwerk },
+    { naam: "cover-printapi.pdf", data: coverPdf },
   ];
   for (const b of bestanden) {
     const { error } = await opslag.upload(`${order.id}/${b.naam}`, b.data, { contentType: "application/pdf", upsert: true });
@@ -65,22 +67,25 @@ export async function maakDrukbestanden(order: Order) {
   const links = await opslag.createSignedUrls(
     bestanden.map((b) => `${order.id}/${b.naam}`),
     2 * 60 * 60,
-    // Downloaden met een herkenbare naam.
   );
   if (links.error) throw new Error(`Downloadlinks maken mislukt: ${links.error.message}`);
+  const url = (i: number) => links.data[i]?.signedUrl ?? null;
 
   return {
     paginas: drukwerk.paginas,
     fotosGebruikt: gebruikt.length,
     fotosTotaal: paginas.length,
     platenOntbreken: gebruikt.filter((p) => !p.tekenplaat_pad).map((p) => p.positie),
-    binnenwerk: links.data[0]?.signedUrl ?? null,
-    cover: links.data[1]?.signedUrl ?? null,
+    spreads: url(0),
+    coverSnijtekens: url(1),
+    binnenwerk: url(2),
+    cover: url(3),
   };
 }
 
 /** Drukbestanden opruimen (na verzending). Fouten worden gelogd, niet gegooid. */
 export async function verwijderDrukbestanden(orderId: string) {
-  const { error } = await getSupabase().storage.from(BUCKET).remove([`${orderId}/binnenwerk.pdf`, `${orderId}/cover.pdf`]);
+  const namen = ["binnenwerk-spreads-snijtekens.pdf", "cover-snijtekens.pdf", "binnenwerk-printapi.pdf", "cover-printapi.pdf", "binnenwerk.pdf", "cover.pdf"];
+  const { error } = await getSupabase().storage.from(BUCKET).remove(namen.map((n) => `${orderId}/${n}`));
   if (error && !/not found/i.test(error.message)) console.error("Drukbestanden verwijderen mislukt:", error.message);
 }
