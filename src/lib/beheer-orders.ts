@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { buckets, getSupabase } from "@/lib/supabase";
 import { boekUrl, haalPaginas, verwijderBestanden, type Order, type OrderStatus, type Pagina } from "@/lib/orders";
 import { stuurProef } from "@/lib/mail";
+import { verwijderDrukbestanden } from "@/lib/druk/drukbestanden";
 
 export type OrderVolledig = Order & {
   verzendadres: { line1?: string; line2?: string; postal_code?: string; city?: string; country?: string } | null;
@@ -78,6 +79,8 @@ export async function zetStatus(order: Order, status: OrderStatus) {
   if (error) throw new Error(`Status opslaan mislukt: ${error.message}`);
   // Afspraak: klantfoto's verdwijnen zodra het boek naar de drukker gaat.
   if (status === "gedrukt" || status === "verzonden") await verwijderOriginelen(order.id);
+  // Drukbestanden zijn na verzending niet meer nodig.
+  if (status === "verzonden") await verwijderDrukbestanden(order.id);
 }
 
 export async function verwijderOriginelen(orderId: string) {

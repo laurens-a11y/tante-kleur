@@ -70,3 +70,22 @@ export const standaardBinnenKleur = "wit";
 export function binnenKleur(value: string | null | undefined) {
   return binnenKleuren.find((k) => k.value === value) ?? binnenKleuren[0];
 }
+
+// Drukwerk voor PrintAPI (hardcover A4 staand). Maten in mm.
+// Het aantal pagina's is nu vast voor de test; later per boek: 2 × foto's + 4.
+export const drukwerk = {
+  paginas: 24,
+  binnenwerk: { breedte: 216, hoogte: 303, afloop: 3 },
+  cover: { breedte: 477, hoogte: 342, afloop: 19, rug: 6 },
+} as const;
+
+// Merkkleuren als hex voor de drukbestanden. Moeten gelijk blijven aan
+// de CSS-variabelen in src/app/(site)/globals.css.
+export const merkHex: Record<string, string> = {
+  blauw: "#002cd4",
+  rood: "#f73d11",
+  roze: "#f4b3c1",
+  lichtblauw: "#c1dce6",
+  geel: "#f3b500",
+  wit: "#ffffff",
+};

@@ -7,10 +7,13 @@ const nextConfig: NextConfig = {
   // Als vangnet ververst de cache uiterlijk na 10 minuten.
   cacheLife: { default: { stale: 60, revalidate: 600, expire: 31_536_000 } },
   partialPrefetching: true,
-  // De stijlreferentie voor tekenplaten meeleveren met de genereer-route.
+  // Stijlreferentie, lettertypes en logo meeleveren met de beheer-routes
+  // (tekenplaten genereren en drukbestanden maken).
   outputFileTracingIncludes: {
-    "/api/beheer/**": ["./assets/stijlreferentie.png"],
+    "/api/beheer/**": ["./assets/stijlreferentie.png", "./assets/fonts/*", "./assets/brand/*"],
   },
+  // potrace gebruikt Jimp; niet bundelen maar als gewone Node-module laden.
+  serverExternalPackages: ["potrace"],
   images: {
     // Afbeeldingen uit Sanity (alleen dit project). Geen `search` opgeven: Sanity-URL's
     // hebben altijd een querystring (?rect=…&w=…); new URL(...) zou die blokkeren.
