@@ -7,6 +7,7 @@ import { alleStatussen, lijstOrders, statusLabel } from "@/lib/beheer-orders";
 import type { OrderStatus } from "@/lib/orders";
 import s from "../page.module.css";
 import b from "./beheer.module.css";
+import { KleurenKort } from "./Kleuren";
 
 export const metadata: Metadata = {
   title: "Beheer – Tante Kleur",
@@ -66,6 +67,7 @@ async function Lijst({ searchParams }: { searchParams: PageProps<"/beheer">["sea
               <tr>
                 <th>Titel</th>
                 <th>Klant</th>
+                <th>Kleuren</th>
                 <th>Status</th>
                 <th>Foto&apos;s</th>
                 <th>Platen</th>
@@ -87,6 +89,9 @@ async function Lijst({ searchParams }: { searchParams: PageProps<"/beheer">["sea
                     <td>
                       {o.naam ?? "-"}
                       <div className={b.klein}>{o.email}</div>
+                    </td>
+                    <td>
+                      <KleurenKort cover={o.cover_kleur} binnen={o.binnen_kleur} />
                     </td>
                     <td>
                       <span className={b.status} data-status={o.status}>
