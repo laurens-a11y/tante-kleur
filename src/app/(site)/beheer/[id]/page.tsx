@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { nawoordAan } from "@/config";
 import { vereisBeheer } from "@/lib/beheer";
 import { haalOrder, linksVoorPaginas, statusLabel } from "@/lib/beheer-orders";
 import { haalPaginas } from "@/lib/orders";
@@ -89,7 +90,7 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
       <section className={b.kaart}>
         <p className={b.label}>Inleiding</p>
         <p className={b.tekstBlok}>{order.inleiding ?? "(leeg)"}</p>
-        <p className={b.label}>Nawoord</p>
+        <p className={b.label}>{nawoordAan ? "Nawoord" : "Nawoord (staat nu niet in het boek)"}</p>
         <p className={b.tekstBlok}>{order.nawoord ?? "(leeg)"}</p>
       </section>
 
@@ -101,6 +102,7 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
           id: p.id,
           positie: p.positie,
           draaiing: p.draaiing,
+          titel: p.titel ?? "",
           verhaal: p.verhaal ?? "",
           opmerking: p.opmerking,
           ...links[p.id],

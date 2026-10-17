@@ -11,6 +11,7 @@ type Pagina = {
   id: string;
   positie: number;
   draaiing: number;
+  titel: string;
   verhaal: string;
   opmerking: string | null;
   klein: string | null;
@@ -72,9 +73,8 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
     fotosGebruikt: number;
     fotosTotaal: number;
     platenOntbreken: number[];
-    vasteKleuren: { cover: string; binnen: string } | null;
-    spreads: string | null;
-    coverSnijtekens: string | null;
+    veelvoudVan4: boolean;
+    vasteCoverKleur: string | null;
     binnenwerk: string | null;
     cover: string | null;
   } | null>(null);
@@ -122,7 +122,7 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
         setBezig(`zip ${++n}/${metFoto.length}`);
         bestanden[`${String(p.positie).padStart(2, "0")}.jpg`] = await rechtgezet(p.groot!, p.draaiing);
       }
-      bestanden["verhalen.txt"] = strToU8(paginas.map((p) => `${String(p.positie).padStart(2, "0")}\n${p.verhaal || "(geen verhaal)"}\n`).join("\n"));
+      bestanden["verhalen.txt"] = strToU8(paginas.map((p) => `${String(p.positie).padStart(2, "0")} ${p.titel || "(geen titel)"}\n${p.verhaal || "(geen verhaal)"}\n`).join("\n"));
       const zip = zipSync(bestanden, { level: 0 });
       const url = URL.createObjectURL(new Blob([zip as BlobPart], { type: "application/zip" }));
       const a = document.createElement("a");
@@ -264,29 +264,14 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
         </div>
         {druk && (
           <div className={b.knoppen}>
-            <span className={b.klein}>Spreads met snijtekens:</span>
-            {druk.spreads && (
-              <a className={b.knopVol} href={druk.spreads} target="_blank" rel="noreferrer">
-                Binnenwerk (spreads)
-              </a>
-            )}
-            {druk.coverSnijtekens && (
-              <a className={b.knopVol} href={druk.coverSnijtekens} target="_blank" rel="noreferrer">
-                Cover
-              </a>
-            )}
-          </div>
-        )}
-        {druk && (
-          <div className={b.knoppen}>
-            <span className={b.klein}>Volgens specs PrintAPI (losse pagina&apos;s, zonder snijtekens):</span>
+            <span className={b.klein}>Volgens specs PrintAPI (losse pagina&apos;s met afloop, zonder snijtekens):</span>
             {druk.binnenwerk && (
-              <a className={b.knopLeeg} href={druk.binnenwerk} target="_blank" rel="noreferrer">
+              <a className={b.knopVol} href={druk.binnenwerk} target="_blank" rel="noreferrer">
                 Binnenwerk ({druk.paginas} p.)
               </a>
             )}
             {druk.cover && (
-              <a className={b.knopLeeg} href={druk.cover} target="_blank" rel="noreferrer">
+              <a className={b.knopVol} href={druk.cover} target="_blank" rel="noreferrer">
                 Cover
               </a>
             )}
@@ -294,13 +279,14 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
         )}
         {druk && druk.fotosTotaal > druk.fotosGebruikt && (
           <p className={b.melding}>
-            Let op: het boek telt nu {druk.paginas} pagina&apos;s; alleen de eerste {druk.fotosGebruikt} van {druk.fotosTotaal} foto&apos;s staan erin.
+            Let op: alleen de eerste {druk.fotosGebruikt} van {druk.fotosTotaal} foto&apos;s staan erin.
           </p>
         )}
-        {druk?.vasteKleuren && (
-          <p className={b.melding}>
-            Drukbestanden gebruiken vaste kleuren (cover {druk.vasteKleuren.cover.toLowerCase()}, verhaalpagina&apos;s {druk.vasteKleuren.binnen.toLowerCase()}); de keuze van de klant wordt genegeerd.
-          </p>
+        {druk && !druk.veelvoudVan4 && (
+          <p className={b.melding}>Let op: {druk.paginas} pagina&apos;s is geen veelvoud van 4 (dit boek heeft {druk.fotosGebruikt} foto&apos;s).</p>
+        )}
+        {druk?.vasteCoverKleur && (
+          <p className={b.melding}>De cover gebruikt de vaste kleur {druk.vasteCoverKleur.toLowerCase()}; de keuze van de klant wordt genegeerd.</p>
         )}
         {druk && druk.platenOntbreken.length > 0 && (
           <p className={b.melding}>Nog geen tekenplaat bij pagina {druk.platenOntbreken.join(", ")}; daar staat een lege plek.</p>
@@ -319,6 +305,9 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
           <div key={p.id} className={b.paginaRij}>
             <span className={b.nr}>{p.positie}</span>
             <div className={b.verhaal}>
+              <p className={b.tekstBlok}>
+                <strong>{p.titel || <em>(geen titel)</em>}</strong>
+              </p>
               <p className={b.tekstBlok}>{p.verhaal || <em>(geen verhaal)</em>}</p>
               {p.opmerking && <p className={b.opmerking}>Opmerking klant: {p.opmerking}</p>}
             </div>

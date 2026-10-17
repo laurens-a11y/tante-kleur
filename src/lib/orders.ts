@@ -33,6 +33,7 @@ export type Pagina = {
   foto_pad: string | null;
   foto_klein_pad: string | null;
   draaiing: 0 | 90 | 180 | 270;
+  titel: string | null;
   verhaal: string | null;
   verhaal_eigen: string | null;
   tekenplaat_pad: string | null;

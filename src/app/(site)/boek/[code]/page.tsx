@@ -55,7 +55,7 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
         binnenKleur={kleuren.binnen ?? standaardBinnenKleur}
         inleiding={order.inleiding ?? ""}
         nawoord={order.nawoord ?? ""}
-        paginas={paginas.map((p) => ({ id: p.id, verhaal: p.verhaal ?? "", opmerking: p.opmerking ?? "", tekenplaat: links[p.id]?.tekenplaat ?? null }))}
+        paginas={paginas.map((p) => ({ id: p.id, titel: p.titel ?? "", verhaal: p.verhaal ?? "", opmerking: p.opmerking ?? "", tekenplaat: links[p.id]?.tekenplaat ?? null }))}
       />
     );
   }
@@ -76,6 +76,7 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
         nawoord: order.nawoord ?? "",
         paginas: paginas.map((p) => ({
           id: p.id,
+          titel: p.titel ?? "",
           verhaal: p.verhaal ?? "",
           draaiing: p.draaiing,
           kleinUrl: links[p.id] ?? null,
