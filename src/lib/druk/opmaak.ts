@@ -112,7 +112,18 @@ function breekAf(tekst: string, font: PDFFont, grootte: number, breedte: number)
 function tekstBlok(
   pagina: PDFPage,
   tekst: string,
-  opties: { font: PDFFont; grootte: number; min: number; kleur: RGB; x: number; y: number; breedte: number; hoogte: number; regelafstand?: number },
+  opties: {
+    font: PDFFont;
+    grootte: number;
+    min: number;
+    kleur: RGB;
+    x: number;
+    y: number;
+    breedte: number;
+    hoogte: number;
+    regelafstand?: number;
+    gecentreerd?: boolean;
+  },
 ) {
   const factor = opties.regelafstand ?? 1.5;
   let grootte = opties.grootte;
@@ -125,7 +136,10 @@ function tekstBlok(
   const totaal = regels.length * lijn;
   let y = opties.y + opties.hoogte / 2 + totaal / 2 - grootte;
   for (const regel of regels) {
-    if (regel) pagina.drawText(regel, { x: opties.x, y, size: grootte, font: opties.font, color: opties.kleur });
+    if (regel) {
+      const x = opties.gecentreerd ? opties.x + (opties.breedte - opties.font.widthOfTextAtSize(regel, grootte)) / 2 : opties.x;
+      pagina.drawText(regel, { x, y, size: grootte, font: opties.font, color: opties.kleur });
+    }
     y -= lijn;
   }
 }
@@ -260,7 +274,7 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: (Vect
     const bron = boek.paginas[i];
     {
       const { pagina, vak } = nieuwePagina("links", kleurvlak);
-      if (bron) tekstBlok(pagina, schoon(bron.verhaal), { font: fonts.tekst, grootte: 15, min: 10, kleur: binnenTekst, x: vak.x, y: vak.y, breedte: vak.breedte, hoogte: vak.hoogte });
+      if (bron) tekstBlok(pagina, schoon(bron.verhaal), { font: fonts.tekst, grootte: 15, min: 10, kleur: binnenTekst, x: vak.x, y: vak.y, breedte: vak.breedte, hoogte: vak.hoogte, gecentreerd: true });
     }
     {
       const pagina = doc.addPage([mm(breedte), mm(hoogte)]);
@@ -276,7 +290,7 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: (Vect
   // Voorlaatste (links): nawoord.
   {
     const { pagina, vak } = nieuwePagina("links", kleurvlak);
-    tekstBlok(pagina, schoon(boek.nawoord), { font: fonts.tekst, grootte: 13, min: 9, kleur: binnenTekst, x: vak.x, y: vak.y, breedte: vak.breedte, hoogte: vak.hoogte });
+    tekstBlok(pagina, schoon(boek.nawoord), { font: fonts.tekst, grootte: 13, min: 9, kleur: binnenTekst, x: vak.x, y: vak.y, breedte: vak.breedte, hoogte: vak.hoogte, gecentreerd: true });
   }
 
   // Laatste (rechts): afsluiter met logo.
