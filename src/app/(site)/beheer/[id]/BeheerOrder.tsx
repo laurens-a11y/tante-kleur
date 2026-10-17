@@ -67,6 +67,30 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
   const [fout, setFout] = useState<string | null>(null);
   const [genereren, setGenereren] = useState<Set<string>>(new Set());
   const [extra, setExtra] = useState<Record<string, string>>({});
+  const [druk, setDruk] = useState<{
+    paginas: number;
+    fotosGebruikt: number;
+    fotosTotaal: number;
+    platenOntbreken: number[];
+    binnenwerk: string | null;
+    cover: string | null;
+  } | null>(null);
+
+  async function maakDruk() {
+    setBezig("druk");
+    setFout(null);
+    setDruk(null);
+    try {
+      const res = await fetch(`/api/beheer/orders/${orderId}/druk`, { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as { fout?: string } & NonNullable<typeof druk>;
+      if (!res.ok) throw new Error(data.fout ?? "Drukbestanden maken mislukt.");
+      setDruk(data);
+    } catch (e) {
+      setFout(e instanceof Error ? e.message : "Drukbestanden maken mislukt.");
+    } finally {
+      setBezig(null);
+    }
+  }
 
   const allePlaten = paginas.length > 0 && paginas.every((p) => p.tekenplaat);
   const kanProef = (status === "ingediend" || status === "in_productie") && allePlaten;
@@ -230,6 +254,33 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
             Status opslaan
           </button>
         </div>
+        <div className={b.knoppen}>
+          <button type="button" className={b.knopLeeg} onClick={maakDruk} disabled={!!bezig || genereren.size > 0}>
+            {bezig === "druk" ? "Drukbestanden maken… (± 1 min)" : "Maak drukbestanden (PDF)"}
+          </button>
+          {druk && (
+            <>
+              {druk.binnenwerk && (
+                <a className={b.knopVol} href={druk.binnenwerk} target="_blank" rel="noreferrer">
+                  Binnenwerk ({druk.paginas} p.)
+                </a>
+              )}
+              {druk.cover && (
+                <a className={b.knopVol} href={druk.cover} target="_blank" rel="noreferrer">
+                  Cover
+                </a>
+              )}
+            </>
+          )}
+        </div>
+        {druk && druk.fotosTotaal > druk.fotosGebruikt && (
+          <p className={b.melding}>
+            Let op: het boek telt nu {druk.paginas} pagina&apos;s; alleen de eerste {druk.fotosGebruikt} van {druk.fotosTotaal} foto&apos;s staan erin.
+          </p>
+        )}
+        {druk && druk.platenOntbreken.length > 0 && (
+          <p className={b.melding}>Nog geen tekenplaat bij pagina {druk.platenOntbreken.join(", ")}; daar staat een lege plek.</p>
+        )}
         {melding && <p className={b.melding}>{melding}</p>}
         {fout && (
           <p className={b.fout} role="alert">
