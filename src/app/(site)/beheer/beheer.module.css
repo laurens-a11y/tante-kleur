@@ -288,3 +288,38 @@
   border: 2px dashed var(--rood);
   color: var(--rood);
 }
+
+/* Gekozen kleuren */
+.kleurenBlok {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.kleurRegel,
+.kleurenKort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.kleurenKort {
+  gap: 4px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.kleurVlak {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--blauw);
+  flex-shrink: 0;
+}
+
+.kleurenKort .kleurVlak {
+  width: 16px;
+  height: 16px;
+}
