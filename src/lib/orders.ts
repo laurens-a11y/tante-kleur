@@ -47,7 +47,7 @@ export function isGeldigeCode(code: unknown): code is string {
   return typeof code === "string" && CODE_PATROON.test(code);
 }
 
-function nieuweCode() {
+export function nieuweCode() {
   return randomBytes(18).toString("base64url");
 }
 

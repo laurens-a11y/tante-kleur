@@ -8,6 +8,7 @@ import type { OrderStatus } from "@/lib/orders";
 import s from "../page.module.css";
 import b from "./beheer.module.css";
 import { KleurenKort } from "./Kleuren";
+import { TestboekImport } from "./TestboekImport";
 
 export const metadata: Metadata = {
   title: "Beheer – Tante Kleur",
@@ -20,6 +21,7 @@ export default function BeheerPagina({ searchParams }: PageProps<"/beheer">) {
       <div className={b.breed}>
         <div className={b.kopRij}>
           <h1 className={`${s.display} ${s.h3}`}>Bestellingen</h1>
+          <TestboekImport />
           <form action="/api/beheer/uitloggen" method="POST">
             <button type="submit" className={b.knopLeeg}>
               Uitloggen
