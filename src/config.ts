@@ -75,6 +75,10 @@ export function binnenKleur(value: string | null | undefined) {
 // Het aantal pagina's is nu vast voor de test; later per boek: 2 × foto's + 4.
 export const drukwerk = {
   paginas: 24,
+  // Vaste kleuren in de drukbestanden. De klant kan in het formulier nog wel
+  // kiezen (en dat wordt bewaard), maar dat wordt nu genegeerd.
+  // Zet op null om de keuze van de klant weer te gebruiken.
+  vasteKleuren: { cover: "roze", binnen: "wit" } as { cover: CoverKleur; binnen: string } | null,
   binnenwerk: { breedte: 216, hoogte: 303, afloop: 3 },
   cover: { breedte: 477, hoogte: 342, afloop: 19, rug: 6 },
 } as const;

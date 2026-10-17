@@ -36,8 +36,11 @@ export async function maakDrukbestanden(order: Order) {
     }),
   );
 
-  const cover = boekConfig.coverKleuren.find((k) => k.value === order.cover_kleur) ?? boekConfig.coverKleuren[0];
-  const binnen = binnenKleur(order.binnen_kleur);
+  // Vaste kleuren (fase 1) of de keuze van de klant.
+  const coverKeuze = drukwerk.vasteKleuren?.cover ?? order.cover_kleur;
+  const binnenKeuze = drukwerk.vasteKleuren?.binnen ?? order.binnen_kleur;
+  const cover = boekConfig.coverKleuren.find((k) => k.value === coverKeuze) ?? boekConfig.coverKleuren[0];
+  const binnen = binnenKleur(binnenKeuze);
   const boek: DrukBoek = {
     titel: order.cover_titel ?? "Mijn kleurboek",
     cover: { achtergrond: merkHex[cover.kleur], tekst: merkHex[cover.tekst] },
@@ -76,6 +79,7 @@ export async function maakDrukbestanden(order: Order) {
     fotosGebruikt: gebruikt.length,
     fotosTotaal: paginas.length,
     platenOntbreken: gebruikt.filter((p) => !p.tekenplaat_pad).map((p) => p.positie),
+    vasteKleuren: drukwerk.vasteKleuren ? { cover: cover.label, binnen: binnen.label } : null,
     spreads: url(0),
     coverSnijtekens: url(1),
     binnenwerk: url(2),

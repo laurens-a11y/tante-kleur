@@ -72,6 +72,7 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
     fotosGebruikt: number;
     fotosTotaal: number;
     platenOntbreken: number[];
+    vasteKleuren: { cover: string; binnen: string } | null;
     spreads: string | null;
     coverSnijtekens: string | null;
     binnenwerk: string | null;
@@ -294,6 +295,11 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
         {druk && druk.fotosTotaal > druk.fotosGebruikt && (
           <p className={b.melding}>
             Let op: het boek telt nu {druk.paginas} pagina&apos;s; alleen de eerste {druk.fotosGebruikt} van {druk.fotosTotaal} foto&apos;s staan erin.
+          </p>
+        )}
+        {druk?.vasteKleuren && (
+          <p className={b.melding}>
+            Drukbestanden gebruiken vaste kleuren (cover {druk.vasteKleuren.cover.toLowerCase()}, verhaalpagina&apos;s {druk.vasteKleuren.binnen.toLowerCase()}); de keuze van de klant wordt genegeerd.
           </p>
         )}
         {druk && druk.platenOntbreken.length > 0 && (
