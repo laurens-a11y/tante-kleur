@@ -1,7 +1,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { buckets, getSupabase } from "@/lib/supabase";
-import { boekUrl, haalPaginas, verwijderBestanden, type Order, type OrderStatus, type Pagina } from "@/lib/orders";
+import { boekUrl, haalPaginas, nieuweCode, verwijderBestanden, type Order, type OrderStatus, type Pagina } from "@/lib/orders";
 import { stuurProef } from "@/lib/mail";
 import { verwijderDrukbestanden } from "@/lib/druk/drukbestanden";
 
@@ -133,4 +133,41 @@ export async function verstuurProef(order: Order, origin: string) {
   const { error } = await db.from("orders").update({ status: "proef_klaar" }).eq("id", order.id);
   if (error) throw new Error(`Status opslaan mislukt: ${error.message}`);
   await stuurProef({ aan: order.email, naam: order.naam, url: boekUrl(origin, order.code), titel: order.cover_titel ?? "je boek" });
+}
+
+/**
+ * Testboek aanmaken (bijv. met de inhoud van een voorbeeld-PDF), zonder
+ * betaling. Staat als test (livemode false) en 'ingediend'; de kleurplaten
+ * worden daarna per pagina geüpload via de gewone tekenplaat-upload.
+ */
+export async function maakTestboek(invoer: unknown): Promise<{ id: string; paginas: string[] }> {
+  const data = invoer as { titel?: unknown; inleiding?: unknown; items?: unknown };
+  const tekst = (w: unknown, max: number) => (typeof w === "string" ? w.trim().slice(0, max) : "");
+  const items = Array.isArray(data.items) ? data.items.slice(0, 40) : [];
+  if (!items.length) throw new BeheerFout("Geen items in het testboek.");
+  const db = getSupabase();
+  const { data: order, error } = await db
+    .from("orders")
+    .insert({
+      code: nieuweCode(),
+      stripe_session_id: `test_import_${randomBytes(9).toString("hex")}`,
+      naam: "Testboek",
+      status: "ingediend",
+      livemode: false,
+      cover_titel: tekst(data.titel, 40) || "Testboek",
+      cover_kleur: "roze",
+      binnen_kleur: "wit",
+      inleiding: tekst(data.inleiding, 2000) || null,
+      ingediend_op: new Date().toISOString(),
+    })
+    .select("id")
+    .single<{ id: string }>();
+  if (error || !order) throw new Error(`Testboek aanmaken mislukt: ${error?.message}`);
+  const rijen = items.map((it, i) => {
+    const item = it as { titel?: unknown; verhaal?: unknown };
+    return { order_id: order.id, positie: i + 1, titel: tekst(item.titel, 60) || null, verhaal: tekst(item.verhaal, 1000) || null };
+  });
+  const { data: paginas, error: pErr } = await db.from("pages").insert(rijen).select("id, positie").returns<{ id: string; positie: number }[]>();
+  if (pErr || !paginas) throw new Error(`Pagina's aanmaken mislukt: ${pErr?.message}`);
+  return { id: order.id, paginas: paginas.sort((a, b) => a.positie - b.positie).map((p) => p.id) };
 }
