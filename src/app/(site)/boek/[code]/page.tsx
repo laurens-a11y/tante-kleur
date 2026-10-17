@@ -4,7 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { boek, standaardBinnenKleur } from "@/config";
+import { boek, geldendeKleuren, standaardBinnenKleur } from "@/config";
 import { haalOrderOpCode, haalPaginas, kleineFotoLinks, type Order } from "@/lib/orders";
 import s from "../../page.module.css";
 import b from "./boek.module.css";
@@ -40,16 +40,19 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
   const order = await haalOrderOpCode(code);
   if (!order) notFound();
 
+  // Bij vaste kleuren (fase 1) ziet de klant die, niet zijn eerdere keuze.
+  const kleuren = geldendeKleuren(order.cover_kleur, order.binnen_kleur);
+
   if (order.status === "proef_klaar") {
     const paginas = await haalPaginas(order.id);
     const links = await linksVoorPaginas(paginas, false);
-    const kleur = boek.coverKleuren.find((k) => k.value === order.cover_kleur);
+    const kleur = boek.coverKleuren.find((k) => k.value === kleuren.cover);
     return (
       <Proef
         code={order.code}
         titel={order.cover_titel ?? ""}
         kleur={{ achtergrond: kleur?.kleur ?? "blauw", tekst: kleur?.tekst ?? "wit" }}
-        binnenKleur={order.binnen_kleur ?? standaardBinnenKleur}
+        binnenKleur={kleuren.binnen ?? standaardBinnenKleur}
         inleiding={order.inleiding ?? ""}
         nawoord={order.nawoord ?? ""}
         paginas={paginas.map((p) => ({ id: p.id, verhaal: p.verhaal ?? "", opmerking: p.opmerking ?? "", tekenplaat: links[p.id]?.tekenplaat ?? null }))}
@@ -67,8 +70,8 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
       voornaam={order.naam?.split(" ")[0] ?? null}
       begin={{
         titel: order.cover_titel ?? "",
-        kleur: order.cover_kleur ?? "",
-        binnenKleur: order.binnen_kleur ?? standaardBinnenKleur,
+        kleur: kleuren.cover ?? "",
+        binnenKleur: kleuren.binnen ?? standaardBinnenKleur,
         inleiding: order.inleiding ?? "",
         nawoord: order.nawoord ?? "",
         paginas: paginas.map((p) => ({

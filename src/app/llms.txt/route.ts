@@ -34,7 +34,7 @@ export async function GET() {
 
   const feiten = vulIn([
     `Product: persoonlijk kleurboek met {kleurplaten} kleurplaten, gemaakt van de eigen foto's van de klant`,
-    `Uitvoering: A4 staand, stevige hardcover, eigen titel en kleur op de cover`,
+    `Uitvoering: A4 staand, stevige hardcover, eigen titel op de cover`,
     `Prijs: {prijs} inclusief btw (introductieprijs, daarna {normalePrijs}); verzending {verzendkosten} per boek`,
     `Bezorging: Nederland en België, binnen {levertijd} werkdagen na akkoord op de digitale proef`,
     `Werkwijze: kleurplaten gemaakt met hulp van AI en door een mens gecontroleerd; klant ziet altijd eerst een digitale proef`,

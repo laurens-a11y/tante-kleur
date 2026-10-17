@@ -93,3 +93,14 @@ export const merkHex: Record<string, string> = {
   geel: "#f3b500",
   wit: "#ffffff",
 };
+
+// Mag de klant zelf de cover- en binnenkleur kiezen? Nu niet (fase 1): de
+// kiezers zijn verborgen en overal gelden de vaste kleuren van drukwerk.
+// Zet op true (en drukwerk.vasteKleuren op null) om de keuze terug te zetten.
+export const kleurKeuzeAan = false;
+
+/** De kleuren die echt gelden: de keuze van de klant, of de vaste kleuren. */
+export function geldendeKleuren(cover: string | null, binnen: string | null) {
+  if (!kleurKeuzeAan && drukwerk.vasteKleuren) return { cover: drukwerk.vasteKleuren.cover as string, binnen: drukwerk.vasteKleuren.binnen };
+  return { cover, binnen };
+}
