@@ -29,6 +29,18 @@ export const site = {
   plates: "19 of 21",
 } as const;
 
+// Google Tag Manager. Laadt alleen op de publieke pagina's: op /boek, /bedankt
+// en /beheer staat een geheime code of sessie in de URL die niet naar Google mag.
+// Google-tags plaatsen pas cookies na toestemming (Consent Mode, zie CookieMelding).
+export const tagManager = {
+  id: "GTM-PZSHLGBV",
+  uitgesloten: ["/boek", "/bedankt", "/beheer", "/studio"],
+} as const;
+
+export function tagManagerOpPad(pad: string) {
+  return !tagManager.uitgesloten.some((p) => pad === p || pad.startsWith(`${p}/`));
+}
+
 // Instellingen van het boek zelf: hoeveel pagina's en welke covers.
 export const boek = {
   // Minimaal en maximaal aantal foto's (= kleurplaten = spreads). Alleen

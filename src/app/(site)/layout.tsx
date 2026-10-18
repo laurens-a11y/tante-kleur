@@ -9,6 +9,8 @@ import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { SanityLive } from "@/sanity/live";
 import { DraftModeKnop } from "@/components/DraftModeKnop";
+import { TagManager } from "@/components/TagManager";
+import { CookieMelding } from "@/components/CookieMelding";
 
 // Tijdelijke vervangers voor de merkfonts (Swear Display + Widescreen).
 // Zodra de webfontlicenties er zijn: vervangen door next/font/local.
@@ -38,8 +40,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="nl" className={`${display.variable} ${sans.variable}`}>
       <body>
+        <TagManager />
         <JsonLd data={organisatie({ omschrijving: instellingen.merkOmschrijving, socialeMedia: instellingen.socialeMedia })} />
         {children}
+        <CookieMelding />
         {/* Live: gepubliceerde wijzigingen direct op de site; in draft mode ook concepten. */}
         <SanityLive includeDrafts={isDraftMode} />
         {isDraftMode && (
