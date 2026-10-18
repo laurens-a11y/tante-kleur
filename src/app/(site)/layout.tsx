@@ -9,6 +9,7 @@ import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { SanityLive } from "@/sanity/live";
 import { DraftModeKnop } from "@/components/DraftModeKnop";
+import { Suspense } from "react";
 import { TagManager } from "@/components/TagManager";
 import { CookieMelding } from "@/components/CookieMelding";
 
@@ -40,10 +41,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="nl" className={`${display.variable} ${sans.variable}`}>
       <body>
-        <TagManager />
+        {/* Pad pas bekend na het laden: in Suspense, zodat de rest gewoon vooraf gerenderd wordt. */}
+        <Suspense fallback={null}>
+          <TagManager />
+        </Suspense>
         <JsonLd data={organisatie({ omschrijving: instellingen.merkOmschrijving, socialeMedia: instellingen.socialeMedia })} />
         {children}
-        <CookieMelding />
+        <Suspense fallback={null}>
+          <CookieMelding />
+        </Suspense>
         {/* Live: gepubliceerde wijzigingen direct op de site; in draft mode ook concepten. */}
         <SanityLive includeDrafts={isDraftMode} />
         {isDraftMode && (
