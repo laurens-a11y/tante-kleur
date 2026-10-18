@@ -1,0 +1,74 @@
+.melding {
+  position: fixed;
+  z-index: 50;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--wit);
+  color: var(--blauw);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.18);
+  display: grid;
+  gap: 16px;
+}
+
+.tekst {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.tekst a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.knoppen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.akkoord,
+.weiger {
+  font: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 2px solid var(--blauw);
+}
+
+.akkoord {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.weiger {
+  background: transparent;
+  color: var(--blauw);
+}
+
+.akkoord:focus-visible,
+.weiger:focus-visible {
+  outline: 3px solid var(--geel);
+  outline-offset: 2px;
+}
+
+.footerKnop {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.footerKnop:hover {
+  text-decoration: underline;
+}

@@ -6,6 +6,8 @@ import s from "@/app/(site)/page.module.css";
 import x from "./site.module.css";
 import { getInstellingen } from "@/sanity/content";
 import { knopStijl } from "./merkkleur";
+import { CookieInstellingenKnop } from "./CookieMelding";
+import c from "./cookie.module.css";
 import { SocialIcon, socialPlatform, type SocialPlatform } from "./SocialIcon";
 
 const columns = [
@@ -97,6 +99,7 @@ export async function SiteFooter() {
           <div className={s.footerLinks}>
             <Link href="/privacy">Privacy</Link>
             <Link href="/voorwaarden">Voorwaarden</Link>
+            <CookieInstellingenKnop className={c.footerKnop} />
             <Link href="/over-ons">Contact</Link>
           </div>
         </div>
