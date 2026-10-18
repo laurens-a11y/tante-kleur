@@ -109,7 +109,7 @@ const statusTekst: Record<Exclude<Order["status"], "betaald">, { kop: string; te
   },
   verzonden: {
     kop: "Je boek is onderweg!",
-    tekst: "Veel kleurplezier. We zien graag een foto van het resultaat: tag ons op Instagram of TikTok.",
+    tekst: "Veel kleurplezier. We zien graag een foto van het resultaat: tag ons op Instagram of Pinterest.",
   },
 };
 
