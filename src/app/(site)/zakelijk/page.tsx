@@ -43,7 +43,7 @@ async function ZakelijkInhoud({ opties }: { opties: FetchOpties }) {
               <a href="#offerte" {...knopStijl(p.heroKnop, { style: { alignSelf: "flex-start" } })}>{p.heroKnop.tekst}</a>
             </div>
             <div className={s.heroMedia}>
-              <Image src={p.heroAfbeelding.src} alt={p.heroAfbeelding.alt} width={1000} height={1250} sizes="(max-width: 900px) 100vw, 560px" className={s.heroPhoto} priority />
+              <Image src={p.heroAfbeelding.src} alt={p.heroAfbeelding.alt} width={1000} height={1250} sizes="(max-width: 900px) 100vw, 560px" className={s.heroPhoto} loading="eager" />
             </div>
           </div>
         </section>

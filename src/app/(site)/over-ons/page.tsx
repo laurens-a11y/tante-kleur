@@ -39,7 +39,7 @@ async function OverOnsInhoud({ opties }: { opties: FetchOpties }) {
               <p className={s.lead}>{homepagina.verhaalTekst}</p>
             </div>
             <div className={s.heroMedia}>
-              <Image src={p.afbeelding.src} alt={p.afbeelding.alt} width={1000} height={1250} sizes="(max-width: 900px) 100vw, 520px" className={s.heroPhoto} priority />
+              <Image src={p.afbeelding.src} alt={p.afbeelding.alt} width={1000} height={1250} sizes="(max-width: 900px) 100vw, 520px" className={s.heroPhoto} loading="eager" />
             </div>
           </div>
         </section>

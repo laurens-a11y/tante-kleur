@@ -38,7 +38,7 @@ async function FeestdagenInhoud({ opties }: { opties: FetchOpties }) {
             </div>
             <div className={s.giftGrid}>
               {p.heroAfbeeldingen.map((b, i) => (
-                <Image key={b.src} src={b.src} alt={b.alt} width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} priority={i === 0} />
+                <Image key={b.src} src={b.src} alt={b.alt} width={1000} height={1250} sizes="(max-width: 700px) 50vw, 300px" className={s.frame} preload={i === 0} />
               ))}
             </div>
           </div>
