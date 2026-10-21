@@ -14,6 +14,7 @@ export const navItems = [
   { href: "/prijzen", label: "Prijs" },
   { href: "/zakelijk", label: "Zakelijk" },
   { href: "/vragen", label: "Vragen" },
+  { href: "/over-ons", label: "Over ons" },
 ];
 
 export async function SiteHeader({ current }: { current?: string }) {
@@ -55,7 +56,6 @@ export async function SiteHeader({ current }: { current?: string }) {
                 </Link>
               ))}
               <Link href="/sinterklaas-en-kerst">Sinterklaas &amp; kerst</Link>
-              <Link href="/over-ons">Over ons &amp; contact</Link>
               <div style={{ padding: "12px 20px 4px" }}>{knop}</div>
             </div>
           </details>
