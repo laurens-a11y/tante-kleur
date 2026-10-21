@@ -6,10 +6,11 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PDFDocument, PDFFont, PDFPage, PDFImage, degrees, rgb, type RGB } from "pdf-lib";
+import { PDFDocument, PDFFont, PDFPage, PDFImage, rgb, type RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import type { Font as FkFont } from "@pdf-lib/fontkit";
 import sharp from "sharp";
+import { coverOpmaak } from "../../config";
 
 const MM = 72 / 25.4;
 const mm = (waarde: number) => waarde * MM;
@@ -48,24 +49,7 @@ function schoon(tekst: string) {
     .trim();
 }
 
-type Fonts = { titel: PDFFont; tekst: PDFFont; vet: PDFFont };
-
 const assets = path.join(process.cwd(), "assets");
-
-async function laadFonts(doc: PDFDocument): Promise<Fonts> {
-  doc.registerFontkit(fontkit);
-  const lees = (naam: string) => readFile(path.join(assets, "fonts", naam));
-  const [titel, tekst, vet] = await Promise.all([
-    lees("fraunces-latin-900-normal.woff"),
-    lees("archivo-latin-400-normal.woff"),
-    lees("archivo-latin-600-normal.woff"),
-  ]);
-  return {
-    titel: await doc.embedFont(titel, { subset: true }),
-    tekst: await doc.embedFont(tekst, { subset: true }),
-    vet: await doc.embedFont(vet, { subset: true }),
-  };
-}
 
 /** Breekt tekst af op de beschikbare breedte; lege regels blijven als witregel. */
 function breekAf(tekst: string, font: PDFFont, grootte: number, breedte: number): string[] {
@@ -92,14 +76,6 @@ function breekAf(tekst: string, font: PDFFont, grootte: number, breedte: number)
   return regels;
 }
 
-/** Tekent een plaat passend (contain) en gecentreerd in een vak. */
-function tekenPlaat(pagina: PDFPage, plaat: PDFImage, vak: { x: number; y: number; breedte: number; hoogte: number }) {
-  const schaal = Math.min(vak.breedte / plaat.width, vak.hoogte / plaat.height);
-  const b = plaat.width * schaal;
-  const h = plaat.height * schaal;
-  pagina.drawImage(plaat, { x: vak.x + (vak.breedte - b) / 2, y: vak.y + (vak.hoogte - h) / 2, width: b, height: h });
-}
-
 function plaatOntbreekt(pagina: PDFPage, vak: { x: number; y: number; breedte: number; hoogte: number }, font: PDFFont) {
   const blauw = hex("#002cd4");
   pagina.drawRectangle({ ...{ x: vak.x, y: vak.y, width: vak.breedte, height: vak.hoogte }, borderColor: blauw, borderWidth: 1, borderDashArray: [6, 6] });
@@ -114,19 +90,6 @@ function zetKaders(pagina: PDFPage, breedte: number, hoogte: number, afloop: num
   pagina.setTrimBox(mm(afloop), mm(afloop), mm(breedte - 2 * afloop), mm(hoogte - 2 * afloop));
 }
 
-/** Logo (PNG met transparantie) eenkleurig maken in de gegeven kleur. */
-async function logoInKleur(kleur: string): Promise<Buffer> {
-  const bron = sharp(await readFile(path.join(assets, "brand", "mark-color.png")));
-  const { width, height } = await bron.metadata();
-  const alfa = await bron.clone().ensureAlpha().extractChannel("alpha").toBuffer();
-  return sharp({
-    create: { width: width!, height: height!, channels: 3, background: rgbVan(kleur) },
-  })
-    .joinChannel(alfa)
-    .png()
-    .toBuffer();
-}
-
 export type Platen = { binnen: (Buffer | null)[]; voorplaat: Buffer | null };
 
 function rgbVan(kleur: string) {
@@ -137,7 +100,7 @@ function rgbVan(kleur: string) {
 /**
  * Bereidt de tekenplaten voor op druk, zonder details te verliezen:
  * - binnenwerk: grijswaarden, opgeschaald voor een scherpe weergave op de pagina;
- * - cover: lijnen in de tekstkleur van de cover, met transparante achtergrond.
+ * - cover: de eerste plaat ongewijzigd (zie maakCover).
  */
 export async function bereidPlatenVoor(boek: DrukBoek): Promise<Platen> {
   const binnen: (Buffer | null)[] = [];
@@ -149,18 +112,8 @@ export async function bereidPlatenVoor(boek: DrukBoek): Promise<Platen> {
         : null,
     );
   }
-  const eerste = boek.paginas.find((p) => p.plaat)?.plaat ?? null;
-  let voorplaat: Buffer | null = null;
-  if (eerste) {
-    // Donker = lijn: de negatieve grijswaarde wordt de dekking, de kleur is die van de covertekst.
-    const grijs = sharp(eerste).rotate().flatten({ background: "#ffffff" }).grayscale().resize({ height: 2600, kernel: "lanczos3" });
-    const { data, info } = await grijs.negate().raw().toBuffer({ resolveWithObject: true });
-    const alfa = await sharp(data, { raw: { width: info.width, height: info.height, channels: 1 } }).png().toBuffer();
-    voorplaat = await sharp({ create: { width: info.width, height: info.height, channels: 3, background: rgbVan(boek.cover.tekst) } })
-      .joinChannel(alfa)
-      .png({ compressionLevel: 9 })
-      .toBuffer();
-  }
+  // Coverbeeld: de eerste tekenplaat; inkleuren en uitsnijden gebeurt in maakCover.
+  const voorplaat = boek.paginas.find((p) => p.plaat)?.plaat ?? null;
   return { binnen, voorplaat };
 }
 
@@ -381,75 +334,207 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: Plate
   return doc.save();
 }
 
-export async function maakCover(boek: DrukBoek, maten: Maten, platen: Platen): Promise<Uint8Array> {
+// ---------- Cover volgens de kernbriefing van de designer ----------
+//
+// Eén doorlopende pagina: achterplat links, rug, voorplat rechts. Roze boven,
+// blauw ondervlak over de hele breedte. Coverbeeld (oranjerood lijnwerk op
+// roze) op het voorplat tot aan de afloop, titel in Archivo Black op de
+// scheidingslijn, sticker rechtsboven, merkuiting op het achterplat.
+
+export type CoverControle = {
+  titelGrootte: number | null; // null = past niet, ook niet op de minimale maat
+  titelRegels: string[];
+  beeldPpi: number | null; // effectieve resolutie van de bronplaat op het geplaatste formaat
+  beeldPixels: string | null;
+  rugBreedte: number;
+  covermaat: string;
+  bevestigd: boolean;
+  waarschuwingen: string[];
+};
+
+/** Zichtbare inkt van een regel in pt: links/rechts t.o.v. de oorsprong, boven/onder t.o.v. de basislijn. */
+function inktRegel(font: Meetfont, regel: string, grootte: number) {
+  const run = font.fk.layout(regel);
+  const s = grootte / font.fk.unitsPerEm;
+  return { links: run.bbox.minX * s, rechts: run.bbox.maxX * s, boven: run.bbox.maxY * s, onder: run.bbox.minY * s };
+}
+
+/** Tekent een regel glyph voor glyph op de posities van fontkit, zodat de kerning klopt. */
+function tekenMetKerning(pagina: PDFPage, font: Meetfont, regel: string, grootte: number, x: number, y: number, kleur: RGB) {
+  const run = font.fk.layout(regel);
+  const s = grootte / font.fk.unitsPerEm;
+  let pen = 0;
+  run.glyphs.forEach((glyph, i) => {
+    const pos = run.positions[i];
+    const tekst = String.fromCodePoint(...glyph.codePoints);
+    if (tekst.trim()) pagina.drawText(tekst, { x: x + (pen + pos.xOffset) * s, y: y + pos.yOffset * s, size: grootte, font: font.pdf, color: kleur });
+    pen += pos.xAdvance;
+  });
+}
+
+/** Woorden op volgorde over regels verdelen; een woord gaat in zijn geheel naar de volgende regel. */
+function verdeelWoorden(woorden: string[], font: Meetfont, grootte: number, maxB: number): string[] | null {
+  const regels: string[] = [];
+  let regel = "";
+  for (const woord of woorden) {
+    const proef = regel ? `${regel} ${woord}` : woord;
+    if (inktRegel(font, proef, grootte).rechts <= maxB) regel = proef;
+    else {
+      if (!regel) return null; // één woord is al te breed
+      regels.push(regel);
+      regel = woord;
+      if (inktRegel(font, woord, grootte).rechts > maxB) return null;
+    }
+  }
+  if (regel) regels.push(regel);
+  return regels;
+}
+
+/** Coverbeeld: tekenplaat (zwart op wit) → oranjerood lijnwerk op roze, exact op maat (cover-fit, gecentreerd). */
+async function maakCoverbeeld(plaat: Buffer, breedtePx: number, hoogtePx: number) {
+  const { roze, lijn } = coverOpmaak.kleuren;
+  const meta = await sharp(plaat).rotate().metadata();
+  const { data, info } = await sharp(plaat)
+    .rotate()
+    .flatten({ background: "#ffffff" })
+    .grayscale()
+    .resize({ width: breedtePx, height: hoogtePx, fit: "cover", position: "centre", kernel: "lanczos3" })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const r = rgbVan(roze);
+  const l = rgbVan(lijn);
+  const uit = Buffer.alloc(info.width * info.height * 3);
+  for (let i = 0; i < info.width * info.height; i++) {
+    const a = 1 - data[i * info.channels] / 255; // donker = lijn
+    uit[i * 3] = Math.round(r.r + (l.r - r.r) * a);
+    uit[i * 3 + 1] = Math.round(r.g + (l.g - r.g) * a);
+    uit[i * 3 + 2] = Math.round(r.b + (l.b - r.b) * a);
+  }
+  const jpg = await sharp(uit, { raw: { width: info.width, height: info.height, channels: 3 } })
+    .jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true })
+    .toBuffer();
+  // Oriëntatie na rotate: bij EXIF 5–8 zijn breedte en hoogte verwisseld.
+  const gedraaid = (meta.orientation ?? 1) >= 5;
+  return { jpg, bronB: gedraaid ? meta.height! : meta.width!, bronH: gedraaid ? meta.width! : meta.height! };
+}
+
+export async function maakCover(boek: DrukBoek, maten: Maten, platen: Platen): Promise<{ pdf: Uint8Array; controle: CoverControle }> {
   const { breedte, hoogte, afloop, rug } = maten.cover;
+  const C = coverOpmaak;
+  const waarschuwingen: string[] = [];
   const doc = await PDFDocument.create();
   doc.setTitle(`${boek.titel} – cover`);
   doc.setProducer("Tante Kleur");
-  const fonts = await laadFonts(doc);
-  const achtergrond = hex(boek.cover.achtergrond);
-  const tekstKleur = hex(boek.cover.tekst);
+  doc.registerFontkit(fontkit);
 
   const pagina = doc.addPage([mm(breedte), mm(hoogte)]);
   zetKaders(pagina, breedte, hoogte, afloop);
-  pagina.drawRectangle({ x: 0, y: 0, width: mm(breedte), height: mm(hoogte), color: achtergrond });
+  const paneel = (breedte - 2 * afloop - rug) / 2; // netto breedte achter- en voorplat
+  const trimBoven = hoogte - afloop; // y van de bovenste TrimBox-rand (mm, vanaf onder)
+  const voorX = afloop + paneel + rug; // linkerrand voorplat
+  const trimRechts = breedte - afloop;
+  const scheiding = trimBoven - C.scheidingVanafBoven; // y van de scheidingslijn (mm, vanaf onder)
 
-  const paneel = (breedte - 2 * afloop - rug) / 2; // breedte achter- en voorkant
-  const binnenHoogte = hoogte - 2 * afloop;
-  const achter = { x: afloop, y: afloop };
-  const rugX = afloop + paneel;
-  const voor = { x: rugX + rug, y: afloop };
-  const marge = 18; // veilige afstand tot de snij- en vouwlijn
+  // 1. Achtergrond: blauw ondervlak over de hele breedte, roze erboven.
+  pagina.drawRectangle({ x: 0, y: 0, width: mm(breedte), height: mm(hoogte), color: hex(C.kleuren.blauw) });
+  pagina.drawRectangle({ x: 0, y: mm(scheiding), width: mm(breedte), height: mm(hoogte - scheiding), color: hex(C.kleuren.roze) });
 
-  // Voorkant: titel bovenaan, eerste kleurplaat eronder in de tekstkleur.
-  const titel = schoon(boek.titel);
-  const titelBreedte = mm(paneel - 2 * marge);
-  let grootte = 54;
-  let regels = breekAf(titel, fonts.titel, grootte, titelBreedte);
-  while ((regels.length > 2 || regels.some((r) => fonts.titel.widthOfTextAtSize(r, grootte) > titelBreedte)) && grootte > 24) {
-    grootte -= 2;
-    regels = breekAf(titel, fonts.titel, grootte, titelBreedte);
-  }
-  let y = mm(voor.y + binnenHoogte - marge - 6) - grootte;
-  for (const regel of regels) {
-    const w = fonts.titel.widthOfTextAtSize(regel, grootte);
-    pagina.drawText(regel, { x: mm(voor.x) + (mm(paneel) - w) / 2, y, size: grootte, font: fonts.titel, color: tekstKleur });
-    y -= grootte * 1.08;
-  }
+  // 2. Coverbeeld: van het midden van de rug tot de rechter buitenrand, van de bovenrand tot de scheidingslijn.
+  let beeldPpi: number | null = null;
+  let beeldPixels: string | null = null;
   if (platen.voorplaat) {
-    const vak = { x: mm(voor.x + marge + 6), y: mm(voor.y + marge), breedte: mm(paneel - 2 * marge - 12), hoogte: y - mm(voor.y + marge) - mm(6) };
-    tekenPlaat(pagina, await doc.embedPng(platen.voorplaat), vak);
+    const vak = { x: afloop + paneel + rug / 2, y: scheiding, b: breedte - (afloop + paneel + rug / 2), h: hoogte - scheiding };
+    const doelB = Math.round((vak.b / 25.4) * C.minPpi);
+    const doelH = Math.round((vak.h / 25.4) * C.minPpi);
+    const beeld = await maakCoverbeeld(platen.voorplaat, doelB, doelH);
+    // Cover-fit: de kleinste schaal die het vak vult bepaalt de effectieve resolutie van de bron.
+    const schaal = Math.max(doelB / beeld.bronB, doelH / beeld.bronH);
+    beeldPpi = Math.round(C.minPpi / schaal);
+    beeldPixels = `${beeld.bronB}×${beeld.bronH}`;
+    if (beeldPpi < C.minPpi) {
+      waarschuwingen.push(`Coverbeeld is ${beeldPpi} ppi (doel ${C.minPpi}). Nodig: ca. ${Math.round(doelB)}×${Math.round(doelH)} px bron; het is nu opgeschaald, dat geeft geen extra detail.`);
+    }
+    pagina.drawImage(await doc.embedJpg(beeld.jpg), { x: mm(vak.x), y: mm(vak.y), width: mm(vak.b), height: mm(vak.h) });
+  } else {
+    waarschuwingen.push("Geen tekenplaat beschikbaar voor het coverbeeld; het beeldvlak is leeg (roze).");
   }
 
-  // Rug: titel van boven naar beneden.
+  // 3. Sticker rechtsboven over het beeld: vector, eigen kleuren, geen extra rotatie.
+  const stickerOnder = trimBoven - C.sticker.marge - C.sticker.maat;
   {
-    const rugGrootte = Math.min(10, mm(rug) * 0.55);
-    let rugTitel = titel.replace(/\s*\n\s*/g, " ");
-    const max = mm(binnenHoogte - 2 * marge);
-    while (fonts.vet.widthOfTextAtSize(rugTitel, rugGrootte) > max && rugTitel.length > 3) rugTitel = `${rugTitel.slice(0, -2).trimEnd()}…`;
-    const w = fonts.vet.widthOfTextAtSize(rugTitel, rugGrootte);
-    const hoogteLetter = fonts.vet.heightAtSize(rugGrootte, { descender: false });
-    pagina.drawText(rugTitel, {
-      x: mm(rugX + rug / 2) - hoogteLetter / 2 + hoogteLetter * 0.08,
-      y: mm(afloop + binnenHoogte / 2) + w / 2,
-      size: rugGrootte,
-      font: fonts.vet,
-      color: tekstKleur,
-      rotate: degrees(-90),
+    const [sticker] = await doc.embedPdf(await readFile(path.join(assets, "brand", "sticker-blauw.pdf")));
+    pagina.drawPage(sticker, {
+      x: mm(trimRechts - C.sticker.marge - C.sticker.maat),
+      y: mm(stickerOnder),
+      width: mm(C.sticker.maat),
+      height: mm(C.sticker.maat),
     });
   }
 
-  // Achterkant: logo in de tekstkleur, met de website eronder.
+  // 4. Merkuiting achterplat: vector uit het ontwerp van de designer, ongewijzigd.
   {
-    const logo = await doc.embedPng(await logoInKleur(boek.cover.tekst));
-    const b = mm(55);
+    const [logo] = await doc.embedPdf(await readFile(path.join(assets, "brand", "achterplat-logo.pdf")));
+    const b = C.achterLogo.breedte;
     const h = (logo.height / logo.width) * b;
-    const midden = mm(achter.x + paneel / 2);
-    pagina.drawImage(logo, { x: midden - b / 2, y: mm(achter.y + binnenHoogte * 0.42), width: b, height: h });
-    const regel = "tantekleur.nl";
-    const w = fonts.tekst.widthOfTextAtSize(regel, 11);
-    pagina.drawText(regel, { x: midden - w / 2, y: mm(achter.y + binnenHoogte * 0.42) - 22, size: 11, font: fonts.tekst, color: tekstKleur });
+    pagina.drawPage(logo, { x: mm(afloop + C.achterLogo.x), y: mm(trimBoven - C.achterLogo.y - h), width: mm(b), height: mm(h) });
   }
 
-  return doc.save();
+  // 5. Titel: Archivo Black, kapitalen, laatste woord roze en alleen op de laatste regel.
+  const fontBestand = await readFile(path.join(assets, "fonts", "Archivo-Black.ttf"));
+  const font: Meetfont = { pdf: await doc.embedFont(fontBestand, { subset: true }), fk: fontkit.create(fontBestand) };
+  const woorden = schoon(boek.titel).toLocaleUpperCase("nl-NL").split(/\s+/).filter(Boolean);
+  const laatste = woorden.pop() ?? "";
+  const titelX = voorX + C.titel.linksVanafVoorplat;
+  const maxB = mm(trimRechts - C.titel.rechtsMarge - titelX);
+  const maxOmhoog = mm(stickerOnder - 2 - scheiding); // blauwe regels mogen de sticker niet raken
+  const maxOmlaag = mm(scheiding - (afloop + C.titel.onderMarge));
+  let titelGrootte: number | null = null;
+  let blauw: string[] = [];
+  if (laatste) {
+    for (let g = C.titel.start; g >= C.titel.min - 1e-9; g = Math.round((g - C.titel.stap) * 100) / 100) {
+      const regels = woorden.length ? verdeelWoorden(woorden, font, g, maxB) : [];
+      if (!regels || regels.length > C.titel.maxRegels - 1) continue;
+      const roze = inktRegel(font, laatste, g);
+      if (roze.rechts > maxB || roze.boven - roze.onder > maxOmlaag) continue;
+      const omhoog = regels.reduce((som, r) => { const i = inktRegel(font, r, g); return som + i.boven - i.onder; }, 0);
+      if (omhoog > maxOmhoog) continue;
+      titelGrootte = g;
+      blauw = regels;
+      break;
+    }
+    const g = titelGrootte ?? C.titel.min;
+    if (titelGrootte === null) {
+      waarschuwingen.push(`Titel past niet, ook niet op ${C.titel.min} pt: vraag de klant om een kortere titel (de tekst is niet aangepast).`);
+      blauw = woorden.length ? [woorden.join(" ")] : [];
+    }
+    // Roze regel: zichtbare bovenkant op de scheidingslijn.
+    const roze = inktRegel(font, laatste, g);
+    tekenMetKerning(pagina, font, laatste, g, mm(titelX), mm(scheiding) - roze.boven, hex(C.kleuren.roze));
+    // Blauwe regels: van de scheidingslijn omhoog, zichtbare onderkant op de bovenkant van de regel eronder.
+    let rand = mm(scheiding);
+    for (const regel of [...blauw].reverse()) {
+      const i = inktRegel(font, regel, g);
+      tekenMetKerning(pagina, font, regel, g, mm(titelX), rand - i.onder, hex(C.kleuren.blauw));
+      rand += i.boven - i.onder;
+    }
+  }
+
+  if (!C.bevestigd) {
+    waarschuwingen.push("Covermaten en rugbreedte komen uit de referentie van de designer en zijn nog niet bevestigd door PrintAPI: niet drukklaar.");
+  }
+
+  const pdf = await doc.save();
+  return {
+    pdf,
+    controle: {
+      titelGrootte,
+      titelRegels: laatste ? [...blauw, laatste] : [],
+      beeldPpi,
+      beeldPixels,
+      rugBreedte: rug,
+      covermaat: `${breedte} × ${hoogte} mm (afloop ${afloop} mm)`,
+      bevestigd: C.bevestigd,
+      waarschuwingen,
+    },
+  };
 }

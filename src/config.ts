@@ -105,6 +105,30 @@ export const drukwerk = {
   cover: { breedte: 477, hoogte: 342, afloop: 19, rug: 6 },
 } as const;
 
+// Opmaak van de cover volgens de kernbriefing van de designer (okt 2026).
+// Maten in mm, lokaal t.o.v. de TrimBox, zodat ze bij een andere rugbreedte
+// meeschuiven met het voorplat in plaats van mee te schalen.
+// LET OP: de covermaten in `drukwerk.cover` komen uit de referentie-PDF van de
+// designer en zijn nog niet bevestigd als PrintAPI-sjabloon (`bevestigd`).
+export const coverOpmaak = {
+  bevestigd: false,
+  kleuren: { roze: "#fcb2bf", blauw: "#052ed6", lijn: "#f73d12" },
+  scheidingVanafBoven: 248.75, // scheidingslijn beeld/blauw, vanaf bovenkant TrimBox (referentie y = 267,75 mm)
+  titel: {
+    linksVanafVoorplat: 14.42, // linker uitlijning t.o.v. linkerrand voorplat (referentie x = 255,92 mm)
+    rechtsMarge: 12.7, // rechtergrens binnen de rechter TrimBox-rand
+    onderMarge: 12.7, // roze regel blijft zo ver van de onderste TrimBox-rand
+    start: 84,
+    stap: 0.5,
+    min: 40,
+    maxRegels: 3,
+  },
+  sticker: { maat: 48.9, marge: 12.7 }, // boven en rechts vanaf TrimBox
+  // Merkuiting achterplat: positie linksboven t.o.v. de linkerbovenhoek van de TrimBox, breedte in mm.
+  achterLogo: { x: 74.0, y: 128.27, breedte: 69.17 },
+  minPpi: 300,
+} as const;
+
 /** Aantal pagina's van het binnenwerk bij n foto's. */
 export function binnenwerkPaginas(fotos: number) {
   return drukwerk.voorPaginas + 2 * fotos;
