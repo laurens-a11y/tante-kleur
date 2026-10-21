@@ -344,3 +344,44 @@
   text-transform: uppercase;
   color: var(--roze);
 }
+
+/* Over ons: foto van de makers als een afgedrukte foto, iets scheef */
+.makersFoto {
+  flex: 0 1 400px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 14px 18px;
+  background: var(--wit);
+  color: var(--blauw);
+  border-radius: 4px;
+  box-shadow: 0 24px 60px rgba(0, 44, 212, 0.18);
+  transform: rotate(-2deg);
+}
+
+.makersFoto img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+.makersFoto figcaption {
+  padding-top: 14px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .makersFoto {
+    flex-basis: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+}
+
+.makersHand {
+  font-weight: 700;
+  padding-left: 18px;
+  border-left: 4px solid currentColor;
+}

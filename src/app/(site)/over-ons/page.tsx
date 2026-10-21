@@ -26,6 +26,7 @@ export default function OverOnsPage() {
 async function OverOnsInhoud({ opties }: { opties: FetchOpties }) {
   const [homepagina, p] = await Promise.all([getPagina("homepagina", opties), getPagina("overOnsPagina", opties)]);
   const { company } = site;
+  const makersBlok = blokStijl(p.makersAchtergrond, "lichtblauw");
 
   return (
     <>
@@ -55,6 +56,37 @@ async function OverOnsInhoud({ opties }: { opties: FetchOpties }) {
                   <p className={s.body}>{w.tekst}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="makers" className={s.section} style={makersBlok.style}>
+          <div className={`${s.wrap} ${s.stack}`} style={{ gap: 72 }}>
+            <div className={s.row}>
+              {p.makersFoto.src && (
+                <figure className={x.makersFoto}>
+                  <Image src={p.makersFoto.src} alt={p.makersFoto.alt} width={1000} height={1250} sizes="(max-width: 900px) 100vw, 440px" />
+                  {p.makersOnderschrift && <figcaption>{p.makersOnderschrift}</figcaption>}
+                </figure>
+              )}
+              <div className={`${s.col} ${s.stack}`} style={{ gap: 20 }}>
+                <p className={s.tag} style={{ color: makersBlok.accent }}>{p.makersLabel}</p>
+                <h2 className={`${s.display} ${s.h2}`}>{p.makersKop}</h2>
+                <p className={s.lead}>{p.makersTekst}</p>
+                {p.makersHandTekst && <p className={`${s.lead} ${x.makersHand}`}>{p.makersHandTekst}</p>}
+              </div>
+            </div>
+            <div className={s.stack} style={{ gap: 32 }}>
+              <h3 className={x.cardTitle}>{p.makersStappenKop}</h3>
+              <ol className={x.timeline} style={{ "--accent": makersBlok.accent } as React.CSSProperties}>
+                {p.makersStappen.map((m) => (
+                  <li key={m._key ?? m.titel}>
+                    <Icon name={m.icoon} size={48} />
+                    <strong>{m.titel}</strong>
+                    <span className={s.body}>{m.tekst}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
         </section>

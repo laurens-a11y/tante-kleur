@@ -229,6 +229,21 @@ export const overOnsPagina = {
     { icoon: "uitgelicht", titel: "Eerlijk over AI", tekst: "Tante tekent met hulp van AI en kijkt elke plaat na. Jij ziet altijd eerst een proef." },
     { icoon: "hartje", titel: "Zorgvuldig met je foto's", tekst: "Alleen voor jouw boek, en direct verwijderd zodra het naar de drukker gaat." },
   ] as Kaart[],
+  makersLabel: "Wie is Tante?",
+  makersKop: "Achter Tante zitten er twee.",
+  makersTekst:
+    "Tante Kleur, dat zijn wij: twee ontwerpers die het zonde vinden dat de mooiste foto's in een camerarol verdwijnen. We houden van papier, van een boek dat je echt vasthoudt en van een middag kleuren aan de keukentafel. Dus maken we boeken waarin dat allemaal samenkomt.",
+  makersHandTekst: "De kleurplaten maken we met hulp van AI. De cover niet: die maken we met de hand, voor elk boek opnieuw.",
+  // Leeg tot er een foto in Sanity staat; zonder foto toont het blok alleen tekst.
+  makersFoto: { src: "", alt: "" } as Beeld,
+  makersOnderschrift: "",
+  makersAchtergrond: "lichtblauw" as Merkkleur,
+  makersStappenKop: "Zo maken we jouw boek",
+  makersStappen: [
+    { icoon: "uitgelicht", titel: "Kleurplaten met AI", tekst: "Elke foto zetten we met hulp van AI om in een kleurplaat. Daarna kijken we ze één voor één na, en wat niet mooi genoeg is, maken we opnieuw." },
+    { icoon: "label", titel: "De cover, met de hand", tekst: "Jij kiest de kleur en de titel. Wij maken je cover met de hand, zodat letters en tekening precies goed staan." },
+    { icoon: "akkoord", titel: "Eerst een proef", tekst: "Je ziet altijd eerst een digitale proef. Pas als jij er blij mee bent, gaat je boek naar de drukker." },
+  ] as Mijlpaal[],
   contactLabel: "Contact",
   contactKop: "Vraagje voor Tante?",
   contactTekst: "Mail naar {email}. Heb je al besteld? Zet dan je ordernummer of de naam op je bestelling in de mail.",
