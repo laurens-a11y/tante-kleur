@@ -62,13 +62,13 @@ async function rechtgezet(url: string, draaiing: number): Promise<Uint8Array> {
 }
 
 // Generatiemethode in localStorage (per browser), met een melding aan open componenten.
-type Methode = "A" | "B" | "C" | "D";
+type Methode = "A" | "B" | "C" | "D" | "E";
 const methodeSleutel = "tk-generatiemethode";
 const methodeLuisteraars = new Set<() => void>();
 function leesMethode(): Methode {
   try {
     const m = window.localStorage.getItem(methodeSleutel);
-    return m === "B" || m === "C" || m === "D" ? m : "A";
+    return m === "B" || m === "C" || m === "D" || m === "E" ? m : "A";
   } catch {
     return "A";
   }
@@ -382,11 +382,12 @@ export function BeheerOrder({
           <label className={b.klein} htmlFor="methode">
             Generatiemethode
           </label>
-          <select id="methode" className={b.select} value={methode} onChange={(e) => setMethode(["B", "C", "D"].includes(e.target.value) ? (e.target.value as Methode) : "A")} disabled={genereren.size > 0}>
+          <select id="methode" className={b.select} value={methode} onChange={(e) => setMethode(["B", "C", "D", "E"].includes(e.target.value) ? (e.target.value as Methode) : "A")} disabled={genereren.size > 0}>
             <option value="A">A: regisseur (gpt-5.5) + gpt-image-2, met fotocheck</option>
             <option value="B">B: korte prompt rechtstreeks naar ChatGPT-beeldmodel, zonder fotocheck</option>
             <option value="C">C: als A, met ChatGPT-instellingen (ChatGPT-beeldmodel, alles automatisch)</option>
             <option value="D">D: zoals ChatGPT in twee stappen (opdracht per foto, dan ChatGPT-beeldmodel), met fotocheck</option>
+            <option value="E">E: opdracht als D, maar gpt-image-2 in A4 en nieuw tekenen i.p.v. foto bewerken, met fotocheck</option>
           </select>
         </div>
         {paginas.map((p) => (

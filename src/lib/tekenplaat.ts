@@ -33,7 +33,13 @@ const chatgptModel = process.env.OPENAI_CHATGPT_IMAGE_MODEL || "chatgpt-image-la
 const dModel = process.env.OPENAI_D_IMAGE_MODEL || "chatgpt-image-latest";
 const dFormaat = process.env.OPENAI_D_IMAGE_SIZE || "auto";
 
-export type Methode = "A" | "B" | "C" | "D";
+// Methode E: opdracht zoals D, maar zoals ChatGPT waarschijnlijk tekent: gpt-image-2 in
+// A4-formaat en een NIEUW beeld (action "generate") met foto + referentie als voorbeeld,
+// in plaats van de foto te bewerken.
+const eModel = process.env.OPENAI_E_IMAGE_MODEL || "gpt-image-2";
+const eFormaat = process.env.OPENAI_E_IMAGE_SIZE || "1440x2032";
+
+export type Methode = "A" | "B" | "C" | "D" | "E";
 export type Generatie = { url: string | null; methode: Methode; model: string; prompt: string | null; referentie: string; formaat: string };
 
 // Stijlreferentie ("image 2" in de prompt): de goedgekeurde kleurplaat van de selfie op het treinperron.
@@ -119,8 +125,8 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
   let model = beeldModel;
   const ref = await referentie();
 
-  if (methode === "D") {
-    model = dModel;
+  if (methode === "D" || methode === "E") {
+    model = methode === "D" ? dModel : eModel;
     const regie = await getOpenAI().responses.create({
       model: regisseur,
       input: [
@@ -141,6 +147,36 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
     if (!tekst) throw new Error("De regisseur gaf geen opdracht terug");
     if (/^AFGEKEURD:/i.test(tekst)) throw new FotoAfgekeurd(`Foto afgekeurd door de AI: ${tekst.replace(/^AFGEKEURD:\s*/i, "").slice(0, 600)}`);
     gebruiktePrompt = tekst.replace(/^"|"$/g, "");
+    if (methode === "E") {
+      // Stap 2: nieuw beeld laten tekenen met precies deze opdracht; foto en referentie als voorbeeld.
+      const teken = await getOpenAI().responses.create({
+        model: regisseur,
+        input: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_text",
+                text: `Generate one image with the image generation tool. Pass the following prompt to the tool exactly as written, without changing, shortening or adding anything. Image 1 below is the source photograph, image 2 the style reference.\n\nPROMPT:\n${gebruiktePrompt}`,
+              },
+              { type: "input_text", text: "Image 1 (source photograph):" },
+              { type: "input_image", image_url: fotoUrl, detail: "high" },
+              { type: "input_text", text: "Image 2 (style reference, approved colouring page):" },
+              { type: "input_image", image_url: ref.dataUrl, detail: "high" },
+            ],
+          },
+        ],
+        tools: [{ type: "image_generation", model: eModel, size: eFormaat, quality: "high", output_format: "png", background: "opaque", action: "generate" }],
+        tool_choice: { type: "image_generation" },
+        store: false,
+      });
+      const beeld = teken.output.find((o) => o.type === "image_generation_call");
+      b64 = beeld && "result" in beeld ? (beeld.result ?? null) : null;
+      const doorgegeven = beeld && "revised_prompt" in beeld ? (beeld as { revised_prompt?: string | null }).revised_prompt : null;
+      // Laat zien of de opdracht ongewijzigd is doorgegeven.
+      if (doorgegeven && doorgegeven.trim() !== gebruiktePrompt.trim()) gebruiktePrompt = `${gebruiktePrompt}\n\n--- Werkelijk doorgegeven aan het beeldmodel ---\n${doorgegeven}`;
+      if (!b64) throw new Error("OpenAI gaf geen afbeelding terug");
+    } else {
     const resultaat = await getOpenAI().images.edit({
       model: dModel,
       image: [await toFile(foto, "foto.jpg", { type: "image/jpeg" }), await dataUrlNaarBestand(ref.dataUrl, "stijlreferentie")],
@@ -152,6 +188,7 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
     });
     b64 = resultaat.data?.[0]?.b64_json ?? null;
     if (!b64) throw new Error("OpenAI gaf geen afbeelding terug");
+    }
   } else if (methode === "B") {
     model = directModel;
     gebruiktePrompt = kleurplaatPrompt(extra);
