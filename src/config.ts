@@ -129,6 +129,20 @@ export const coverOpmaak = {
   minPpi: 300,
 } as const;
 
+// Automatische nabewerking van álle tekenplaten in het binnenwerk (zie
+// src/lib/druk/nabewerking.ts). Eén set instellingen, geen handwerk per plaat.
+// Het origineel in Supabase blijft ongewijzigd; dit gebeurt bij het maken van
+// de drukbestanden, dus aanpassen werkt ook voor bestaande boeken.
+export const plaatNabewerking = {
+  aan: true,
+  doelHoogtePx: 3600, // ≈ 300 dpi op 303 mm (A4 + afloop)
+  zwartpunt: 30, // donkerder dan dit → volledig zwart (hoger maakt ogen en gezichten te zwaar)
+  witpunt: 235, // lichter dan dit → zuiver wit (gebroken wit en lichte arcering weg)
+  minVlek: 0.05, // mm²: losse vlekjes kleiner dan dit weg
+  verdikking: 0.1, // mm: lijnen iets dikker, beter te kleuren en te drukken
+  lijnKleur: "#000000", // bv. "#4a4a4a" voor zachtere grijze lijnen
+};
+
 /** Aantal pagina's van het binnenwerk bij n foto's. */
 export function binnenwerkPaginas(fotos: number) {
   return drukwerk.voorPaginas + 2 * fotos;
