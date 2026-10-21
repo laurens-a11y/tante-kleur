@@ -29,10 +29,12 @@ export function statusLabel(status: OrderStatus) {
   return alleStatussen.find((s) => s.value === status)?.label ?? status;
 }
 
+// Sinds orders.cover_page_id (migratie 0005) zijn er twee koppelingen tussen
+// orders en pages; daarom expliciet de koppeling via pages.order_id noemen.
 export async function lijstOrders(): Promise<OrderRegel[]> {
   const { data, error } = await getSupabase()
     .from("orders")
-    .select("id, code, status, cover_titel, naam, email, aangemaakt_op, ingediend_op, livemode, cover_kleur, binnen_kleur, pages(id, foto_pad, tekenplaat_pad, opmerking)")
+    .select("id, code, status, cover_titel, naam, email, aangemaakt_op, ingediend_op, livemode, cover_kleur, binnen_kleur, pages!pages_order_id_fkey(id, foto_pad, tekenplaat_pad, opmerking)")
     .order("aangemaakt_op", { ascending: false })
     .limit(500)
     .returns<OrderRegel[]>();
