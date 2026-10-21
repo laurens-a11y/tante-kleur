@@ -654,8 +654,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
           Je foto&apos;s en verhaaltjes
         </h2>
         <p className={s.body}>
-          Kies {aantallenTekst} foto&apos;s. De drukker werkt met vellen van 4 pagina&apos;s, daarom kan het net niet met elk
-          aantal. In het boek staat elke kleurplaat rechts, met links een titel en het verhaaltje. Het mooist werken scherpe, lichte foto&apos;s met één tot vier personen of dieren.
+          Kies {aantallenTekst} foto&apos;s. In het boek staat elke kleurplaat rechts, met links een titel en het verhaaltje. Het mooist werken scherpe, lichte foto&apos;s met één tot vier personen of dieren.
         </p>
 
         <ol className={b.paginas}>
@@ -778,7 +777,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
         )}
       </section>
 
-      {/* 4. Nawoord (nu uit: staat niet in het ontwerp van het boek) */}
+      {/* 4. Nawoord (achterin, op de linkerpagina na de laatste kleurplaat) */}
       {nawoordAan && (
       <section className={b.blok} aria-labelledby="kop-nawoord">
         <p className={b.stap}>Stap 4</p>

@@ -192,7 +192,7 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       if (!order.cover_titel) problemen.push("Kies een titel voor de cover.");
       if (kleurKeuzeAan && !order.cover_kleur) problemen.push("Kies een kleur voor de cover.");
       if (!geldigAantalFotos(metFoto.length) || paginas.length !== metFoto.length) {
-        problemen.push(`Je boek heeft ${ofLijst(toegestaneAantallen)} foto's nodig (nu ${metFoto.length}). De drukker werkt met vellen van 4 pagina's, daarom kan het net niet met elk aantal.`);
+        problemen.push(`Je boek heeft ${ofLijst(toegestaneAantallen)} foto's nodig (nu ${metFoto.length}).`);
       }
       if (problemen.length) return { problemen };
 
