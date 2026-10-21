@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
-import { tekenplaatPrompt } from "@/content/tekenplaat-prompt";
+import { tekenplaatPrompt, tekenplaatPromptDirect } from "@/content/tekenplaat-prompt";
 import { buckets, getSupabase } from "@/lib/supabase";
 import { bewaarTekenplaat, BeheerFout } from "@/lib/beheer-orders";
 import type { Order, Pagina } from "@/lib/orders";
@@ -69,12 +69,9 @@ async function referentie(): Promise<Referentie> {
 /** Fout als het model de foto ongeschikt vindt; de reden is voor Tante (en de klant). */
 export class FotoAfgekeurd extends BeheerFout {}
 
-/** Het deel van de prompt dat over de kleurplaat zelf gaat (zonder de geschiktheidscheck). */
+/** Prompt voor methode B: de korte versie, plus een eventuele extra instructie per foto. */
 function kleurplaatPrompt(extra?: string | null) {
-  const start = tekenplaatPrompt.indexOf("Turn the photograph in image 1");
-  const kern = start >= 0 ? tekenplaatPrompt.slice(start) : tekenplaatPrompt;
-  const basis = `Image 1 is the source photograph. Image 2 is the style reference (an approved colouring page).\n${kern}`;
-  return extra?.trim() ? `${basis}\n\nAdditional instruction for this photograph: ${extra.trim().slice(0, 500)}` : basis;
+  return extra?.trim() ? `${tekenplaatPromptDirect}\n\nAdditional instruction for this photograph: ${extra.trim().slice(0, 500)}` : tekenplaatPromptDirect;
 }
 
 function dataUrlNaarBestand(url: string, naam: string) {

@@ -25,3 +25,20 @@ Background: retain the main shapes and distinctive elements of the location. Red
 Create generous, comfortable colouring areas. Avoid excessive tiny enclosed shapes, crowded linework and large solid-black areas. Simplification should come from removing unnecessary lines, not from making them lighter or thinner.
 The finished page should feel like a carefully drawn illustration of the original photograph, with natural, recognisable people and a clear sense of the moment. Match the reference’s overall visual character while applying the calmer detail treatment described above.
 Return only the finished colouring page, without text, captions, borders, watermarks or a mockup.`;
+
+// Korte prompt voor methode B (rechtstreeks naar het beeldmodel, geen regisseur).
+// Beeldmodellen volgen een korte opdracht met een duidelijke rangorde beter dan
+// een lange lijst gelijkwaardige regels; daarom staan de belangrijkste eisen bovenaan.
+export const tekenplaatPromptDirect = `Create a colouring page from image 1 (a photograph), drawn in the style of image 2 (an approved colouring page).
+
+MOST IMPORTANT
+1. Clean black outlines on a pure white background. No shading, hatching, stippling, cross-hatching, texture, grey tones, gradients or solid black areas.
+2. The people (and animals) are the clear focus and must stay recognisable: same faces, expressions, hairstyles, clothing, poses and positions as in the photograph.
+3. Radically simplify everything else. Suggest the setting with a few large, simple shapes only. Leave ground, paths, sky, walls and water mostly empty white. Draw trees as simple outlines without bark texture, and foliage as a few large leaf shapes, never hundreds of small ones.
+4. Large, closed colouring areas: close all contours and avoid tiny enclosed shapes.
+
+STYLE (from image 2)
+Calm, confident lines of even medium weight, outer contours slightly bolder. Faces and hair with the same level of detail as image 2; nothing in the picture more detailed than image 2. Do not copy the people or setting from image 2.
+
+FORMAT
+Portrait page. Keep faces, hands and other important features well away from every edge; only background may run off the page. No text, border, signature or watermark.`;
