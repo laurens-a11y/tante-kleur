@@ -49,7 +49,7 @@ export async function maakDrukbestanden(order: Order) {
   };
 
   const platen = await bereidPlatenVoor(boek);
-  const [binnenwerk, coverPdf] = await Promise.all([maakBinnenwerk(boek, drukwerk, platen), maakCover(boek, drukwerk, platen)]);
+  const [binnenwerk, { pdf: coverPdf, controle: coverControle }] = await Promise.all([maakBinnenwerk(boek, drukwerk, platen), maakCover(boek, drukwerk, platen)]);
 
   await zorgVoorBucket();
   const opslag = db.storage.from(BUCKET);
@@ -77,7 +77,7 @@ export async function maakDrukbestanden(order: Order) {
     fotosGebruikt: gebruikt.length,
     fotosTotaal: paginas.length,
     platenOntbreken: gebruikt.filter((p) => !p.tekenplaat_pad).map((p) => p.positie),
-    vasteCoverKleur: drukwerk.vasteKleuren ? cover.label : null,
+    coverControle,
     binnenwerk: url(0),
     cover: url(1),
   };

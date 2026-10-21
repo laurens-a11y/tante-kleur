@@ -74,7 +74,16 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
     fotosTotaal: number;
     platenOntbreken: number[];
     veelvoudVan4: boolean;
-    vasteCoverKleur: string | null;
+    coverControle: {
+      titelGrootte: number | null;
+      titelRegels: string[];
+      beeldPpi: number | null;
+      beeldPixels: string | null;
+      rugBreedte: number;
+      covermaat: string;
+      bevestigd: boolean;
+      waarschuwingen: string[];
+    };
     binnenwerk: string | null;
     cover: string | null;
   } | null>(null);
@@ -285,9 +294,22 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
         {druk && !druk.veelvoudVan4 && (
           <p className={b.melding}>Let op: {druk.paginas} pagina&apos;s is geen veelvoud van 4 (dit boek heeft {druk.fotosGebruikt} foto&apos;s).</p>
         )}
-        {druk?.vasteCoverKleur && (
-          <p className={b.melding}>De cover gebruikt de vaste kleur {druk.vasteCoverKleur.toLowerCase()}; de keuze van de klant wordt genegeerd.</p>
+        {druk?.coverControle && (
+          <div className={b.klein}>
+            <strong>Controle cover</strong>
+            <br />
+            Maat {druk.coverControle.covermaat}, rug {druk.coverControle.rugBreedte} mm
+            <br />
+            Titel: {druk.coverControle.titelGrootte ? `${druk.coverControle.titelGrootte} pt` : "past niet"} · {druk.coverControle.titelRegels.join(" / ")}
+            <br />
+            Coverbeeld: {druk.coverControle.beeldPpi ? `${druk.coverControle.beeldPpi} ppi (bron ${druk.coverControle.beeldPixels} px)` : "geen"}
+          </div>
         )}
+        {druk?.coverControle.waarschuwingen.map((w) => (
+          <p key={w} className={b.melding}>
+            Cover: {w}
+          </p>
+        ))}
         {druk && druk.platenOntbreken.length > 0 && (
           <p className={b.melding}>Nog geen tekenplaat bij pagina {druk.platenOntbreken.join(", ")}; daar staat een lege plek.</p>
         )}
