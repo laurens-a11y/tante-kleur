@@ -26,7 +26,7 @@ export const site = {
     { feest: "Kerst", datum: "4 december" },
   ],
   // Aantal kleurplaten per boek (tekst op de site).
-  plates: "19 of 21",
+  plates: "20",
 } as const;
 
 // Google Tag Manager. Laadt alleen op de publieke pagina's: op /boek, /bedankt
@@ -45,9 +45,10 @@ export function tagManagerOpPad(pad: string) {
 export const boek = {
   // Minimaal en maximaal aantal foto's (= kleurplaten = spreads). Alleen
   // aantallen waarbij het binnenwerk op een veelvoud van 4 pagina's uitkomt
-  // zijn toegestaan (zie geldigAantalFotos); met 2 voorpagina's is dat oneven.
-  minFotos: 19,
-  maxFotos: 21,
+  // zijn toegestaan (zie geldigAantalFotos): 2 voorpagina's + 2 per foto +
+  // 2 achterpagina's, dus een even aantal foto's. Nu precies 20 (44 pagina's).
+  minFotos: 20,
+  maxFotos: 20,
   // Maximale lengtes in tekens. Gemeten zodat alles altijd past in de
   // vaste tekstvakken van het binnenwerk (zie src/lib/druk/opmaak.ts).
   maxTitel: 40,
@@ -56,7 +57,7 @@ export const boek = {
   maxWoordInTitel: 16,
   maxVerhaal: 400,
   maxInleiding: 700,
-  maxNawoord: 1200,
+  maxNawoord: 700, // zelfde tekstvak als de inleiding
   // Maximaal aantal AI-voorstellen per boek (tegen misbruik en kosten).
   maxAiAanroepen: 100,
   // Coverkleuren. `kleur` verwijst naar een merkkleur in globals.css.
@@ -89,14 +90,17 @@ export function binnenKleur(value: string | null | undefined) {
   return binnenKleuren.find((k) => k.value === value) ?? binnenKleuren[0];
 }
 
-// Mag de klant een nawoord schrijven? Nu niet: het ontwerp van het binnenwerk
-// heeft geen nawoordpagina. Veld en data blijven bestaan.
-export const nawoordAan = false;
+// Mag de klant een nawoord schrijven? Ja: het komt op de linkerpagina na de
+// laatste kleurplaat (blijft leeg zonder tekst), gevolgd door een lege
+// rechterpagina. Zie drukwerk.achterPaginas.
+export const nawoordAan = true;
 
 // Drukwerk voor PrintAPI (hardcover A4 staand). Maten in mm.
-// Binnenwerk: 2 voorpagina's (leeg + inleiding) en per foto 2 pagina's.
+// Binnenwerk: 2 voorpagina's (leeg + titel/inleiding), per foto 2 pagina's
+// (tekst links, kleurplaat rechts) en 2 achterpagina's (nawoord links + leeg rechts).
 export const drukwerk = {
   voorPaginas: 2,
+  achterPaginas: 2,
   // Vaste kleuren in de drukbestanden. De klant kan in het formulier nog wel
   // kiezen (en dat wordt bewaard), maar dat wordt nu genegeerd.
   // Zet op null om de keuze van de klant weer te gebruiken.
@@ -195,7 +199,7 @@ export const plaatNabewerking = {
 
 /** Aantal pagina's van het binnenwerk bij n foto's. */
 export function binnenwerkPaginas(fotos: number) {
-  return drukwerk.voorPaginas + 2 * fotos;
+  return drukwerk.voorPaginas + 2 * fotos + drukwerk.achterPaginas;
 }
 
 /** Komt het binnenwerk met dit aantal foto's uit op een veelvoud van 4 pagina's? */
@@ -232,6 +236,10 @@ export function themaVoorFoto(i: number): BinnenThema {
 
 /** Thema van de inleidingspagina. */
 export const inleidingThema: BinnenThema = binnenThemas[2]; // blauw
+
+// Nawoordpagina: zelfde opmaak als de inleiding (kop in het titelvak, tekst
+// eronder). Nog geen ontwerp van de designer; kop en thema hier aan te passen.
+export const nawoordPagina = { kop: "Tot slot", thema: binnenThemas[2] as BinnenThema };
 
 // Merkkleuren als hex voor de drukbestanden. Moeten gelijk blijven aan
 // de CSS-variabelen in src/app/(site)/globals.css.

@@ -1,5 +1,5 @@
 import "server-only";
-import { binnenwerkPaginas, boek as boekConfig, drukwerk, inleidingThema, merkHex, themaVoorFoto } from "@/config";
+import { binnenwerkPaginas, boek as boekConfig, drukwerk, inleidingThema, merkHex, nawoordAan, nawoordPagina, themaVoorFoto } from "@/config";
 import { getSupabase, buckets } from "@/lib/supabase";
 import { haalPaginas, type Order } from "@/lib/orders";
 import { bereidPlatenVoor, maakBinnenwerk, maakCover, type DrukBoek, type Thema } from "./opmaak";
@@ -45,6 +45,9 @@ export async function maakDrukbestanden(order: Order) {
     cover: { achtergrond: merkHex[cover.kleur], tekst: merkHex[cover.tekst] },
     inleiding: order.inleiding ?? "",
     inleidingThema: alsHex(inleidingThema),
+    nawoord: nawoordAan ? (order.nawoord ?? "") : "",
+    nawoordKop: nawoordPagina.kop,
+    nawoordThema: alsHex(nawoordPagina.thema),
     coverIndex: (() => {
       const i = gebruikt.findIndex((p) => p.id === order.cover_page_id);
       return i >= 0 ? i : null;

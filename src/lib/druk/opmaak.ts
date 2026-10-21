@@ -26,6 +26,10 @@ export type DrukBoek = {
   cover: Kleur;
   inleiding: string;
   inleidingThema: Thema;
+  // Nawoord achterin (leeg = witte pagina); kop en thema van de nawoordpagina.
+  nawoord?: string;
+  nawoordKop?: string;
+  nawoordThema?: Thema;
   // In de volgorde van het boek; tekenplaat als PNG/JPG, of null als die ontbreekt.
   paginas: { titel: string; verhaal: string; plaat: Buffer | null; thema: Thema }[];
   // Index (0-based) van de pagina waarvan de plaat op de cover komt, en de uitsnede.
@@ -36,6 +40,7 @@ export type DrukBoek = {
 
 export type Maten = {
   voorPaginas: number;
+  achterPaginas?: number;
   binnenwerk: { breedte: number; hoogte: number; afloop: number };
   cover: { breedte: number; hoogte: number; afloop: number; rug: number };
 };
@@ -331,7 +336,21 @@ export async function maakBinnenwerk(boek: DrukBoek, maten: Maten, platen: Plate
     }
   }
 
-  const verwacht = maten.voorPaginas + 2 * boek.paginas.length;
+  // Achterin: links het nawoord (wit zonder tekst), rechts een lege pagina.
+  if ((maten.achterPaginas ?? 0) >= 2) {
+    const t = boek.nawoordThema;
+    const tekst = schoon(boek.nawoord ?? "");
+    if (tekst && t) {
+      const pagina = nieuwePagina(t.achtergrond);
+      if (boek.nawoordKop) zetTitel(pagina, boek.nawoordKop, titelFont, hex(t.titel), TITELVAK, afloop, h);
+      zetTekst(pagina, tekst, tekstFont, hex(t.tekst), INLEIDINGVAK, afloop, h);
+    } else {
+      nieuwePagina("#ffffff");
+    }
+    nieuwePagina("#ffffff");
+  }
+
+  const verwacht = maten.voorPaginas + 2 * boek.paginas.length + (maten.achterPaginas ?? 0);
   if (doc.getPageCount() !== verwacht) throw new Error(`Binnenwerk heeft ${doc.getPageCount()} pagina's in plaats van ${verwacht}`);
   return doc.save();
 }
