@@ -1,7 +1,7 @@
 import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
 import { tekenplaatPrompt } from "@/content/tekenplaat-prompt";
 import { buckets, getSupabase } from "@/lib/supabase";
@@ -16,6 +16,16 @@ const beeldModel = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
 // Staand in A4-verhouding (210:297), beide zijden deelbaar door 16.
 const formaat = process.env.OPENAI_IMAGE_SIZE || "1440x2032";
 const kwaliteit = (process.env.OPENAI_IMAGE_QUALITY || "high") as "low" | "medium" | "high";
+// Methode B: rechtstreeks naar de beeld-API, zonder regisseur die de prompt
+// herschrijft. Standaard het beeldmodel van ChatGPT zelf; dat model ondersteunt
+// alleen de standaardformaten, dus staand 1024x1536 (2:3, iets smaller dan A4).
+const directModel = process.env.OPENAI_DIRECT_IMAGE_MODEL || "chatgpt-image-latest";
+const directFormaat = process.env.OPENAI_DIRECT_IMAGE_SIZE || "1024x1536";
+const directKwaliteit = (process.env.OPENAI_DIRECT_IMAGE_QUALITY || "high") as "low" | "medium" | "high";
+
+export type Methode = "A" | "B";
+export type Generatie = { url: string | null; methode: Methode; model: string; prompt: string | null; referentie: string };
+
 // Stijlreferentie ("image 2" in de prompt): de goedgekeurde kleurplaat van de selfie op het treinperron.
 // Standaard het bestand assets/stijlreferentie.png; via STIJL_REFERENTIE_URL te vervangen.
 const referentieUrl = process.env.STIJL_REFERENTIE_URL?.trim() || null;
@@ -30,24 +40,27 @@ function getOpenAI() {
   return client;
 }
 
-let referentieCache: string | null = null;
-async function referentie(): Promise<string> {
+type Referentie = { dataUrl: string; bron: "bestand" | "url" | "websiteversie (kleiner)"; bytes: number };
+let referentieCache: Referentie | null = null;
+async function referentie(): Promise<Referentie> {
   if (referentieCache) return referentieCache;
   if (referentieUrl) {
     const res = await fetch(referentieUrl);
     if (!res.ok) throw new Error(`Stijlreferentie ophalen mislukt (${res.status})`);
     const type = res.headers.get("content-type") || "image/jpeg";
-    referentieCache = `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+    const data = Buffer.from(await res.arrayBuffer());
+    referentieCache = { dataUrl: `data:${type};base64,${data.toString("base64")}`, bron: "url", bytes: data.length };
   } else {
     try {
       const bestand = await readFile(path.join(process.cwd(), "assets", "stijlreferentie.png"));
-      referentieCache = `data:image/png;base64,${bestand.toString("base64")}`;
+      referentieCache = { dataUrl: `data:image/png;base64,${bestand.toString("base64")}`, bron: "bestand", bytes: bestand.length };
     } catch (e) {
-      // Vangnet: de kleinere versie van de voorbeeldenpagina.
+      // Vangnet: de kleinere versie van de voorbeeldenpagina (niet gecachet, zodat het bestand een volgende keer weer geprobeerd wordt).
       console.error("Stijlreferentie niet gevonden, val terug op de websiteversie:", e instanceof Error ? e.message : e);
       const res = await fetch("https://cdn.sanity.io/images/hera4nnf/production/8508016daaadccd4acb3bbddec8a276bdec92c5a-584x911.jpg");
       if (!res.ok) throw new Error(`Stijlreferentie ophalen mislukt (${res.status})`);
-      return `data:image/jpeg;base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+      const data = Buffer.from(await res.arrayBuffer());
+      return { dataUrl: `data:image/jpeg;base64,${data.toString("base64")}`, bron: "websiteversie (kleiner)", bytes: data.length };
     }
   }
   return referentieCache;
@@ -56,11 +69,26 @@ async function referentie(): Promise<string> {
 /** Fout als het model de foto ongeschikt vindt; de reden is voor Tante (en de klant). */
 export class FotoAfgekeurd extends BeheerFout {}
 
+/** Het deel van de prompt dat over de kleurplaat zelf gaat (zonder de geschiktheidscheck). */
+function kleurplaatPrompt(extra?: string | null) {
+  const start = tekenplaatPrompt.indexOf("Turn the photograph in image 1");
+  const kern = start >= 0 ? tekenplaatPrompt.slice(start) : tekenplaatPrompt;
+  const basis = `Image 1 is the source photograph. Image 2 is the style reference (an approved colouring page).\n${kern}`;
+  return extra?.trim() ? `${basis}\n\nAdditional instruction for this photograph: ${extra.trim().slice(0, 500)}` : basis;
+}
+
+function dataUrlNaarBestand(url: string, naam: string) {
+  const type = url.slice(5, url.indexOf(";"));
+  return toFile(Buffer.from(url.slice(url.indexOf(",") + 1), "base64"), `${naam}.${type === "image/png" ? "png" : "jpg"}`, { type });
+}
+
 /**
  * Maakt van de foto op een pagina een tekenplaat met OpenAI en slaat die op
  * als de tekenplaat van die pagina (de vorige wordt vervangen).
+ * Methode A: taalmodel beoordeelt de foto en stuurt de beeldgenerator aan (kan weigeren).
+ * Methode B: prompt letterlijk naar de beeld-API (ChatGPT-beeldmodel), geen beoordeling.
  */
-export async function genereerTekenplaat(order: Order, pageId: string, extra?: string | null) {
+export async function genereerTekenplaat(order: Order, pageId: string, extra?: string | null, methode: Methode = "A"): Promise<Generatie> {
   const db = getSupabase();
   const { data: pagina } = await db.from("pages").select().eq("id", pageId).eq("order_id", order.id).maybeSingle<Pagina & { generaties?: number }>();
   if (!pagina) throw new BeheerFout("Onbekende pagina.");
@@ -76,6 +104,26 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
     .toBuffer();
   const fotoUrl = `data:image/jpeg;base64,${foto.toString("base64")}`;
 
+  let b64: string | null = null;
+  let gebruiktePrompt: string | null = null;
+  let model = beeldModel;
+  const ref = await referentie();
+
+  if (methode === "B") {
+    model = directModel;
+    gebruiktePrompt = kleurplaatPrompt(extra);
+    const resultaat = await getOpenAI().images.edit({
+      model: directModel,
+      image: [await toFile(foto, "foto.jpg", { type: "image/jpeg" }), await dataUrlNaarBestand(ref.dataUrl, "stijlreferentie")],
+      prompt: gebruiktePrompt,
+      size: directFormaat,
+      quality: directKwaliteit,
+      output_format: "png",
+      background: "opaque",
+    });
+    b64 = resultaat.data?.[0]?.b64_json ?? null;
+    if (!b64) throw new Error("OpenAI gaf geen afbeelding terug");
+  } else {
   const prompt = extra?.trim() ? `${tekenplaatPrompt}\n\nAdditional instruction for this photograph: ${extra.trim().slice(0, 500)}` : tekenplaatPrompt;
 
   const antwoord = await getOpenAI().responses.create({
@@ -88,7 +136,7 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
           { type: "input_text", text: "Image 1 (source photograph):" },
           { type: "input_image", image_url: fotoUrl, detail: "high" },
           { type: "input_text", text: "Image 2 (style reference, approved colouring page):" },
-          { type: "input_image", image_url: await referentie(), detail: "high" },
+          { type: "input_image", image_url: ref.dataUrl, detail: "high" },
         ],
       },
     ],
@@ -109,12 +157,17 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
   });
 
   const beeld = antwoord.output.find((o) => o.type === "image_generation_call");
-  const b64 = beeld && "result" in beeld ? beeld.result : null;
+  b64 = beeld && "result" in beeld ? (beeld.result ?? null) : null;
+  // De opdracht die de beeldgenerator echt kreeg (door de regisseur herschreven).
+  gebruiktePrompt = beeld && "revised_prompt" in beeld ? ((beeld as { revised_prompt?: string | null }).revised_prompt ?? null) : null;
   if (!b64) {
     const reden = antwoord.output_text?.trim();
     if (reden) throw new FotoAfgekeurd(`Foto afgekeurd door de AI: ${reden.slice(0, 600)}`);
     throw new Error("OpenAI gaf geen afbeelding terug");
   }
+  }
+  const referentieInfo = `${ref.bron}, ${Math.round(ref.bytes / 1024)} kB`;
+  console.log(`Tekenplaat order ${order.id} pagina ${pagina.positie}: methode ${methode}, model ${model}, stijlreferentie ${referentieInfo}`);
 
   // Zwart-wit en compact opslaan; de lijnen blijven scherp.
   const png = await sharp(Buffer.from(b64, "base64")).grayscale().png({ compressionLevel: 9 }).toBuffer();
@@ -131,5 +184,5 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
       () => undefined,
     );
 
-  return url;
+  return { url, methode, model, prompt: gebruiktePrompt, referentie: referentieInfo };
 }

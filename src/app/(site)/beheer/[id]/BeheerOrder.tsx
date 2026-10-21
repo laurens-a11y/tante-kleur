@@ -84,6 +84,9 @@ export function BeheerOrder({
   const [fout, setFout] = useState<string | null>(null);
   const [genereren, setGenereren] = useState<Set<string>>(new Set());
   const [extra, setExtra] = useState<Record<string, string>>({});
+  // A = regisseur (gpt-5.5) + gpt-image-2; B = prompt rechtstreeks naar het ChatGPT-beeldmodel.
+  const [methode, setMethode] = useState<"A" | "B">("A");
+  const [laatste, setLaatste] = useState<Record<string, { methode: string; model: string; prompt: string | null; referentie: string }>>({});
   const [druk, setDruk] = useState<{
     paginas: number;
     fotosGebruikt: number;
@@ -201,11 +204,12 @@ export function BeheerOrder({
       const res = await fetch(`/api/beheer/orders/${orderId}/genereer`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ pageId: p.id, extra: extra[p.id] ?? "" }),
+        body: JSON.stringify({ pageId: p.id, extra: extra[p.id] ?? "", methode }),
       });
-      const data = (await res.json().catch(() => ({}))) as { url?: string; fout?: string };
+      const data = (await res.json().catch(() => ({}))) as { url?: string; fout?: string; methode?: string; model?: string; prompt?: string | null; referentie?: string };
       if (!res.ok) throw new Error(data.fout ?? "Genereren mislukt.");
       setPaginas((ps) => ps.map((x) => (x.id === p.id ? { ...x, tekenplaat: data.url ?? null } : x)));
+      setLaatste((l) => ({ ...l, [p.id]: { methode: data.methode ?? methode, model: data.model ?? "?", prompt: data.prompt ?? null, referentie: data.referentie ?? "?" } }));
       return true;
     } catch (e) {
       setFout(`Pagina ${p.positie}: ${e instanceof Error ? e.message : "genereren mislukt"}`);
@@ -347,6 +351,15 @@ export function BeheerOrder({
 
       <section className={b.kaart}>
         <p className={b.label}>Pagina&apos;s ({paginas.length})</p>
+        <div className={b.knoppen}>
+          <label className={b.klein} htmlFor="methode">
+            Generatiemethode
+          </label>
+          <select id="methode" className={b.select} value={methode} onChange={(e) => setMethode(e.target.value === "B" ? "B" : "A")} disabled={genereren.size > 0}>
+            <option value="A">A: regisseur (gpt-5.5) + gpt-image-2, met fotocheck</option>
+            <option value="B">B: prompt rechtstreeks naar ChatGPT-beeldmodel, zonder fotocheck</option>
+          </select>
+        </div>
         {paginas.map((p) => (
           <div key={p.id} className={b.paginaRij}>
             <span className={b.nr}>{p.positie}</span>
@@ -408,6 +421,14 @@ export function BeheerOrder({
                 <button type="button" className={b.knopLeeg} onClick={() => verwijderPlaat(p)} disabled={!!bezig}>
                   Verwijder plaat
                 </button>
+              )}
+              {laatste[p.id] && (
+                <details className={b.klein}>
+                  <summary>
+                    Methode {laatste[p.id].methode} · {laatste[p.id].model} · stijlreferentie: {laatste[p.id].referentie}
+                  </summary>
+                  <p className={b.tekstBlok}>{laatste[p.id].prompt ?? "(geen prompt teruggekregen)"}</p>
+                </details>
               )}
             </div>
           </div>
