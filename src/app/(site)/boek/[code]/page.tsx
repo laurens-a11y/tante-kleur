@@ -74,6 +74,7 @@ async function BoekInhoud({ params }: { params: PageProps<"/boek/[code]">["param
         binnenKleur: kleuren.binnen ?? standaardBinnenKleur,
         inleiding: order.inleiding ?? "",
         nawoord: order.nawoord ?? "",
+        coverId: order.cover_page_id ?? null,
         paginas: paginas.map((p) => ({
           id: p.id,
           titel: p.titel ?? "",

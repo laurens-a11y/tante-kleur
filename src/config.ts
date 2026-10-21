@@ -129,6 +129,56 @@ export const coverOpmaak = {
   minPpi: 300,
 } as const;
 
+// Uitsnede van de coverfoto (in beheer bij te stellen). x/y: welk deel van het
+// beeld zichtbaar is, 0 = links/boven, 0.5 = midden, 1 = rechts/onder; zoom ≥ 1
+// vergroot t.o.v. "net passend". Zelfde rekensom in de beheer-preview en de PDF.
+export type CoverUitsnede = { x: number; y: number; zoom: number };
+export const standaardUitsnede: CoverUitsnede = { x: 0.5, y: 0.5, zoom: 1 };
+export const maxCoverZoom = 3;
+
+/** Controleert en begrenst een uitsnede; null bij ongeldige invoer. */
+export function geldigeUitsnede(waarde: unknown): CoverUitsnede | null {
+  if (!waarde || typeof waarde !== "object") return null;
+  const { x, y, zoom } = waarde as Record<string, unknown>;
+  if (typeof x !== "number" || typeof y !== "number" || typeof zoom !== "number") return null;
+  if (![x, y, zoom].every(Number.isFinite)) return null;
+  const klem = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+  return { x: klem(x, 0, 1), y: klem(y, 0, 1), zoom: klem(zoom, 1, maxCoverZoom) };
+}
+
+/**
+ * Het beeldvlak van de cover in mm: van het midden van de rug tot de rechter
+ * buitenrand, van de bovenrand tot de scheidingslijn. Plus de zones die bij
+ * het afsnijden/inbinden wegvallen en de plek van de sticker (voor de preview).
+ */
+export function coverBeeldVak() {
+  const { breedte, afloop, rug } = drukwerk.cover;
+  const paneel = (breedte - 2 * afloop - rug) / 2;
+  const links = afloop + paneel + rug / 2;
+  const b = breedte - links;
+  const h = afloop + coverOpmaak.scheidingVanafBoven;
+  const { maat, marge } = coverOpmaak.sticker;
+  return {
+    breedte: b,
+    hoogte: h,
+    rug: rug / 2, // linkerstrook: halve rug
+    afloopBoven: afloop,
+    afloopRechts: afloop,
+    sticker: { x: b - afloop - marge - maat, y: afloop + marge, maat },
+  };
+}
+
+/**
+ * Positie en grootte van het beeld binnen een vak (zelfde eenheid als het vak),
+ * volgens de uitsnede. Gedeeld door de beheer-preview en de PDF-opmaak.
+ */
+export function plaatsUitsnede(bron: { breedte: number; hoogte: number }, vak: { breedte: number; hoogte: number }, u: CoverUitsnede) {
+  const schaal = Math.max(vak.breedte / bron.breedte, vak.hoogte / bron.hoogte) * u.zoom;
+  const breedte = bron.breedte * schaal;
+  const hoogte = bron.hoogte * schaal;
+  return { schaal, breedte, hoogte, links: -(breedte - vak.breedte) * u.x, boven: -(hoogte - vak.hoogte) * u.y };
+}
+
 // Automatische nabewerking van álle tekenplaten in het binnenwerk (zie
 // src/lib/druk/nabewerking.ts). Eén set instellingen, geen handwerk per plaat.
 // Het origineel in Supabase blijft ongewijzigd; dit gebeurt bij het maken van

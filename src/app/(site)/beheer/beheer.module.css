@@ -323,3 +323,79 @@
   width: 16px;
   height: 16px;
 }
+
+/* Cover-editor: kader in de verhouding van het beeldvlak op de cover. */
+.coverEditor {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .coverEditor {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coverKader {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.coverLeeg {
+  position: absolute;
+  inset: 30% 12%;
+  text-align: center;
+}
+
+.coverZone {
+  position: absolute;
+  background: rgb(0 0 0 / 0.28);
+  pointer-events: none;
+}
+
+.coverSticker {
+  position: absolute;
+  border: 2px dashed var(--blauw);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.coverBlauw {
+  position: relative;
+  width: 100%;
+  background: var(--blauw);
+  overflow: hidden;
+}
+
+.coverTitelBlauw,
+.coverTitelRoze {
+  position: absolute;
+  right: 8%;
+  font-family: "Archivo Black", "Archivo", system-ui, sans-serif;
+  font-weight: 900;
+  line-height: 0.78;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.coverTitelBlauw {
+  bottom: 0;
+  color: var(--blauw);
+}
+
+.coverTitelRoze {
+  top: 0;
+  padding-top: 0.04em;
+  color: var(--roze);
+}
+
+.coverBediening {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

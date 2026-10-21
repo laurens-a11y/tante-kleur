@@ -98,6 +98,8 @@ async function OrderInhoud({ params }: { params: PageProps<"/beheer/[id]">["para
         orderId={order.id}
         status={order.status}
         titel={order.cover_titel ?? "boek"}
+        coverPageId={order.cover_page_id ?? null}
+        coverUitsnede={order.cover_uitsnede ?? null}
         paginas={paginas.map((p) => ({
           id: p.id,
           positie: p.positie,

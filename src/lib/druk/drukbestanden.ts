@@ -45,6 +45,11 @@ export async function maakDrukbestanden(order: Order) {
     cover: { achtergrond: merkHex[cover.kleur], tekst: merkHex[cover.tekst] },
     inleiding: order.inleiding ?? "",
     inleidingThema: alsHex(inleidingThema),
+    coverIndex: (() => {
+      const i = gebruikt.findIndex((p) => p.id === order.cover_page_id);
+      return i >= 0 ? i : null;
+    })(),
+    coverUitsnede: order.cover_uitsnede ?? null,
     paginas: gebruikt.map((p, i) => ({ titel: p.titel ?? "", verhaal: p.verhaal ?? "", plaat: plaatBestanden[i], thema: alsHex(themaVoorFoto(i)) })),
   };
 

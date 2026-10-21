@@ -28,6 +28,7 @@ type Begin = {
   binnenKleur: string;
   inleiding: string;
   nawoord: string;
+  coverId: string | null;
   paginas: PaginaState[];
 };
 
@@ -341,6 +342,7 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
   const [inleiding, setInleiding] = useState(begin.inleiding);
   const [nawoord, setNawoord] = useState(begin.nawoord);
   const [paginas, setPaginas] = useState<PaginaState[]>(begin.paginas);
+  const [coverId, setCoverId] = useState<string | null>(begin.coverId);
   const [uploadFout, setUploadFout] = useState<string | null>(null);
   const [problemen, setProblemen] = useState<string[]>([]);
   const [indienen, setIndienen] = useState(false);
@@ -502,7 +504,16 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
     }
   }
 
-  const coverKleur = boek.coverKleuren.find((k) => k.value === kleur);
+  // Coverfoto: de keuze van de klant, anders de eerste foto.
+  const metUrl = paginas.filter((p) => p.kleinUrl && !p.id.startsWith("nieuw-"));
+  const coverPagina = metUrl.find((p) => p.id === coverId) ?? metUrl[0] ?? null;
+  const coverNr = coverPagina ? paginas.findIndex((p) => p.id === coverPagina.id) + 1 : null;
+
+  async function kiesCover(p: PaginaState) {
+    const vorige = coverId;
+    setCoverId(p.id);
+    await stuur({ actie: "coverFoto", pageId: p.id }).catch(() => setCoverId(vorige));
+  }
 
   return (
     <div className={b.bouwer}>
@@ -546,6 +557,15 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                 </p>
               )}
             </div>
+            <div className={b.veld}>
+              <p className={b.label}>Foto op de cover</p>
+              <p className={b.hulp}>
+                {coverNr
+                  ? `Nu: de foto van pagina ${coverNr}. Liever een andere? Kies hieronder bij je foto's “Maak coverfoto”.`
+                  : "Kies bij stap 3 je foto's; de eerste wordt de coverfoto, tenzij je een andere kiest."}{" "}
+                Tante maakt er een kleurplaat van in de kleuren van de cover.
+              </p>
+            </div>
             {kleurKeuzeAan && (
             <fieldset className={b.veld}>
               <legend className={b.label}>Kleur van de cover</legend>
@@ -579,12 +599,29 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
               />
             )}
           </div>
-          <div
-            className={b.coverVoorbeeld}
-            style={{ background: `var(--${coverKleur?.kleur ?? "lichtblauw"})`, color: `var(--${coverKleur?.tekst ?? "blauw"})` }}
-            aria-label="Voorbeeld van de cover"
-          >
-            <span className={s.display}>{titel || "Jouw titel"}</span>
+          <div className={b.coverVoorbeeld} aria-label="Voorbeeld van de cover">
+            <div className={b.coverBeeld}>
+              {coverPagina?.kleinUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- tijdelijke, privé-link uit Supabase
+                <img
+                  src={coverPagina.kleinUrl}
+                  alt=""
+                  className={b.coverFoto}
+                  style={{ transform: `rotate(${coverPagina.draaiing}deg)${coverPagina.draaiing % 180 ? " scale(1.42)" : ""}` }}
+                />
+              )}
+            </div>
+            {(() => {
+              // Zoals op de gedrukte cover: laatste woord roze onder de overgang, de rest blauw erboven.
+              const woorden = (titel.trim() || "Jouw titel").split(/\s+/);
+              const laatste = woorden.pop();
+              return (
+                <>
+                  {woorden.length > 0 && <span className={`${s.display} ${b.coverTitel} ${b.coverTitelBlauw}`}>{woorden.join(" ")}</span>}
+                  <span className={`${s.display} ${b.coverTitel} ${b.coverTitelRoze}`}>{laatste}</span>
+                </>
+              );
+            })()}
           </div>
         </div>
       </section>
@@ -688,6 +725,13 @@ export function Boekbouwer({ code, voornaam, begin }: { code: string; voornaam: 
                       <button type="button" className={b.knopLeeg} onClick={() => draai(p)} disabled={!p.kleinUrl || !!p.bezig}>
                         Draai ↻
                       </button>
+                      {coverPagina?.id === p.id ? (
+                        <span className={b.coverLabel}>★ Coverfoto</span>
+                      ) : (
+                        <button type="button" className={b.knopLeeg} onClick={() => kiesCover(p)} disabled={!p.kleinUrl || !!p.bezig}>
+                          Maak coverfoto
+                        </button>
+                      )}
                       <label className={b.knopLeeg} aria-disabled={!!p.bezig}>
                         Andere foto
                         <input
