@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
-import { tekenplaatPrompt, tekenplaatPromptDirect } from "@/content/tekenplaat-prompt";
+import { regieOpdracht, tekenplaatPrompt, tekenplaatPromptDirect } from "@/content/tekenplaat-prompt";
 import { buckets, getSupabase } from "@/lib/supabase";
 import { bewaarTekenplaat, BeheerFout } from "@/lib/beheer-orders";
 import type { Order, Pagina } from "@/lib/orders";
@@ -23,8 +23,18 @@ const directModel = process.env.OPENAI_DIRECT_IMAGE_MODEL || "chatgpt-image-late
 const directFormaat = process.env.OPENAI_DIRECT_IMAGE_SIZE || "1024x1536";
 const directKwaliteit = (process.env.OPENAI_DIRECT_IMAGE_QUALITY || "high") as "low" | "medium" | "high";
 
-export type Methode = "A" | "B";
-export type Generatie = { url: string | null; methode: Methode; model: string; prompt: string | null; referentie: string };
+// Methode C: als A (hele prompt + foto + referentie naar de regisseur, met fotocheck),
+// maar met de keuzes die ChatGPT zelf maakt: ChatGPT-beeldmodel, bewerken of nieuw
+// beeld naar eigen keuze, formaat en kwaliteit automatisch.
+const chatgptModel = process.env.OPENAI_CHATGPT_IMAGE_MODEL || "chatgpt-image-latest";
+
+// Methode D: twee stappen zoals ChatGPT (regisseur schrijft een opdracht voor deze foto,
+// die gaat letterlijk naar het beeldmodel). Formaat "auto", zoals in ChatGPT.
+const dModel = process.env.OPENAI_D_IMAGE_MODEL || "chatgpt-image-latest";
+const dFormaat = process.env.OPENAI_D_IMAGE_SIZE || "auto";
+
+export type Methode = "A" | "B" | "C" | "D";
+export type Generatie = { url: string | null; methode: Methode; model: string; prompt: string | null; referentie: string; formaat: string };
 
 // Stijlreferentie ("image 2" in de prompt): de goedgekeurde kleurplaat van de selfie op het treinperron.
 // Standaard het bestand assets/stijlreferentie.png; via STIJL_REFERENTIE_URL te vervangen.
@@ -84,6 +94,9 @@ function dataUrlNaarBestand(url: string, naam: string) {
  * als de tekenplaat van die pagina (de vorige wordt vervangen).
  * Methode A: taalmodel beoordeelt de foto en stuurt de beeldgenerator aan (kan weigeren).
  * Methode B: prompt letterlijk naar de beeld-API (ChatGPT-beeldmodel), geen beoordeling.
+ * Methode C: als A, maar met de instellingen van ChatGPT (model, bewerken/genereren, formaat automatisch).
+ * Methode D: twee stappen zoals ChatGPT: regisseur schrijft een opdracht voor déze foto (kan weigeren),
+ *            die opdracht gaat letterlijk met foto + referentie naar het beeldmodel.
  */
 export async function genereerTekenplaat(order: Order, pageId: string, extra?: string | null, methode: Methode = "A"): Promise<Generatie> {
   const db = getSupabase();
@@ -106,7 +119,40 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
   let model = beeldModel;
   const ref = await referentie();
 
-  if (methode === "B") {
+  if (methode === "D") {
+    model = dModel;
+    const regie = await getOpenAI().responses.create({
+      model: regisseur,
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: regieOpdracht + tekenplaatPrompt + (extra?.trim() ? `\n\nAdditional instruction for this photograph: ${extra.trim().slice(0, 500)}` : "") },
+            { type: "input_text", text: "Image 1 (source photograph):" },
+            { type: "input_image", image_url: fotoUrl, detail: "high" },
+            { type: "input_text", text: "Image 2 (style reference, approved colouring page):" },
+            { type: "input_image", image_url: ref.dataUrl, detail: "high" },
+          ],
+        },
+      ],
+      store: false,
+    });
+    const tekst = regie.output_text?.trim() ?? "";
+    if (!tekst) throw new Error("De regisseur gaf geen opdracht terug");
+    if (/^AFGEKEURD:/i.test(tekst)) throw new FotoAfgekeurd(`Foto afgekeurd door de AI: ${tekst.replace(/^AFGEKEURD:\s*/i, "").slice(0, 600)}`);
+    gebruiktePrompt = tekst.replace(/^"|"$/g, "");
+    const resultaat = await getOpenAI().images.edit({
+      model: dModel,
+      image: [await toFile(foto, "foto.jpg", { type: "image/jpeg" }), await dataUrlNaarBestand(ref.dataUrl, "stijlreferentie")],
+      prompt: gebruiktePrompt,
+      size: dFormaat,
+      quality: "high",
+      output_format: "png",
+      background: "opaque",
+    });
+    b64 = resultaat.data?.[0]?.b64_json ?? null;
+    if (!b64) throw new Error("OpenAI gaf geen afbeelding terug");
+  } else if (methode === "B") {
     model = directModel;
     gebruiktePrompt = kleurplaatPrompt(extra);
     const resultaat = await getOpenAI().images.edit({
@@ -121,6 +167,7 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
     b64 = resultaat.data?.[0]?.b64_json ?? null;
     if (!b64) throw new Error("OpenAI gaf geen afbeelding terug");
   } else {
+  if (methode === "C") model = chatgptModel;
   const prompt = extra?.trim() ? `${tekenplaatPrompt}\n\nAdditional instruction for this photograph: ${extra.trim().slice(0, 500)}` : tekenplaatPrompt;
 
   const antwoord = await getOpenAI().responses.create({
@@ -138,15 +185,9 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
       },
     ],
     tools: [
-      {
-        type: "image_generation",
-        model: beeldModel,
-        size: formaat,
-        quality: kwaliteit,
-        output_format: "png",
-        background: "opaque",
-        action: "edit",
-      },
+      methode === "C"
+        ? { type: "image_generation", model: chatgptModel, size: "auto", quality: "auto", output_format: "png", background: "opaque", action: "auto" }
+        : { type: "image_generation", model: beeldModel, size: formaat, quality: kwaliteit, output_format: "png", background: "opaque", action: "edit" },
     ],
     // 'auto': het model mag weigeren met uitleg als de foto ongeschikt is.
     tool_choice: "auto",
@@ -164,7 +205,9 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
   }
   }
   const referentieInfo = `${ref.bron}, ${Math.round(ref.bytes / 1024)} kB`;
-  console.log(`Tekenplaat order ${order.id} pagina ${pagina.positie}: methode ${methode}, model ${model}, stijlreferentie ${referentieInfo}`);
+  const meta = await sharp(Buffer.from(b64, "base64")).metadata();
+  const formaatInfo = `${meta.width}×${meta.height}`;
+  console.log(`Tekenplaat order ${order.id} pagina ${pagina.positie}: methode ${methode}, model ${model}, formaat ${formaatInfo}, stijlreferentie ${referentieInfo}`);
 
   // Zwart-wit en compact opslaan; de lijnen blijven scherp.
   const png = await sharp(Buffer.from(b64, "base64")).grayscale().png({ compressionLevel: 9 }).toBuffer();
@@ -181,5 +224,5 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
       () => undefined,
     );
 
-  return { url, methode, model, prompt: gebruiktePrompt, referentie: referentieInfo };
+  return { url, methode, model, prompt: gebruiktePrompt, referentie: referentieInfo, formaat: formaatInfo };
 }

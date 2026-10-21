@@ -15,7 +15,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/beheer/orde
   if (typeof invoer?.pageId !== "string") return Response.json({ fout: "Onbekende pagina." }, { status: 400 });
 
   try {
-    const methode = invoer.methode === "B" ? "B" : "A";
+    const methode = invoer.methode === "B" || invoer.methode === "C" || invoer.methode === "D" ? invoer.methode : "A";
     const generatie = await genereerTekenplaat(order, invoer.pageId, typeof invoer.extra === "string" ? invoer.extra : null, methode);
     return Response.json(generatie);
   } catch (e) {
