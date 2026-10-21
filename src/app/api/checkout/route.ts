@@ -50,6 +50,9 @@ export async function POST(request: Request) {
       },
       // Zakelijke klanten kunnen hun btw-nummer opgeven (verleggingsregeling).
       tax_id_collection: { enabled: true },
+      // Toont het veld "Promotiecode toevoegen". Codes beheer je in het Stripe-dashboard
+      // (Productcatalogus › Coupons), zonder codewijziging.
+      allow_promotion_codes: true,
       automatic_tax: { enabled: checkoutConfig.automaticTax },
       metadata: { sku: "kleurboek-a4-hardcover" },
       integration_identifier: checkoutConfig.integrationIdentifier,
