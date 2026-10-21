@@ -24,7 +24,7 @@ export default function BoekPagina({ params }: PageProps<"/boek/[code]">) {
     <main className={b.pagina}>
       <div className={b.kop}>
         <Link href="/" aria-label="Tante Kleur, naar de homepage">
-          <Image src="/brand/mark-color.png" alt="Tante Kleur" width={118} height={52} priority />
+          <Image src="/brand/mark-color.png" alt="Tante Kleur" width={118} height={52} preload />
         </Link>
       </div>
       <Suspense fallback={<p className={`${s.lead} ${b.midden}`}>Je boek wordt geopend…</p>}>

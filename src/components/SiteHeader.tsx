@@ -32,7 +32,7 @@ export async function SiteHeader({ current }: { current?: string }) {
       <header className={s.header}>
         <nav className={s.nav} aria-label="Hoofdmenu">
           <Link href="/" aria-label="Tante Kleur, naar de homepage">
-            <Image src="/brand/mark-color.png" alt="Tante Kleur" width={118} height={52} priority />
+            <Image src="/brand/mark-color.png" alt="Tante Kleur" width={118} height={52} preload />
           </Link>
           <div className={s.navLinks}>
             {navItems.map((item) => (
@@ -48,7 +48,7 @@ export async function SiteHeader({ current }: { current?: string }) {
           </div>
           <div className={x.desktopCta}>{knop}</div>
           <details className={x.mobileMenu}>
-            <summary aria-label="Menu"><Icon name="menu" size={26} /></summary>
+            <summary aria-label="Menu"><Icon name="menu" size={26} loading="eager" /></summary>
             <div className={x.mobilePanel}>
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>

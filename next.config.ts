@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     "/api/beheer/**": ["./assets/stijlreferentie.png", "./assets/fonts/*", "./assets/brand/*"],
   },
   images: {
+    // AVIF is voor foto's flink kleiner dan WebP; browsers zonder AVIF krijgen WebP.
+    formats: ["image/avif", "image/webp"],
     // Afbeeldingen uit Sanity (alleen dit project). Geen `search` opgeven: Sanity-URL's
     // hebben altijd een querystring (?rect=…&w=…); new URL(...) zou die blokkeren.
     remotePatterns: [{ protocol: "https", hostname: "cdn.sanity.io", port: "", pathname: "/images/hera4nnf/**" }],

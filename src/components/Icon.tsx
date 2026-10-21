@@ -4,7 +4,7 @@ export type IconName =
   | "home" | "kopen" | "label" | "links" | "menu" | "opslaan" | "rechts" | "sorteren"
   | "streepje" | "toevoegen" | "uitgelicht" | "uploaden" | "verwijderen" | "verzending" | "winkelmandje" | "zoeken";
 
-export function Icon({ name, size = 24, className, style }: { name: IconName; size?: number; className?: string; style?: React.CSSProperties }) {
+export function Icon({ name, size = 24, className, style, loading = "lazy" }: { name: IconName; size?: number; className?: string; style?: React.CSSProperties; loading?: "lazy" | "eager" }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -13,6 +13,8 @@ export function Icon({ name, size = 24, className, style }: { name: IconName; si
       aria-hidden="true"
       width={size}
       height={size}
+      // Lazy: anders zet React elk icoon als preload in de head, ook ver onder de vouw.
+      loading={loading}
       className={className}
       // Vaste vierkante maat (de globale img-regel zet height op auto, waardoor
       // iconen met een andere verhouding anders uitlijnden), links uitgelijnd.

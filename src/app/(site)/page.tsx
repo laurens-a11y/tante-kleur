@@ -62,7 +62,9 @@ async function HomeInhoud({ opties }: { opties: FetchOpties }) {
                 alt={homepagina.heroAfbeelding.alt}
                 width={1000}
                 height={1250}
-                priority
+                // Op mobiel staat de foto onder de tekst: niet vooraf laden, geen voorrang.
+                loading="eager"
+                fetchPriority="low"
                 sizes="(max-width: 900px) 100vw, 600px"
                 className={s.heroPhoto}
               />
