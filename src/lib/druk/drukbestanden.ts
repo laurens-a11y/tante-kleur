@@ -48,7 +48,7 @@ export async function maakDrukbestanden(order: Order) {
     paginas: gebruikt.map((p, i) => ({ titel: p.titel ?? "", verhaal: p.verhaal ?? "", plaat: plaatBestanden[i], thema: alsHex(themaVoorFoto(i)) })),
   };
 
-  const platen = await bereidPlatenVoor(boek);
+  const platen = await bereidPlatenVoor(boek, drukwerk);
   const [binnenwerk, { pdf: coverPdf, controle: coverControle }] = await Promise.all([maakBinnenwerk(boek, drukwerk, platen), maakCover(boek, drukwerk, platen)]);
 
   await zorgVoorBucket();

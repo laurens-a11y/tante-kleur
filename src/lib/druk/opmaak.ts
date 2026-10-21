@@ -10,7 +10,8 @@ import { PDFDocument, PDFFont, PDFPage, PDFImage, rgb, type RGB } from "pdf-lib"
 import fontkit from "@pdf-lib/fontkit";
 import type { Font as FkFont } from "@pdf-lib/fontkit";
 import sharp from "sharp";
-import { coverOpmaak } from "../../config";
+import { coverOpmaak, plaatNabewerking } from "../../config";
+import { nabewerkPlaat } from "./nabewerking";
 
 const MM = 72 / 25.4;
 const mm = (waarde: number) => waarde * MM;
@@ -99,18 +100,14 @@ function rgbVan(kleur: string) {
 
 /**
  * Bereidt de tekenplaten voor op druk, zonder details te verliezen:
- * - binnenwerk: grijswaarden, opgeschaald voor een scherpe weergave op de pagina;
+ * - binnenwerk: automatische nabewerking (zuiver wit, vlekjes weg, lijnen strak) op drukresolutie;
  * - cover: de eerste plaat ongewijzigd (zie maakCover).
  */
-export async function bereidPlatenVoor(boek: DrukBoek): Promise<Platen> {
+export async function bereidPlatenVoor(boek: DrukBoek, maten: Maten): Promise<Platen> {
   const binnen: (Buffer | null)[] = [];
   for (const p of boek.paginas) {
-    binnen.push(
-      p.plaat
-        ? // Grijze JPEG: wordt ongewijzigd in de PDF gezet (PNG zou als volle kleur worden opgeslagen).
-          await sharp(p.plaat).rotate().flatten({ background: "#ffffff" }).grayscale().toColourspace("b-w").resize({ height: 3600, kernel: "lanczos3" }).jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer()
-        : null,
-    );
+    // Alle platen automatisch dezelfde nabewerking (zie plaatNabewerking in config).
+    binnen.push(p.plaat ? await nabewerkPlaat(p.plaat, plaatNabewerking, maten.binnenwerk.hoogte) : null);
   }
   // Coverbeeld: de eerste tekenplaat; inkleuren en uitsnijden gebeurt in maakCover.
   const voorplaat = boek.paginas.find((p) => p.plaat)?.plaat ?? null;
