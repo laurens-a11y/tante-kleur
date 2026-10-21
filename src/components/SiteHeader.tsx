@@ -48,7 +48,7 @@ export async function SiteHeader({ current }: { current?: string }) {
           </div>
           <div className={x.desktopCta}>{knop}</div>
           <details className={x.mobileMenu}>
-            <summary aria-label="Menu"><Icon name="menu" size={26} /></summary>
+            <summary aria-label="Menu"><Icon name="menu" size={26} loading="eager" /></summary>
             <div className={x.mobilePanel}>
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>

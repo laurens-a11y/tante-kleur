@@ -7,11 +7,6 @@ const nextConfig: NextConfig = {
   // Als vangnet ververst de cache uiterlijk na 10 minuten.
   cacheLife: { default: { stale: 60, revalidate: 600, expire: 31_536_000 } },
   partialPrefetching: true,
-  experimental: {
-    // De CSS is klein (~12 KB): direct in de HTML scheelt op mobiel drie
-    // render-blokkerende verzoeken voordat er iets op het scherm staat.
-    inlineCss: true,
-  },
   // Stijlreferentie, lettertypes en logo meeleveren met de beheer-routes
   // (tekenplaten genereren en drukbestanden maken).
   outputFileTracingIncludes: {
