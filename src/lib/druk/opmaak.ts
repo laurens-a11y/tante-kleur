@@ -10,7 +10,7 @@ import { PDFDocument, PDFFont, PDFPage, PDFImage, rgb, type RGB } from "pdf-lib"
 import fontkit from "@pdf-lib/fontkit";
 import type { Font as FkFont } from "@pdf-lib/fontkit";
 import sharp from "sharp";
-import { coverOpmaak, plaatNabewerking } from "../../config";
+import { coverOpmaak, plaatNabewerking, plaatsUitsnede, standaardUitsnede, type CoverUitsnede } from "../../config";
 import { nabewerkPlaat } from "./nabewerking";
 
 const MM = 72 / 25.4;
@@ -28,6 +28,10 @@ export type DrukBoek = {
   inleidingThema: Thema;
   // In de volgorde van het boek; tekenplaat als PNG/JPG, of null als die ontbreekt.
   paginas: { titel: string; verhaal: string; plaat: Buffer | null; thema: Thema }[];
+  // Index (0-based) van de pagina waarvan de plaat op de cover komt, en de uitsnede.
+  // Leeg = eerste pagina met een plaat, gecentreerd.
+  coverIndex?: number | null;
+  coverUitsnede?: CoverUitsnede | null;
 };
 
 export type Maten = {
@@ -109,8 +113,9 @@ export async function bereidPlatenVoor(boek: DrukBoek, maten: Maten): Promise<Pl
     // Alle platen automatisch dezelfde nabewerking (zie plaatNabewerking in config).
     binnen.push(p.plaat ? await nabewerkPlaat(p.plaat, plaatNabewerking, maten.binnenwerk.hoogte) : null);
   }
-  // Coverbeeld: de eerste tekenplaat; inkleuren en uitsnijden gebeurt in maakCover.
-  const voorplaat = boek.paginas.find((p) => p.plaat)?.plaat ?? null;
+  // Coverbeeld: de gekozen pagina (of de eerste met een plaat); inkleuren en uitsnijden gebeurt in maakCover.
+  const gekozen = boek.coverIndex != null ? boek.paginas[boek.coverIndex]?.plaat : null;
+  const voorplaat = gekozen ?? boek.paginas.find((p) => p.plaat)?.plaat ?? null;
   return { binnen, voorplaat };
 }
 
@@ -387,15 +392,22 @@ function verdeelWoorden(woorden: string[], font: Meetfont, grootte: number, maxB
   return regels;
 }
 
-/** Coverbeeld: tekenplaat (zwart op wit) → oranjerood lijnwerk op roze, exact op maat (cover-fit, gecentreerd). */
-async function maakCoverbeeld(plaat: Buffer, breedtePx: number, hoogtePx: number) {
+/** Coverbeeld: tekenplaat (zwart op wit) → oranjerood lijnwerk op roze, exact op maat volgens de uitsnede. */
+async function maakCoverbeeld(plaat: Buffer, breedtePx: number, hoogtePx: number, uitsnede: CoverUitsnede) {
   const { roze, lijn } = coverOpmaak.kleuren;
-  const meta = await sharp(plaat).rotate().metadata();
-  const { data, info } = await sharp(plaat)
-    .rotate()
-    .flatten({ background: "#ffffff" })
+  const rechtop = await sharp(plaat).rotate().flatten({ background: "#ffffff" }).grayscale().toBuffer({ resolveWithObject: true });
+  const bronB = rechtop.info.width;
+  const bronH = rechtop.info.height;
+  // Zelfde rekensom als de preview in beheer (plaatsUitsnede in config).
+  const p = plaatsUitsnede({ breedte: bronB, hoogte: bronH }, { breedte: breedtePx, hoogte: hoogtePx }, uitsnede);
+  const geschaaldB = Math.max(breedtePx, Math.round(p.breedte));
+  const geschaaldH = Math.max(hoogtePx, Math.round(p.hoogte));
+  const links = Math.min(geschaaldB - breedtePx, Math.max(0, Math.round(-p.links)));
+  const boven = Math.min(geschaaldH - hoogtePx, Math.max(0, Math.round(-p.boven)));
+  const { data, info } = await sharp(rechtop.data)
+    .resize({ width: geschaaldB, height: geschaaldH, fit: "fill", kernel: "lanczos3" })
+    .extract({ left: links, top: boven, width: breedtePx, height: hoogtePx })
     .grayscale()
-    .resize({ width: breedtePx, height: hoogtePx, fit: "cover", position: "centre", kernel: "lanczos3" })
     .raw()
     .toBuffer({ resolveWithObject: true });
   const r = rgbVan(roze);
@@ -410,9 +422,7 @@ async function maakCoverbeeld(plaat: Buffer, breedtePx: number, hoogtePx: number
   const jpg = await sharp(uit, { raw: { width: info.width, height: info.height, channels: 3 } })
     .jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true })
     .toBuffer();
-  // Oriëntatie na rotate: bij EXIF 5–8 zijn breedte en hoogte verwisseld.
-  const gedraaid = (meta.orientation ?? 1) >= 5;
-  return { jpg, bronB: gedraaid ? meta.height! : meta.width!, bronH: gedraaid ? meta.width! : meta.height! };
+  return { jpg, bronB, bronH, schaal: p.schaal };
 }
 
 export async function maakCover(boek: DrukBoek, maten: Maten, platen: Platen): Promise<{ pdf: Uint8Array; controle: CoverControle }> {
@@ -443,10 +453,10 @@ export async function maakCover(boek: DrukBoek, maten: Maten, platen: Platen): P
     const vak = { x: afloop + paneel + rug / 2, y: scheiding, b: breedte - (afloop + paneel + rug / 2), h: hoogte - scheiding };
     const doelB = Math.round((vak.b / 25.4) * C.minPpi);
     const doelH = Math.round((vak.h / 25.4) * C.minPpi);
-    const beeld = await maakCoverbeeld(platen.voorplaat, doelB, doelH);
-    // Cover-fit: de kleinste schaal die het vak vult bepaalt de effectieve resolutie van de bron.
-    const schaal = Math.max(doelB / beeld.bronB, doelH / beeld.bronH);
-    beeldPpi = Math.round(C.minPpi / schaal);
+    const uitsnede = boek.coverUitsnede ?? standaardUitsnede;
+    const beeld = await maakCoverbeeld(platen.voorplaat, doelB, doelH, uitsnede);
+    // Effectieve resolutie van de bron: inzoomen verlaagt die.
+    beeldPpi = Math.round(C.minPpi / beeld.schaal);
     beeldPixels = `${beeld.bronB}×${beeld.bronH}`;
     if (beeldPpi < C.minPpi) {
       waarschuwingen.push(`Coverbeeld is ${beeldPpi} ppi (doel ${C.minPpi}). Nodig: ca. ${Math.round(doelB)}×${Math.round(doelH)} px bron; het is nu opgeschaald, dat geeft geen extra detail.`);

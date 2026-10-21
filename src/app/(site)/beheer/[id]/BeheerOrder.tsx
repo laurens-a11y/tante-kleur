@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zipSync, strToU8 } from "fflate";
 import b from "../beheer.module.css";
+import { CoverEditor } from "./CoverEditor";
+import type { CoverUitsnede } from "@/config";
 
 type Status = "betaald" | "ingediend" | "in_productie" | "proef_klaar" | "akkoord" | "gedrukt" | "verzonden";
 
@@ -59,7 +61,21 @@ async function rechtgezet(url: string, draaiing: number): Promise<Uint8Array> {
   return new Uint8Array(await uit.arrayBuffer());
 }
 
-export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderId: string; status: Status; titel: string; paginas: Pagina[] }) {
+export function BeheerOrder({
+  orderId,
+  status,
+  titel,
+  paginas: begin,
+  coverPageId,
+  coverUitsnede,
+}: {
+  orderId: string;
+  status: Status;
+  titel: string;
+  paginas: Pagina[];
+  coverPageId: string | null;
+  coverUitsnede: CoverUitsnede | null;
+}) {
   const router = useRouter();
   const [paginas, setPaginas] = useState(begin);
   const [nieuweStatus, setNieuweStatus] = useState<Status>(status);
@@ -320,6 +336,14 @@ export function BeheerOrder({ orderId, status, titel, paginas: begin }: { orderI
           </p>
         )}
       </section>
+
+      <CoverEditor
+        orderId={orderId}
+        titel={titel}
+        coverPageId={coverPageId}
+        uitsnede={coverUitsnede}
+        paginas={paginas.map((p) => ({ id: p.id, positie: p.positie, tekenplaat: p.tekenplaat, klein: p.klein }))}
+      />
 
       <section className={b.kaart}>
         <p className={b.label}>Pagina&apos;s ({paginas.length})</p>

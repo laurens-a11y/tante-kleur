@@ -1,5 +1,5 @@
 import { isBeheerVerzoek } from "@/lib/beheer";
-import { BeheerFout, haalOrder, verstuurProef, verwijderTekenplaat, zetStatus } from "@/lib/beheer-orders";
+import { BeheerFout, haalOrder, verstuurProef, verwijderTekenplaat, zetCover, zetStatus } from "@/lib/beheer-orders";
 import type { OrderStatus } from "@/lib/orders";
 
 export const maxDuration = 60;
@@ -22,6 +22,9 @@ export async function POST(request: Request, ctx: RouteContext<"/api/beheer/orde
       case "verwijderTekenplaat":
         if (typeof invoer.pageId !== "string") throw new BeheerFout("Onbekende pagina.");
         await verwijderTekenplaat(order, invoer.pageId);
+        return Response.json({ ok: true });
+      case "cover":
+        await zetCover(order, invoer.pageId, invoer.uitsnede);
         return Response.json({ ok: true });
       default:
         return Response.json({ fout: "Onbekende actie." }, { status: 400 });

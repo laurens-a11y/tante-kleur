@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import type Stripe from "stripe";
 import { buckets, getSupabase } from "@/lib/supabase";
 import { stuurBoekLink } from "@/lib/mail";
-import { site } from "@/config";
+import { site, type CoverUitsnede } from "@/config";
 
 export type OrderStatus = "betaald" | "ingediend" | "in_productie" | "proef_klaar" | "akkoord" | "gedrukt" | "verzonden";
 
@@ -16,6 +16,9 @@ export type Order = {
   status: OrderStatus;
   cover_titel: string | null;
   cover_kleur: string | null;
+  // Gekozen coverfoto (pagina) en uitsnede; leeg = eerste pagina, midden, zoom 1.
+  cover_page_id?: string | null;
+  cover_uitsnede?: CoverUitsnede | null;
   binnen_kleur: string | null;
   livemode: boolean;
   inleiding: string | null;

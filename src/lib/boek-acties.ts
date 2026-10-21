@@ -102,6 +102,13 @@ export async function voerUit(code: string, invoer: Invoer, origin: string): Pro
       return {};
     }
 
+    case "coverFoto": {
+      // Welke foto op de cover komt. Een andere foto begint weer met de standaard-uitsnede.
+      const pagina = await eigenPagina(order, invoer.pageId);
+      await update("orders", order.id, { cover_page_id: pagina.id, cover_uitsnede: null });
+      return {};
+    }
+
     case "tekst": {
       // Inleiding of nawoord. `eigen` = de eigen tekst van de klant vóór een overgenomen AI-voorstel.
       const soort = invoer.soort;

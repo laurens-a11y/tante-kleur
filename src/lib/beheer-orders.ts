@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { buckets, getSupabase } from "@/lib/supabase";
 import { boekUrl, haalPaginas, nieuweCode, verwijderBestanden, type Order, type OrderStatus, type Pagina } from "@/lib/orders";
 import { stuurProef } from "@/lib/mail";
+import { geldigeUitsnede } from "@/config";
 import { verwijderDrukbestanden } from "@/lib/druk/drukbestanden";
 
 export type OrderVolledig = Order & {
@@ -72,6 +73,18 @@ export async function linksVoorPaginas(paginas: Pagina[], metOrigineel: boolean)
 }
 
 export class BeheerFout extends Error {}
+
+/** Coverfoto en uitsnede vastleggen (beheer). */
+export async function zetCover(order: Order, pageId: unknown, uitsnede: unknown) {
+  if (typeof pageId !== "string") throw new BeheerFout("Onbekende pagina.");
+  const db = getSupabase();
+  const { data: pagina } = await db.from("pages").select("id").eq("id", pageId).eq("order_id", order.id).maybeSingle<{ id: string }>();
+  if (!pagina) throw new BeheerFout("Deze pagina hoort niet bij deze order.");
+  const u = geldigeUitsnede(uitsnede);
+  if (!u) throw new BeheerFout("Ongeldige uitsnede.");
+  const { error } = await db.from("orders").update({ cover_page_id: pagina.id, cover_uitsnede: u }).eq("id", order.id);
+  if (error) throw new Error(`Cover opslaan mislukt: ${error.message}`);
+}
 
 export async function zetStatus(order: Order, status: OrderStatus) {
   if (!alleStatussen.some((s) => s.value === status)) throw new BeheerFout("Onbekende status.");
