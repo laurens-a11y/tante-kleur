@@ -39,7 +39,14 @@ const dFormaat = process.env.OPENAI_D_IMAGE_SIZE || "auto";
 const eModel = process.env.OPENAI_E_IMAGE_MODEL || "gpt-image-2";
 const eFormaat = process.env.OPENAI_E_IMAGE_SIZE || "1440x2032";
 
-export type Methode = "A" | "B" | "C" | "D" | "E";
+// Methode F: opdracht per foto zoals D, maar met OpenAI's beste beeldmodel (gpt-image-2.5-sunburst,
+// vaste snapshot) in A4-formaat. Geen input_fidelity: die werkt volgens de SDK alleen op
+// gpt-image-1/1.5 en moet bij gpt-image-2 en nieuwer weggelaten worden.
+const fModel = process.env.OPENAI_F_IMAGE_MODEL || "gpt-image-2.5-sunburst-2026-09-08";
+const fFormaat = process.env.OPENAI_F_IMAGE_SIZE || "1440x2032";
+const fKwaliteit = (process.env.OPENAI_F_IMAGE_QUALITY || "high") as "low" | "medium" | "high" | "xhigh" | "max";
+
+export type Methode = "A" | "B" | "C" | "D" | "E" | "F";
 export type Generatie = { url: string | null; methode: Methode; model: string; prompt: string | null; referentie: string; formaat: string };
 
 // Stijlreferentie ("image 2" in de prompt): de goedgekeurde kleurplaat van de selfie op het treinperron.
@@ -103,6 +110,8 @@ function dataUrlNaarBestand(url: string, naam: string) {
  * Methode C: als A, maar met de instellingen van ChatGPT (model, bewerken/genereren, formaat automatisch).
  * Methode D: twee stappen zoals ChatGPT: regisseur schrijft een opdracht voor déze foto (kan weigeren),
  *            die opdracht gaat letterlijk met foto + referentie naar het beeldmodel.
+ * Methode E: als D, maar gpt-image-2 in A4 en nieuw tekenen i.p.v. bewerken.
+ * Methode F: als D, maar met gpt-image-2.5-sunburst (vaste snapshot) in A4.
  */
 export async function genereerTekenplaat(order: Order, pageId: string, extra?: string | null, methode: Methode = "A"): Promise<Generatie> {
   const db = getSupabase();
@@ -125,8 +134,8 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
   let model = beeldModel;
   const ref = await referentie();
 
-  if (methode === "D" || methode === "E") {
-    model = methode === "D" ? dModel : eModel;
+  if (methode === "D" || methode === "E" || methode === "F") {
+    model = methode === "D" ? dModel : methode === "E" ? eModel : fModel;
     const regie = await getOpenAI().responses.create({
       model: regisseur,
       input: [
@@ -178,11 +187,11 @@ export async function genereerTekenplaat(order: Order, pageId: string, extra?: s
       if (!b64) throw new Error("OpenAI gaf geen afbeelding terug");
     } else {
     const resultaat = await getOpenAI().images.edit({
-      model: dModel,
+      model,
       image: [await toFile(foto, "foto.jpg", { type: "image/jpeg" }), await dataUrlNaarBestand(ref.dataUrl, "stijlreferentie")],
       prompt: gebruiktePrompt,
-      size: dFormaat,
-      quality: "high",
+      size: methode === "F" ? fFormaat : dFormaat,
+      quality: methode === "F" ? fKwaliteit : "high",
       output_format: "png",
       background: "opaque",
     });
