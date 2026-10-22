@@ -54,7 +54,7 @@ export type Generatie = { url: string | null; methode: Methode; model: string; p
 const referentieUrl = process.env.STIJL_REFERENTIE_URL?.trim() || null;
 
 let client: OpenAI | null = null;
-function getOpenAI() {
+export function getOpenAI() {
   if (!client) {
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) throw new Error("OPENAI_API_KEY ontbreekt");
@@ -63,9 +63,9 @@ function getOpenAI() {
   return client;
 }
 
-type Referentie = { dataUrl: string; bron: "bestand" | "url" | "websiteversie (kleiner)"; bytes: number };
+export type Referentie = { dataUrl: string; bron: "bestand" | "url" | "websiteversie (kleiner)"; bytes: number };
 let referentieCache: Referentie | null = null;
-async function referentie(): Promise<Referentie> {
+export async function referentie(): Promise<Referentie> {
   if (referentieCache) return referentieCache;
   if (referentieUrl) {
     const res = await fetch(referentieUrl);

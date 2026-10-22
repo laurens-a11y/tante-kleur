@@ -31,4 +31,5 @@ export function getSupabase(): SupabaseClient {
 export const buckets = {
   fotos: "fotos",
   tekenplaten: "tekenplaten",
+  testen: "testen",
 } as const;
