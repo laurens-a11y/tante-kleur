@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { zipSync, strToU8 } from "fflate";
 import b from "../beheer.module.css";
@@ -61,6 +61,31 @@ async function rechtgezet(url: string, draaiing: number): Promise<Uint8Array> {
   return new Uint8Array(await uit.arrayBuffer());
 }
 
+// Generatiemethode in localStorage (per browser), met een melding aan open componenten.
+type Methode = "A" | "B" | "C" | "D" | "E" | "F";
+const methodeSleutel = "tk-generatiemethode";
+const methodeLuisteraars = new Set<() => void>();
+function leesMethode(): Methode {
+  try {
+    const m = window.localStorage.getItem(methodeSleutel);
+    return m === "B" || m === "C" || m === "D" || m === "E" || m === "F" ? m : "A";
+  } catch {
+    return "A";
+  }
+}
+function abonneerMethode(cb: () => void) {
+  methodeLuisteraars.add(cb);
+  return () => methodeLuisteraars.delete(cb);
+}
+function setMethode(m: Methode) {
+  try {
+    window.localStorage.setItem(methodeSleutel, m);
+  } catch {
+    // geen opslag: keuze geldt dan niet (zeldzaam)
+  }
+  methodeLuisteraars.forEach((cb) => cb());
+}
+
 export function BeheerOrder({
   orderId,
   status,
@@ -84,6 +109,11 @@ export function BeheerOrder({
   const [fout, setFout] = useState<string | null>(null);
   const [genereren, setGenereren] = useState<Set<string>>(new Set());
   const [extra, setExtra] = useState<Record<string, string>>({});
+  // A = regisseur (gpt-5.5) + gpt-image-2; B = korte prompt rechtstreeks naar het ChatGPT-beeldmodel;
+  // C = als A, maar met de instellingen van ChatGPT (beeldmodel, bewerken/genereren, formaat automatisch).
+  // Gekozen methode onthouden in deze browser (handig bij testen; na herladen niet terug naar A).
+  const methode = useSyncExternalStore(abonneerMethode, leesMethode, () => "A" as const);
+  const [laatste, setLaatste] = useState<Record<string, { methode: string; model: string; prompt: string | null; referentie: string; formaat: string }>>({});
   const [druk, setDruk] = useState<{
     paginas: number;
     fotosGebruikt: number;
@@ -201,11 +231,12 @@ export function BeheerOrder({
       const res = await fetch(`/api/beheer/orders/${orderId}/genereer`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ pageId: p.id, extra: extra[p.id] ?? "" }),
+        body: JSON.stringify({ pageId: p.id, extra: extra[p.id] ?? "", methode }),
       });
-      const data = (await res.json().catch(() => ({}))) as { url?: string; fout?: string };
+      const data = (await res.json().catch(() => ({}))) as { url?: string; fout?: string; methode?: string; model?: string; prompt?: string | null; referentie?: string; formaat?: string };
       if (!res.ok) throw new Error(data.fout ?? "Genereren mislukt.");
       setPaginas((ps) => ps.map((x) => (x.id === p.id ? { ...x, tekenplaat: data.url ?? null } : x)));
+      setLaatste((l) => ({ ...l, [p.id]: { methode: data.methode ?? methode, model: data.model ?? "?", prompt: data.prompt ?? null, referentie: data.referentie ?? "?", formaat: data.formaat ?? "?" } }));
       return true;
     } catch (e) {
       setFout(`Pagina ${p.positie}: ${e instanceof Error ? e.message : "genereren mislukt"}`);
@@ -347,6 +378,19 @@ export function BeheerOrder({
 
       <section className={b.kaart}>
         <p className={b.label}>Pagina&apos;s ({paginas.length})</p>
+        <div className={b.knoppen}>
+          <label className={b.klein} htmlFor="methode">
+            Generatiemethode
+          </label>
+          <select id="methode" className={b.select} value={methode} onChange={(e) => setMethode(["B", "C", "D", "E", "F"].includes(e.target.value) ? (e.target.value as Methode) : "A")} disabled={genereren.size > 0}>
+            <option value="A">A: regisseur (gpt-5.5) + gpt-image-2, met fotocheck</option>
+            <option value="B">B: korte prompt rechtstreeks naar ChatGPT-beeldmodel, zonder fotocheck</option>
+            <option value="C">C: als A, met ChatGPT-instellingen (ChatGPT-beeldmodel, alles automatisch)</option>
+            <option value="D">D: zoals ChatGPT in twee stappen (opdracht per foto, dan ChatGPT-beeldmodel), met fotocheck</option>
+            <option value="E">E: opdracht als D, maar gpt-image-2 in A4 en nieuw tekenen i.p.v. foto bewerken, met fotocheck</option>
+            <option value="F">F: opdracht als D, met gpt-image-2.5-sunburst (beste OpenAI-model) in A4, met fotocheck</option>
+          </select>
+        </div>
         {paginas.map((p) => (
           <div key={p.id} className={b.paginaRij}>
             <span className={b.nr}>{p.positie}</span>
@@ -408,6 +452,14 @@ export function BeheerOrder({
                 <button type="button" className={b.knopLeeg} onClick={() => verwijderPlaat(p)} disabled={!!bezig}>
                   Verwijder plaat
                 </button>
+              )}
+              {laatste[p.id] && (
+                <details className={b.klein}>
+                  <summary>
+                    Methode {laatste[p.id].methode} · {laatste[p.id].model} · {laatste[p.id].formaat} px · stijlreferentie: {laatste[p.id].referentie}
+                  </summary>
+                  <p className={b.tekstBlok}>{laatste[p.id].prompt ?? "(geen prompt teruggekregen)"}</p>
+                </details>
               )}
             </div>
           </div>

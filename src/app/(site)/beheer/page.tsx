@@ -21,6 +21,9 @@ export default function BeheerPagina({ searchParams }: PageProps<"/beheer">) {
       <div className={b.breed}>
         <div className={b.kopRij}>
           <h1 className={`${s.display} ${s.h3}`}>Bestellingen</h1>
+          <Link href="/beheer/test" className={b.knopLeeg}>
+            Testomgeving tekenplaten
+          </Link>
           <TestboekImport />
           <form action="/api/beheer/uitloggen" method="POST">
             <button type="submit" className={b.knopLeeg}>

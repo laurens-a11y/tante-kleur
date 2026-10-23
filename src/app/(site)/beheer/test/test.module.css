@@ -1,0 +1,376 @@
+/* Testomgeving tekenplaten: breed, zodat platen groot naast elkaar passen. */
+
+.breed {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.uitleg {
+  margin: 0;
+  max-width: 75ch;
+}
+
+.balk {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.schakel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.tabelRol {
+  overflow-x: auto;
+}
+
+.hint {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.knopKlein {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  border: 1px solid var(--lichtblauw);
+  border-radius: 4px;
+  color: var(--blauw);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.knopKlein:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Eén testfoto */
+
+.foto {
+  gap: 16px;
+}
+
+.fotoKop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.naam {
+  font-weight: 600;
+  min-width: 0;
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.briefing summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.briefing textarea {
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.gewijzigd {
+  color: var(--rood);
+}
+
+/* Raster: minstens 420 px per vak, zodat details te zien zijn; op de telefoon één kolom. */
+
+.raster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 20px;
+}
+
+.tegel {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tegelKop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.tegelTitel {
+  font-weight: 600;
+}
+
+.tegelOrigineel .tegelTitel {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 13px;
+}
+
+.pogingen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.pogingen button {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  background: var(--lichtblauw);
+  color: var(--blauw);
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.pogingen button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.beeldVak {
+  position: relative;
+  aspect-ratio: 210 / 297;
+  background: var(--wit);
+  border: 2px solid var(--lichtblauw);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tegelOrigineel .beeldVak {
+  background: var(--lichtblauw);
+}
+
+.beeldKnop {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.beeldKnop img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.leeg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+}
+
+.bezigLabel {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  background: var(--geel);
+  color: var(--blauw);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.tegelVoet {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.beoordeling {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.scoreKnoppen {
+  display: flex;
+  gap: 6px;
+}
+
+.score {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 4px;
+  border: 2px solid var(--blauw);
+  background: var(--wit);
+  color: var(--blauw);
+  cursor: pointer;
+}
+
+.goed {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.foutScore {
+  background: var(--rood);
+  border-color: var(--rood);
+  color: var(--wit);
+}
+
+.notitie {
+  flex: 1 1 180px;
+  min-width: 0;
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+.prompt {
+  font-size: 13px;
+}
+
+.prompt summary {
+  cursor: pointer;
+}
+
+.prompt p {
+  white-space: pre-wrap;
+  margin: 6px 0;
+}
+
+/* Schermvullend vergelijken */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--blauw);
+  color: var(--wit);
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px 16px;
+  gap: 10px;
+}
+
+.overlayKop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.overlayKop .knopKlein {
+  color: var(--wit);
+  border-color: var(--wit);
+}
+
+.overlayKop .knopVol {
+  border-color: var(--wit);
+}
+
+.panelen {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.twee {
+  grid-template-columns: 1fr 1fr;
+}
+
+.paneel {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paneelKop {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.paneelKop .knopKlein {
+  color: var(--wit);
+  border-color: var(--wit);
+}
+
+.paneelBeeld {
+  flex: 1;
+  min-height: 0;
+  background: var(--wit);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paneelBeeld img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+/* Ingezoomd: ware grootte, scrollen om rond te kijken. */
+.zoom {
+  overflow: auto;
+  display: block;
+}
+
+.zoom img {
+  max-width: none;
+  max-height: none;
+  cursor: zoom-out;
+}
+
+.paneel .beoordeling {
+  color: var(--blauw);
+  background: var(--wit);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+@media (max-width: 700px) {
+  .twee {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}
