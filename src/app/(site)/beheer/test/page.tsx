@@ -24,7 +24,7 @@ export default function TestPagina() {
           <h1 className={`${s.display} ${s.h3}`}>Testomgeving tekenplaten</h1>
         </div>
         <p className={t.uitleg}>
-          Los van de bestellingen. Upload testfoto&apos;s, laat de foto analyseren (keuring + tekenbriefing) en laat de vier configuraties met dezelfde
+          Los van de bestellingen. Upload testfoto&apos;s, laat de foto analyseren (keuring + tekenbriefing) en laat alle configuraties met dezelfde
           briefing tekenen. Zet de ChatGPT-plaat ernaast en beoordeel elke plaat. Klik op een afbeelding om groot te vergelijken.
         </p>
         <Suspense fallback={<p>Laden…</p>}>
