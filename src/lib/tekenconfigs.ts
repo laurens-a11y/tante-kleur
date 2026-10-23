@@ -9,6 +9,8 @@ export type TekenConfig = {
   naam: string;
   model: string;
   actie: TekenActie;
+  /** Eigen formaat; zonder dit staand A4 (1440x2032). */
+  formaat?: string;
 };
 
 export const tekenConfigs: readonly TekenConfig[] = [
@@ -16,6 +18,8 @@ export const tekenConfigs: readonly TekenConfig[] = [
   { id: "g2-edit", naam: "gpt-image-2 · foto bewerken", model: "gpt-image-2", actie: "edit" },
   { id: "s25-generate", naam: "Sunburst 2.5 · opnieuw tekenen", model: "gpt-image-2.5-sunburst-2026-09-08", actie: "generate" },
   { id: "s25-edit", naam: "Sunburst 2.5 · foto bewerken", model: "gpt-image-2.5-sunburst-2026-09-08", actie: "edit" },
+  // Het beeldmodel van ChatGPT zelf. Kent alleen standaardformaten, dus staand 2:3 in plaats van A4.
+  { id: "chatgpt-generate", naam: "chatgpt-image-latest · opnieuw tekenen", model: "chatgpt-image-latest", actie: "generate", formaat: "1024x1536" },
 ];
 
 export function vindConfig(id: unknown): TekenConfig | null {
