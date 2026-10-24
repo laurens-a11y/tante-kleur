@@ -87,7 +87,7 @@ export async function teken(origineel: Buffer, briefing: string, config: TekenCo
         ],
       },
     ],
-    tools: [{ type: "image_generation", model: config.model, size: config.formaat ?? formaat, quality: "high", output_format: "png", background: "opaque", action: config.actie }],
+    tools: [{ type: "image_generation", model: config.model, size: config.formaat ?? formaat, quality: config.kwaliteit ?? "high", output_format: "png", background: "opaque", action: config.actie }],
     tool_choice: { type: "image_generation" },
     store: false,
   });
