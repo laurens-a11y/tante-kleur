@@ -107,7 +107,7 @@ function maakTegels(foto: TestFoto, configs: TekenConfig[], blind: boolean, keuz
   return [origineel, ...vergelijk];
 }
 
-export function TestLab({ beginFotos, configs }: { beginFotos: TestFoto[]; configs: TekenConfig[] }) {
+export function TestLab({ beginFotos, configs, ronde }: { beginFotos: TestFoto[]; configs: TekenConfig[]; ronde: number }) {
   const [fotos, setFotos] = useState(beginFotos);
   const [blind, setBlindState] = useState(false);
   const [keuze, setKeuze] = useState<Record<string, number | undefined>>({});
@@ -193,7 +193,7 @@ export function TestLab({ beginFotos, configs }: { beginFotos: TestFoto[]; confi
     zetBezig(sleutel, true);
     zetFout(foto.id, null);
     try {
-      const plaat = await api<TestPlaat>(`/api/beheer/test/fotos/${foto.id}/teken`, json({ config: config.id }));
+      const plaat = await api<TestPlaat>(`/api/beheer/test/fotos/${foto.id}/teken`, json({ config: config.id, ronde }));
       werkFoto(foto.id, (f) => ({ ...f, platen: [...f.platen, plaat] }));
       setKeuze((k) => ({ ...k, [sleutel]: undefined }));
     } catch (e) {

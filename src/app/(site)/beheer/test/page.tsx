@@ -3,7 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { vereisBeheer } from "@/lib/beheer";
-import { tekenConfigs } from "@/lib/tekenconfigs";
+import { configsVoorRonde, laatsteRonde, testRondes, vindRonde } from "@/lib/tekenconfigs";
 import { lijstTestFotos } from "@/lib/testomgeving";
 import s from "../../page.module.css";
 import b from "../beheer.module.css";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function TestPagina() {
+export default function TestPagina({ searchParams }: PageProps<"/beheer/test">) {
   return (
     <main className={b.pagina}>
       <div className={t.breed}>
@@ -24,20 +24,22 @@ export default function TestPagina() {
           <h1 className={`${s.display} ${s.h3}`}>Testomgeving tekenplaten</h1>
         </div>
         <p className={t.uitleg}>
-          Los van de bestellingen. Upload testfoto&apos;s, laat de foto analyseren (keuring + tekenbriefing) en laat alle configuraties met dezelfde
-          briefing tekenen. Zet de ChatGPT-plaat ernaast en beoordeel elke plaat. Klik op een afbeelding om groot te vergelijken.
+          Los van de bestellingen. Upload testfoto&apos;s, laat de foto analyseren (keuring + tekenbriefing) en laat de configuraties van de ronde
+          met dezelfde briefing tekenen. Zet de ChatGPT-plaat ernaast en beoordeel elke plaat. Klik op een afbeelding om groot te vergelijken. Foto&apos;s,
+          briefings en de ChatGPT-plaat zijn in elke ronde hetzelfde; platen en scores horen bij één ronde.
         </p>
         <Suspense fallback={<p>Laden…</p>}>
-          <Inhoud />
+          <Inhoud searchParams={searchParams} />
         </Suspense>
       </div>
     </main>
   );
 }
 
-async function Inhoud() {
+async function Inhoud({ searchParams }: { searchParams: PageProps<"/beheer/test">["searchParams"] }) {
   await connection();
   await vereisBeheer();
+  const ronde = vindRonde((await searchParams).ronde) ?? vindRonde(laatsteRonde)!;
   const fotos = await lijstTestFotos();
   if (!fotos) {
     return (
@@ -49,5 +51,19 @@ async function Inhoud() {
       </section>
     );
   }
-  return <TestLab beginFotos={fotos} configs={[...tekenConfigs]} />;
+  // Alleen de platen van deze ronde; eerdere rondes blijven bewaard.
+  const vanRonde = fotos.map((f) => ({ ...f, platen: f.platen.filter((p) => (p.ronde ?? 1) === ronde.nr) }));
+  return (
+    <>
+      <nav className={b.filters} aria-label="Testronde">
+        {testRondes.map((r) => (
+          <Link key={r.nr} href={`/beheer/test?ronde=${r.nr}`} className={`${b.filter} ${r.nr === ronde.nr ? b.filterActief : ""}`}>
+            {r.naam}
+          </Link>
+        ))}
+      </nav>
+      <p className={t.uitleg}>{ronde.uitleg}</p>
+      <TestLab key={ronde.nr} beginFotos={vanRonde} configs={configsVoorRonde(ronde)} ronde={ronde.nr} />
+    </>
+  );
 }

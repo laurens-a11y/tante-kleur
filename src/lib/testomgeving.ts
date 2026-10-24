@@ -35,6 +35,9 @@ type PlaatRij = {
   duur_ms: number | null;
   score: "goed" | "fout" | null;
   notitie: string | null;
+  /** Ontbreekt zolang migratie 0007 niet is uitgevoerd; dan ronde 1. */
+  ronde?: number;
+  kwaliteit?: string | null;
   aangemaakt_op: string;
 };
 
@@ -156,7 +159,7 @@ export async function bewaarFotoVelden(id: string, invoer: { briefing?: unknown;
 }
 
 /** Stap 2: met één configuratie tekenen; de plaat komt erbij, er wordt niets overschreven. */
-export async function tekenTestFoto(id: string, config: TekenConfig): Promise<TestPlaat> {
+export async function tekenTestFoto(id: string, config: TekenConfig, ronde: number): Promise<TestPlaat> {
   const foto = await haalFotoRij(id);
   if (!foto.briefing) throw new BeheerFout("Deze foto heeft nog geen briefing. Analyseer eerst, of schrijf zelf een briefing.");
   const tekening = await teken(await downloadFoto(foto.foto_pad), foto.briefing, config);
@@ -174,11 +177,14 @@ export async function tekenTestFoto(id: string, config: TekenConfig): Promise<Te
       plaat_pad: pad,
       duur_ms: tekening.duurMs,
       usage: tekening.usage,
+      ronde,
+      kwaliteit: config.kwaliteit ?? "high",
     })
     .select()
     .single<PlaatRij>();
   if (error) {
     await verwijderBestanden(buckets.testen, [pad]);
+    if (/ronde|kwaliteit/.test(error.message)) throw new BeheerFout("Voer eerst migratie 0007_testrondes.sql uit in Supabase (SQL Editor) en probeer het opnieuw.");
     throw new Error(`Plaat opslaan mislukt: ${error.message}`);
   }
   const url = await links([pad]);
